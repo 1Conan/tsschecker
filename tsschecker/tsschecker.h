@@ -13,6 +13,8 @@
 #include "jsmn.h"
 #include <plist/plist.h>
 #include "tss.h"
+#include "all.h"
+
 
 extern int print_tss_response;
 extern int nocache;

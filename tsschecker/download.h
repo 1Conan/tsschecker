@@ -10,7 +10,7 @@
 #define download_h
 
 #include <stdio.h>
-
+#include "all.h"
 
 int downloadFile(const char *url, const char *dstPath);
 
