@@ -382,7 +382,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, uint64_t 
     
     if (checkBaseband) {
         int64_t BbGoldCertId = getBBGCIDForDevice(device);
-        if (BbGoldCertId < 0) {
+        if (BbGoldCertId == -1) {
             warning("[TSSR] WARNING: there was an error getting BasebandGoldCertID, continuing without requesting Baseband ticket\n");
         }else if (BbGoldCertId) {
             tss_populate_basebandvals(tssreq,tssparameter,BbGoldCertId);
