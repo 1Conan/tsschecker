@@ -54,7 +54,7 @@ void cmd_help(){
     printf("  -o, --ota\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\tdon't check baseband signing status. Request a ticket without baseband\n");
     printf("  -m  --build-manifest\tmanually specify buildmanifest. (can be used with -d)\n");
-    printf("  -s  --save\tsave fetched shsh blobs\n");
+    printf("  -s  --save\t\tsave fetched shsh blobs\n");
     printf("  -e, --ecid ECID\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
     printf("      --beta\t\trequest ticket for beta instead of normal relase (use with -o)\n");

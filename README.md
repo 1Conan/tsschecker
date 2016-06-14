@@ -31,11 +31,12 @@ Usage: `tsschecker [OPTIONS]`
 |  `-h`          | `--help`                  |		prints usage information                                                       |
 |  `-o`          | `--ota`	                 |	check OTA signing status, instead of normal restore                              |
 |  `-b`          | `--no-baseband`           |	don't check baseband signing status. Request a ticket without baseband           |
+|  `-m`          |`--build-manifest MANIFEST`| manually specify buildmanifest. (can be used with `-d`)                           |  
+|  `-s`          |`--save`		     | save fetched shsh blobs				                                 |  
 |  `-e`          | `--ecid ECID`	           | manually specify an ECID to be used for fetching blobs, instead of using random ones. <br>ECID must be either dec or hex eg. `5482657301265` or `ab46efcbf71`                                                          |
 |                |  `--beta`	               |	request ticket for beta instead of normal release (use with `-o`)                |
 |                | `--list-devices`          | list all known devices                                                            |
 |                |`--list-ios`	             | list all known iOS versions                                                       |
-|                |`--build-manifest MANIFEST`| manually specify buildmanifest. (can be used with `-d`)                           |  
 |                |`--nocache`       	       | ignore caches and re-download required files                                      |
 |                |`--print-tss-request`      | prints tss request that will be sent (plist)                                      |
 |                |`--print-tss-response`     | prints tss response that come from Apple (plist)                                  |
