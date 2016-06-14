@@ -25,10 +25,11 @@
 int dbglog;
 int idevicerestore_debug;
 
+
 static struct option longopts[] = {
     { "list-devices",         no_argument,       NULL, '1' },
     { "list-ios",             no_argument,       NULL, '2' },
-    { "build-manifest",       required_argument, NULL, '3' },
+    { "build-manifest",       required_argument, NULL, 'm' },
     { "print-tss-request",    no_argument,       NULL, '4' },
     { "print-tss-response",   no_argument,       NULL, '5' },
     { "beta",                 no_argument,       NULL, '6' },
@@ -39,6 +40,7 @@ static struct option longopts[] = {
     { "help",           no_argument,       NULL, 'h' },
     { "no-baseband",    no_argument,       NULL, 'b' },
     { "ota",    no_argument,       NULL, 'o' },
+    { "save",    no_argument,       NULL, 's' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -51,12 +53,13 @@ void cmd_help(){
     printf("  -h, --help\t\tprints usage information\n");
     printf("  -o, --ota\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\tdon't check baseband signing status. Request a ticket without baseband\n");
+    printf("  -m  --build-manifest\tmanually specify buildmanifest. (can be used with -d)\n");
+    printf("  -s  --save\tsave fetched shsh blobs\n");
     printf("  -e, --ecid ECID\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
     printf("      --beta\t\trequest ticket for beta instead of normal relase (use with -o)\n");
     printf("      --list-devices\tlist all known devices\n");
     printf("      --list-ios\tlist all known ios versions\n");
-    printf("      --build-manifest\tmanually specify buildmanifest. (can be used with -d)\n");
     printf("      --nocache       \tignore caches and redownload required files\n");
     printf("      --print-tss-request\n");
     printf("      --print-tss-response\n");
@@ -102,6 +105,7 @@ int main(int argc, const char * argv[]) {
     
     dbglog = 1;
     idevicerestore_debug = 0;
+    save_shshblobs = 0;
     int optindex = 0;
     int opt = 0;
     long flags = 0;
@@ -116,7 +120,7 @@ int main(int argc, const char * argv[]) {
         cmd_help();
         return -1;
     }
-    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:hbo", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:hsbo", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -133,6 +137,9 @@ int main(int argc, const char * argv[]) {
             case 'b': // long option: "no-baseband"; can be called as short option
                 flags |= FLAG_NO_BASEBAND;
                 break;
+            case 's': // long option: "save"; can be called as short option
+                save_shshblobs = 1;
+                break;
             case 'o': // long option: "ota"; can be called as short option
                 flags |= FLAG_OTA;
                 break;
@@ -142,7 +149,7 @@ int main(int argc, const char * argv[]) {
             case '2': // only long option: "list-ios"
                 flags |= FLAG_LIST_IOS;
                 break;
-            case '3': // only long option: "build-manifest"
+            case 'm': // long option: "build-manifest"; can be called as short option
                 flags |= FLAG_BUILDMANIFEST;
                 buildmanifest = optarg;
                 break;

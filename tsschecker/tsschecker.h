@@ -18,6 +18,7 @@
 
 extern int print_tss_response;
 extern int nocache;
+extern int save_shshblobs;
 
 char *getFirmwareJson();
 char *getOtaJson();

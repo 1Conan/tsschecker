@@ -63,32 +63,12 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--list-devices"
+            argument = "--print-tss-request"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-e 1c255c300be026"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--beta"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-d iPhone7,2 -i 9.3"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-o"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-o -d iPhone4,1 -i 9.2"
+            argument = "-d iPhone7,2 -i 9.3.2 -s --nocache"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-d iPhone8,1 -b --build-manifest /Users/tihmstar/ipsw/leaked/iPhone8,1_10.0_14E318a_Alpha_Factory_Firmware.Restore/BuildManifest.plist"
-            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

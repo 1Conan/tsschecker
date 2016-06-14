@@ -28,9 +28,10 @@
 
 #pragma mark getJson functions
 
-int print_tss_request;
-int print_tss_response;
-int nocache;
+int print_tss_request = 0;
+int print_tss_response = 0;
+int nocache = 0;
+int save_shshblobs = 0;
 
 char *getBBCIDJson(){
     info("[TSSC] opening bbgcid.json\n");
@@ -413,6 +414,42 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, uint64
     
     
     if (print_tss_response) debug_plist(apticket);
+    if (save_shshblobs){
+        plist_t manifest = 0;
+        plist_from_xml(buildManifestBuffer, (unsigned)strlen(buildManifestBuffer), &manifest);
+        plist_t build = plist_dict_get_item(manifest, "ProductBuildVersion");
+        char *cbuild = 0;
+        plist_get_string_val(build, &cbuild);
+        plist_t pvers = plist_dict_get_item(manifest, "ProductVersion");
+        char *cpvers = 0;
+        plist_get_string_val(pvers, &cpvers);
+        
+        plist_t pecid = plist_dict_get_item(tssreq, "ApECID");
+        plist_get_uint_val(pecid, &ecid);
+        char *cecid = ecid_to_string(ecid);
+        
+        
+        uint32_t size = 0;
+        char* data = NULL;
+        plist_to_xml(apticket, &data, &size);
+        
+        size_t fnamelen = strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen("__-.shsh") + 1;
+        char *fname = malloc(fnamelen);
+        memset(fname, 0, fnamelen);
+        snprintf(fname, fnamelen, "%s_%s_%s-%s.shsh",cecid,device,cpvers,cbuild);
+        
+        FILE *shshfile = fopen(fname, "w");
+        fwrite(data, strlen(data), 1, shshfile);
+        fclose(shshfile);
+        
+        info("Saved shsh blobs!\n");
+        
+        plist_free(manifest);
+        free(fname);
+        free(cpvers);
+        free(cbuild);
+        free(data);
+    }
     
 error:
     if (tssreq) plist_free(tssreq);

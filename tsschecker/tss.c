@@ -311,7 +311,8 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 		error("ERROR: Unable to find required ApSepNonce in parameters\n");
 		return -1;
 	}
-	plist_dict_set_item(request, "SepNonce", plist_copy(node));
+
+    plist_dict_set_item(request, "SepNonce", plist_copy(node));
 	node = NULL;
 
 	return 0;
@@ -722,7 +723,6 @@ plist_t tss_request_send(plist_t tss_request, const char* server_url_string) {
 		struct curl_slist* header = NULL;
 		header = curl_slist_append(header, "Cache-Control: no-cache");
         header = curl_slist_append(header, "Content-type: text/xml; charset=\"utf-8\"");
-        header = curl_slist_append(header, "User-Agent: User-Agent	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36");
         header = curl_slist_append(header, "Expect:");
         
 		response = malloc(sizeof(tss_response));
