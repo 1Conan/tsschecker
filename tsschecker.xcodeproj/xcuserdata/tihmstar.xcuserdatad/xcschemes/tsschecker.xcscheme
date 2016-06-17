@@ -68,6 +68,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d iPhone7,2 -i 9.3.2 -s --nocache"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-d iPhone7,2 -s -m Buildm.plist"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

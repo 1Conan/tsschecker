@@ -215,7 +215,8 @@ int main(int argc, const char * argv[]) {
             isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, ios, device, ecidNum, (flags & FLAG_OTA), !(flags & FLAG_NO_BASEBAND), (flags & FLAG_BETA));
         }
         
-        printf("\niOS %s for device %s %s being signed!\n",ios,device, (isSigned) ? "IS" : "IS NOT");
+        if (isSigned >=0) printf("\niOS %s for device %s %s being signed!\n",ios,device, (isSigned) ? "IS" : "IS NOT");
+        else printf("\nERROR: checking tss status failed!\n");
     }
     
     

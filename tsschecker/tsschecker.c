@@ -467,6 +467,7 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, uint64_t e
     plist_t ProductVersion = NULL;
     plist_t SupportedProductTypes = NULL;
     plist_t mDevice = NULL;
+    char *bufManifest = NULL;
     
     info("[TSSC] opening %s\n",buildManifestPath);
     //filehandling
@@ -475,7 +476,7 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, uint64_t e
     fseek(fmanifest, 0, SEEK_END);
     long fsize = ftell(fmanifest);
     fseek(fmanifest, 0, SEEK_SET);
-    char *bufManifest = (char*)malloc(fsize + 1);
+    bufManifest = (char*)malloc(fsize + 1);
     fread(bufManifest, fsize, 1, fmanifest);
     fclose(fmanifest);
     
@@ -504,7 +505,7 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, uint64_t e
     
 error:
     if (manifest) plist_free(manifest);
-    free(bufManifest);
+    if (bufManifest) free(bufManifest);
     return isSigned;
 #undef reterror
 }
