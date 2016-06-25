@@ -23,6 +23,7 @@ extern int save_shshblobs;
 char *getFirmwareJson();
 char *getOtaJson();
 int parseTokens(char *json, jsmntok_t **tokens);
+char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA, int *versionCntt);
 int printListOfDevices(char *firmwarejson, jsmntok_t *tokens);
 int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA);
 

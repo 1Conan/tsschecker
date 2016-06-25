@@ -21,6 +21,7 @@
 #define FLAG_NO_BASEBAND    1 << 3
 #define FLAG_BUILDMANIFEST  1 << 4
 #define FLAG_BETA           1 << 5
+#define FLAG_LATEST_IOS     1 << 6
 
 int dbglog;
 int idevicerestore_debug;
@@ -41,6 +42,7 @@ static struct option longopts[] = {
     { "no-baseband",    no_argument,       NULL, 'b' },
     { "ota",    no_argument,       NULL, 'o' },
     { "save",    no_argument,       NULL, 's' },
+    { "latest",    no_argument,       NULL, 'l' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -49,17 +51,19 @@ void cmd_help(){
     printf("Checks (real) signing status of device/firmware\n\n");
     
     printf("  -d, --device MODEL\tspecific device by its MODEL (eg. iPhone4,1)\n");
-    printf("  -i, --ios VERSION\tspecific iOS version (eg. 6.1.3)\n");
-    printf("  -h, --help\t\tprints usage information\n");
-    printf("  -o, --ota\t\tcheck OTA signing status, instead of normal restore\n");
-    printf("  -b, --no-baseband\tdon't check baseband signing status. Request a ticket without baseband\n");
+    printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
+    printf("  -h, --help\t\t\tprints usage information\n");
+    printf("  -o, --ota\t\t\t\tcheck OTA signing status, instead of normal restore\n");
+    printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
     printf("  -m  --build-manifest\tmanually specify buildmanifest. (can be used with -d)\n");
-    printf("  -s  --save\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
-    printf("  -e, --ecid ECID\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
-    printf("                 \tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
-    printf("      --beta\t\trequest ticket for beta instead of normal relase (use with -o)\n");
+    printf("  -s  --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
+    printf("  -l, --latest\t\t\tuse latest public iOS version instead of manually specifying one\n");
+    printf("                 \t\tespecially useful with -s and -e for saving blobs\n");
+    printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
+    printf("                 \t\tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
+    printf("      --beta\t\t\trequest ticket for beta instead of normal relase (use with -o)\n");
     printf("      --list-devices\tlist all known devices\n");
-    printf("      --list-ios\tlist all known ios versions\n");
+    printf("      --list-ios\t\tlist all known ios versions\n");
     printf("      --nocache       \tignore caches and redownload required files\n");
     printf("      --print-tss-request\n");
     printf("      --print-tss-response\n");
@@ -120,7 +124,7 @@ int main(int argc, const char * argv[]) {
         cmd_help();
         return -1;
     }
-    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:hsbo", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:hslbo", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -136,6 +140,9 @@ int main(int argc, const char * argv[]) {
                 break;
             case 'b': // long option: "no-baseband"; can be called as short option
                 flags |= FLAG_NO_BASEBAND;
+                break;
+            case 'l': // long option: "latest"; can be called as short option
+                flags |= FLAG_LATEST_IOS;
                 break;
             case 's': // long option: "save"; can be called as short option
                 save_shshblobs = 1;
@@ -185,13 +192,21 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    
-    
     firmwareJson = (flags & FLAG_OTA) ? getOtaJson() : getFirmwareJson();
     if (!firmwareJson) reterror(-6,"[TSSC] ERROR: could not get firmware.json\n");
     
     int cnt = parseTokens(firmwareJson, &firmwareTokens);
     if (cnt < 1) reterror(-2,"[TSSC] ERROR: parsing %s.json failed\n",(flags & FLAG_OTA) ? "ota" : "firmware");
+    
+    if (flags & FLAG_LATEST_IOS && !ios){
+        int versionCnt = 0;
+        int i = 0;
+        char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, device, (flags & FLAG_OTA), &versionCnt);
+        if (!versionCnt) reterror(-8, "[TSSC] ERROR: failed finding latest iOS. ota=%d\n",((flags & FLAG_OTA) != 0));
+        while(strstr(ios = strdup(versions[i++]),"[B]") != 0) if (--versionCnt == 0) reterror(-9, "[TSSC] ERROR: automatic iOS selection couldn't find non-beta iOS\n");
+        info("[TSSC] selecting latest iOS: %s\n",ios);
+        if (versions) free(versions[versionCnt-1]),free(versions);
+    }
     
     if (flags & FLAG_LIST_DEVICES) {
         printListOfDevices(firmwareJson, firmwareTokens);

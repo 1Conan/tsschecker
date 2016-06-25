@@ -161,7 +161,7 @@ static void partialzip_callback(partialzip_t* info, partialzip_file_t* file, siz
 }
 
 int downloadPartialzip(char *url, char *file, char *dst){
-    log("[LPZP] downloading %s from %s\n",file,url);
+    log("[LPZP] downloading %s from %s\n\n",file,url);
     return partialzip_download_file(url, file, dst, &partialzip_callback);
 }
 
@@ -597,8 +597,8 @@ int cmpfunc(const void * a, const void * b){
     return strcmp(*(char**)b, *(char**)a);
 }
 
-int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA){
-#define MAX_PER_LINE 10
+char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA, int *versionCntt){
+    //requires free(versions[versionsCnt-1]); and free(versions); after use
     jsmntok_t *firmwares = NULL;
     if (isOTA) {
         log("[JSON] printing ota list for device %s\n",device);
@@ -633,6 +633,16 @@ int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device,
     }
     versionsCnt = firmwares->size;
     qsort(versions, versionsCnt, sizeof(char *), &cmpfunc);
+    if (versionCntt) *versionCntt = versionsCnt;
+    return versions;
+}
+
+
+int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA){
+#define MAX_PER_LINE 10
+    
+    int versionsCnt;
+    char **versions = getListOfiOSForDevice(firmwarejson, tokens, device, isOTA, &versionsCnt);
     
     int rspn = 0;
     char currVer = 0;
