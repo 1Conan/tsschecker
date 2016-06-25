@@ -50,21 +50,21 @@ void cmd_help(){
     printf("Usage: tsschecker [OPTIONS]\n");
     printf("Checks (real) signing status of device/firmware\n\n");
     
-    printf("  -d, --device MODEL\tspecific device by its MODEL (eg. iPhone4,1)\n");
+    printf("  -d, --device MODEL\t\tspecific device by its MODEL (eg. iPhone4,1)\n");
     printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
     printf("  -h, --help\t\t\tprints usage information\n");
-    printf("  -o, --ota\t\t\t\tcheck OTA signing status, instead of normal restore\n");
+    printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
-    printf("  -m  --build-manifest\tmanually specify buildmanifest. (can be used with -d)\n");
+    printf("  -m  --build-manifest\t\tmanually specify buildmanifest. (can be used with -d)\n");
     printf("  -s  --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
     printf("  -l, --latest\t\t\tuse latest public iOS version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \t\tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
     printf("      --beta\t\t\trequest ticket for beta instead of normal relase (use with -o)\n");
-    printf("      --list-devices\tlist all known devices\n");
+    printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known ios versions\n");
-    printf("      --nocache       \tignore caches and redownload required files\n");
+    printf("      --nocache \t\tignore caches and redownload required files\n");
     printf("      --print-tss-request\n");
     printf("      --print-tss-response\n");
     printf("\n");

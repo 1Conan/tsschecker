@@ -71,8 +71,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-d iPhone7,2 -s -m Buildm.plist"
-            isEnabled = "YES">
+            argument = "-d iPhone7,2 -o"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--list-ios"
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
