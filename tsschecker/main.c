@@ -55,8 +55,8 @@ void cmd_help(){
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
-    printf("  -m  --build-manifest\t\tmanually specify buildmanifest. (can be used with -d)\n");
-    printf("  -s  --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
+    printf("  -m,  --build-manifest\t\tmanually specify buildmanifest. (can be used with -d)\n");
+    printf("  -s,  --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
     printf("  -l, --latest\t\t\tuse latest public iOS version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
