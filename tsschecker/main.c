@@ -28,21 +28,23 @@ int idevicerestore_debug;
 
 
 static struct option longopts[] = {
-    { "list-devices",         no_argument,       NULL, '1' },
-    { "list-ios",             no_argument,       NULL, '2' },
-    { "build-manifest",       required_argument, NULL, 'm' },
-    { "print-tss-request",    no_argument,       NULL, '4' },
-    { "print-tss-response",   no_argument,       NULL, '5' },
-    { "beta",                 no_argument,       NULL, '6' },
-    { "nocache",              no_argument,       NULL, '7' },
-    { "device",         required_argument, NULL, 'd' },
-    { "ios",            required_argument, NULL, 'i' },
-    { "ecid",           required_argument, NULL, 'e' },
-    { "help",           no_argument,       NULL, 'h' },
-    { "no-baseband",    no_argument,       NULL, 'b' },
-    { "ota",    no_argument,       NULL, 'o' },
-    { "save",    no_argument,       NULL, 's' },
-    { "latest",    no_argument,       NULL, 'l' },
+    { "list-devices",       no_argument,       NULL, '1' },
+    { "list-ios",           no_argument,       NULL, '2' },
+    { "build-manifest",     required_argument, NULL, 'm' },
+    { "print-tss-request",  no_argument,       NULL, '4' },
+    { "print-tss-response", no_argument,       NULL, '5' },
+    { "beta",               no_argument,       NULL, '6' },
+    { "nocache",            no_argument,       NULL, '7' },
+    { "apnonce",            required_argument, NULL, '8' },
+    { "sepnonce",           required_argument, NULL, '9' },
+    { "device",             required_argument, NULL, 'd' },
+    { "ios",                required_argument, NULL, 'i' },
+    { "ecid",               required_argument, NULL, 'e' },
+    { "help",               no_argument,       NULL, 'h' },
+    { "no-baseband",        no_argument,       NULL, 'b' },
+    { "ota",                no_argument,       NULL, 'o' },
+    { "save",               no_argument,       NULL, 's' },
+    { "latest",             no_argument,       NULL, 'l' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -61,6 +63,10 @@ void cmd_help(){
     printf("                 \t\tespecially useful with -s and -e for saving blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \t\tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
+    printf("      --apnonce NONCE\t\tmanually specify APNONCE instead of using random one (not required for saving blobs)\n");
+    printf("      --sepnonce NONCE\t\tmanually specify SEPNONCE instead of using random one (not required for saving blobs)\n");
+    printf("  -h, --help\t\t\tprints usage information\n");
+    
     printf("      --beta\t\t\trequest ticket for beta instead of normal relase (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known ios versions\n");
@@ -105,6 +111,32 @@ int64_t parseECID(const char *ecid){
     return ret;
 }
 
+char *parseNonce(const char *nonce){
+    char *ret = malloc((noncelen+1)*sizeof(char));
+    memset(ret, 0, noncelen+1);
+    int nlen = 0;
+    
+    int next = strlen(nonce)%2 == 0;
+    char tmp = 0;
+    while (*nonce) {
+        char c = *(nonce++);
+        
+        tmp *=16;
+        if (c >= '0' && c<='9') {
+            tmp += c - '0';
+        }else if (c >= 'a' && c <= 'f'){
+            tmp += 10 + c - 'a';
+        }else if (c >= 'A' && c <= 'F'){
+            tmp += 10 + c - 'A';
+        }else{
+            return 0; //ERROR parsing failed
+        }
+        if ((next =! next) && nlen < noncelen) ret[nlen++] = tmp,tmp=0;
+    }
+    
+    return ret;
+}
+
 int main(int argc, const char * argv[]) {
     
     dbglog = 1;
@@ -119,6 +151,14 @@ int main(int argc, const char * argv[]) {
     char *ios = 0;
     char *buildmanifest = 0;
     char *ecid = 0;
+    
+    char *apnonce = 0;
+    char *sepnonce = 0;
+    t_devicevals devVals;
+    devVals.ecid = 0;
+    devVals.apnonce = 0;
+    devVals.sepnonce = 0;
+    
     
     if (argc == 1){
         cmd_help();
@@ -172,6 +212,13 @@ int main(int argc, const char * argv[]) {
             case '7': // only long option: "nocache"
                 nocache = 1;
                 break;
+            case '8': // only long option: "apnonce"
+                apnonce = optarg;
+                break;
+            case '9': // only long option: "sepnonce"
+                sepnonce = optarg;
+                break;
+                
             default:
                 cmd_help();
                 return -1;
@@ -189,6 +236,26 @@ int main(int argc, const char * argv[]) {
             reterror(-7, "[TSSC] ERROR: manually specified ecid=%s, but parsing failed\n",ecid);
         }else{
             info("[TSSC] manually specified ecid to use, parsed \"%s\" to dec:%lld hex:%llx\n",ecid,ecidNum,ecidNum);
+        }
+    }
+    if (apnonce) {
+        if ((devVals.apnonce = parseNonce(apnonce)) ){
+            info("[TSSC] manually specified apnonce to use, parsed \"%s\" to hex:",apnonce);
+            unsigned char *tmp = (unsigned char*)devVals.apnonce;
+            while (*tmp) info("%02x",*tmp++);
+            info("\n");
+        }else{
+            reterror(-7, "[TSSC] ERROR: manually specified apnonce=%s, but parsing failed\n",apnonce);
+        }
+    }
+    if (sepnonce) {
+        if ((devVals.sepnonce = parseNonce(sepnonce)) ){
+            info("[TSSC] manually specified sepnonce to use, parsed \"%s\" to hex:",sepnonce);
+            unsigned char *tmp = (unsigned char*)devVals.sepnonce;
+            while (*tmp) info("%02x",*tmp++);
+            info("\n");
+        }else{
+            reterror(-7, "[TSSC] ERROR: manually specified sepnonce=%s, but parsing failed\n",sepnonce);
         }
     }
     
@@ -220,14 +287,14 @@ int main(int argc, const char * argv[]) {
         if (buildmanifest) {
             if (device && !checkDeviceExists(device, firmwareJson, firmwareTokens, (flags & FLAG_OTA))) reterror(-4,"[TSSC] ERROR: device %s could not be found in devicelist\n",device);
             
-            isSigned = isManifestSignedForDevice(buildmanifest, &device, ecidNum, !(flags & FLAG_NO_BASEBAND), &ios);
+            isSigned = isManifestSignedForDevice(buildmanifest, &device, devVals, !(flags & FLAG_NO_BASEBAND), &ios);
 
         }else{
             if (!device) reterror(-3,"[TSSC] ERROR: please specify a device for this option\n\tuse -h for more help\n");
             if (!ios) reterror(-5,"[TSSC] ERROR: please specify an iOS version for this option\n\tuse -h for more help\n");
             if (!checkFirmwareForDeviceExists(device, ios, firmwareJson, firmwareTokens, (flags & FLAG_OTA))) reterror(-6, "[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",device,ios);
             
-            isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, ios, device, ecidNum, (flags & FLAG_OTA), !(flags & FLAG_NO_BASEBAND), (flags & FLAG_BETA));
+            isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, ios, device, devVals, (flags & FLAG_OTA), !(flags & FLAG_NO_BASEBAND), (flags & FLAG_BETA));
         }
         
         if (isSigned >=0) printf("\niOS %s for device %s %s being signed!\n",ios,device, (isSigned) ? "IS" : "IS NOT");
@@ -237,6 +304,8 @@ int main(int argc, const char * argv[]) {
     
     
 error:
+    if (devVals.apnonce) free(devVals.apnonce);
+    if (devVals.sepnonce) free(devVals.sepnonce);
     if (firmwareJson) free(firmwareJson);
     if (firmwareTokens) free(firmwareTokens);
     return err ? err : isSigned;

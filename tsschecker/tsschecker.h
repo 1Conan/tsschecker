@@ -14,11 +14,18 @@
 #include <plist/plist.h>
 #include "tss.h"
 #include "all.h"
+#define noncelen 20
 
 
 extern int print_tss_response;
 extern int nocache;
 extern int save_shshblobs;
+
+typedef struct{
+    uint64_t ecid;
+    char *apnonce;
+    char *sepnonce;
+}t_devicevals;
 
 char *getFirmwareJson();
 char *getOtaJson();
@@ -31,10 +38,10 @@ char *getFirmwareUrl(char *device, char *version,char *firmwarejson, jsmntok_t *
 char *getBuildManifest(char *url, int isOta);
 int64_t getBBGCIDForDevice(char *deviceModel);
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, uint64_t ecid, int checkBaseband);
-int isManifestSignedForDevice(char *buildbManifestPath, char **device, uint64_t ecid, int checkBaseband, char **version);
-int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, uint64_t ecid, int checkBaseband);
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char *version, char *device, uint64_t ecid, int otaFirmware, int checkBaseband, int useBeta);
+int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals devVals, int checkBaseband);
+int isManifestSignedForDevice(char *buildbManifestPath, char **device, t_devicevals devVals, int checkBaseband, char **version);
+int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devicevals devVals, int checkBaseband);
+int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char *version, char *device, t_devicevals devVals, int otaFirmware, int checkBaseband, int useBeta);
 
 int checkDeviceExists(char *device, char *firmwareJson, jsmntok_t *tokens, int isOta);
 int checkFirmwareForDeviceExists(char *device, char *version, char *firmwareJson, jsmntok_t *tokens, int isOta);

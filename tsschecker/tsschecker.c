@@ -25,7 +25,6 @@
 #define BBGCID_JSON_URL "http://api.tihmstar.net/bbgcid?condensed=1"
 
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
-#define noncelen 20
 
 #pragma mark getJson functions
 
@@ -317,28 +316,32 @@ int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbG
     return 0;
 }
 
-int tss_populate_random(plist_t tssreq, int is64bit, uint64_t ecid){
+int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals devVals){
     char nonce[noncelen+1];
     char sep_nonce[noncelen+1];
     
     int n=0;
     srand((unsigned int)time(NULL));
-    if (!ecid) for (int i=0; i<16; i++) ecid += (random() % 10) * pow(10, n++);
-    getRandNum(nonce, noncelen, 256);
-    getRandNum(sep_nonce, noncelen, 256);
+    if (!devVals.ecid) for (int i=0; i<16; i++) devVals.ecid += (random() % 10) * pow(10, n++);
+
+    if (devVals.apnonce) memcpy(nonce, devVals.apnonce, noncelen+1);
+    else getRandNum(nonce, noncelen, 256);
+    
+    if (devVals.sepnonce) memcpy(sep_nonce, devVals.sepnonce, noncelen+1);
+    else getRandNum(sep_nonce, noncelen, 256);
     
     nonce[noncelen] = sep_nonce[noncelen] = 0;
     
-    debug("[TSSR] ecid=%llu\n",ecid);
+    debug("[TSSR] ecid=%llu\n",devVals.ecid);
     debug("[TSSR] nonce=%s\n",nonce);
     debug("[TSSR] sepnonce=%s\n",sep_nonce);
     
-    return tss_populate_devicevals(tssreq, ecid, nonce, noncelen, sep_nonce, noncelen, is64bit);
+    return tss_populate_devicevals(tssreq, devVals.ecid, nonce, noncelen, sep_nonce, noncelen, is64bit);
 }
 
 
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, uint64_t ecid, int checkBaseband){
+int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals devVals, int checkBaseband){
 #define reterror(a) {error(a); error = -1; goto error;}
     int error = 0;
     plist_t manifest = NULL;
@@ -362,7 +365,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, uint64_t 
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
     int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
     
-    tss_populate_random(tssparameter,is64Bit,ecid);
+    tss_populate_random(tssparameter,is64Bit,devVals);
     tss_parameters_add_from_manifest(tssparameter, id0);
     
     if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
@@ -407,12 +410,12 @@ error:
 #undef reterror
 }
 
-int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, uint64_t ecid, int checkBaseband){
+int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devicevals devVals, int checkBaseband){
     int isSigned = 0;
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     
-    tssrequest(&tssreq, buildManifestBuffer, device, ecid, checkBaseband);
+    tssrequest(&tssreq, buildManifestBuffer, device, devVals, checkBaseband);
     isSigned = ((apticket = tss_request_send(tssreq, NULL)) > 0);
     
     
@@ -428,8 +431,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, uint64
         plist_get_string_val(pvers, &cpvers);
         
         plist_t pecid = plist_dict_get_item(tssreq, "ApECID");
-        plist_get_uint_val(pecid, &ecid);
-        char *cecid = ecid_to_string(ecid);
+        plist_get_uint_val(pecid, &devVals.ecid);
+        char *cecid = ecid_to_string(devVals.ecid);
         
         
         uint32_t size = 0;
@@ -460,7 +463,7 @@ error:
     return isSigned;
 }
 
-int isManifestSignedForDevice(char *buildManifestPath, char **device, uint64_t ecid, int checkBaseband, char **version){
+int isManifestSignedForDevice(char *buildManifestPath, char **device, t_devicevals devVals, int checkBaseband, char **version){
     int isSigned = 0;
 #define reterror(a ...) {error(a); isSigned = -1; goto error;}
     plist_t manifest = NULL;
@@ -501,7 +504,7 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, uint64_t e
         else info("[TSSR] requesting ticket for %s\n",*device);
     }
     
-    isSigned = isManifestBufSignedForDevice(bufManifest, *device, ecid, checkBaseband);
+    isSigned = isManifestBufSignedForDevice(bufManifest, *device, devVals, checkBaseband);
     
 error:
     if (manifest) plist_free(manifest);
@@ -510,7 +513,7 @@ error:
 #undef reterror
 }
 
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char *version, char *device, uint64_t ecid, int otaFirmware, int checkBaseband, int useBeta){
+int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char *version, char *device, t_devicevals devVals, int otaFirmware, int checkBaseband, int useBeta){
     
     if (*version == '3' || *version - '0' < 3) {
         info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",version);
@@ -529,7 +532,7 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char
     if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
     
     
-    isSigned = isManifestBufSignedForDevice(buildManifest, device, ecid, checkBaseband);
+    isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, checkBaseband);
     
 error:
     if (url) free(url);
