@@ -45,6 +45,7 @@ static struct option longopts[] = {
     { "ota",                no_argument,       NULL, 'o' },
     { "save",               no_argument,       NULL, 's' },
     { "latest",             no_argument,       NULL, 'l' },
+    { "debug",              no_argument,       NULL, '0' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -103,7 +104,7 @@ int64_t parseECID(const char *ecid){
             }else if (c >= 'A' && c <= 'F'){
                 ret += 10 + c - 'A';
             }else{
-                return -1; //ERROR parsing failed
+                return 0; //ERROR parsing failed
             }
         }
     }
@@ -190,6 +191,9 @@ int main(int argc, const char * argv[]) {
             case 'o': // long option: "ota"; can be called as short option
                 flags |= FLAG_OTA;
                 break;
+            case '0': // only long option: "debug"
+                idevicerestore_debug = 1;
+                break;
             case '1': // only long option: "list-devices"
                 flags |= FLAG_LIST_DEVICES;
                 break;
@@ -228,14 +232,14 @@ int main(int argc, const char * argv[]) {
     int isSigned = 0;
     char *firmwareJson = NULL;
     jsmntok_t *firmwareTokens = NULL;
-    int64_t ecidNum = 0;
+    
 #define reterror(code,a ...) {error(a); err = code; goto error;}
     
     if (ecid) {
-        if ((ecidNum = parseECID(ecid)) <0){
+        if ((devVals.ecid = parseECID(ecid)) == 0){
             reterror(-7, "[TSSC] ERROR: manually specified ecid=%s, but parsing failed\n",ecid);
         }else{
-            info("[TSSC] manually specified ecid to use, parsed \"%s\" to dec:%lld hex:%llx\n",ecid,ecidNum,ecidNum);
+            info("[TSSC] manually specified ecid to use, parsed \"%s\" to dec:%lld hex:%llx\n",ecid,devVals.ecid,devVals.ecid);
         }
     }
     if (apnonce) {

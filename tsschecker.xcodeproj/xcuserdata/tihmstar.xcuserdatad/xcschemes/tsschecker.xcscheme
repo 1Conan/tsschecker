@@ -67,16 +67,20 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--debug"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-d iPhone7,2 -i 9.3.2 -s --nocache"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-d iPhone7,2 -o"
-            isEnabled = "NO">
+            argument = "-d iPhone7,2 -l --apnonce a0d98fd69e122797ad6fb27376e83d982d321eff"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--list-ios"
-            isEnabled = "NO">
+            argument = "-e 5446162539728"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
