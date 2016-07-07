@@ -252,8 +252,8 @@ void getRandNum(char *dst, size_t size, int base){
     srand((unsigned int)time(NULL));
     for (int i=0; i<size; i++) {
         int j;
-        if (base == 256) dst[i] = random() % base;
-        else dst[i] = ((j = random() % base) < 10) ? '0' + j : 'a' + j-10;
+        if (base == 256) dst[i] = rand() % base;
+        else dst[i] = ((j = rand() % base) < 10) ? '0' + j : 'a' + j-10;
     }
 }
 
@@ -291,7 +291,7 @@ int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbG
     getRandNum(bbnonce, noncelen, 256);
     getRandNum(bbsnum, 4, 256);
     srand((unsigned int)time(NULL));
-    int n=0; for (int i=1; i<7; i++) BbChipID += (random() % 10) * pow(10, ++n);
+    int n=0; for (int i=1; i<7; i++) BbChipID += (rand() % 10) * pow(10, ++n);
     
     
     plist_dict_set_item(parameters, "BbNonce", plist_new_data(bbnonce, noncelen));
@@ -322,7 +322,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals devVals){
     
     int n=0;
     srand((unsigned int)time(NULL));
-    if (!devVals.ecid) for (int i=0; i<16; i++) devVals.ecid += (random() % 10) * pow(10, n++);
+    if (!devVals.ecid) for (int i=0; i<16; i++) devVals.ecid += (rand() % 10) * pow(10, n++);
 
     if (devVals.apnonce) memcpy(nonce, devVals.apnonce, noncelen+1);
     else getRandNum(nonce, noncelen, 256);
