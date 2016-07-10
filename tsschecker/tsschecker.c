@@ -457,7 +457,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         free(data);
     }
     
-error:
+//error:
     if (tssreq) plist_free(tssreq);
     if (apticket) plist_free(apticket);
     return isSigned;
@@ -515,7 +515,7 @@ error:
 
 int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char *version, char *device, t_devicevals devVals, int otaFirmware, int checkBaseband, int useBeta){
     
-    if (*version == '3' || *version - '0' < 3) {
+    if (atoi(version) <= 3) {
         info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",version);
         return 1;
     }
@@ -586,18 +586,25 @@ int printListOfDevices(char *firmwarejson, jsmntok_t *tokens){
 int cmpfunc(const void * a, const void * b){
     char *aa = *(char**)a;
     char *bb = *(char**)b;
+    int d;
     
-    char *ac = strchr(aa, '[');
-    char *bc = strchr(bb, '[');
-    
-    if ((ac != 0) ^ (bc != 0)) {
-        *(ac + (long)bc) = 0;
-        int ret = strcmp(*(char**)b, *(char**)a);
-        *(ac + (long)bc) = '[';
-        return ret ? ret : (int)ac - (int)bc;
+    while(1) {
+        d = atoi(bb) - atoi(aa);
+        if(d != 0)
+            return d;
+        aa = strchr(aa, '.');
+        bb = strchr(bb, '.');
+        if(aa == NULL || bb == NULL) {
+            if(aa == NULL && bb == NULL) {
+                aa = strchr(*(char**)a, '[');
+                bb = strchr(*(char**)b, '[');
+                return aa == NULL ? (bb == NULL ? 0 : -1) : 1;
+            }
+            return aa == NULL ? 1 : -1;
+        }
+        aa++;
+        bb++;
     }
-    
-    return strcmp(*(char**)b, *(char**)a);
 }
 
 char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA, int *versionCntt){
@@ -631,8 +638,8 @@ char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device
         
         versions[--versionsCnt] = (char*)malloc((verslen+1 + isBeta * strlen("[B]")) * sizeof(char));
         strncpy(versions[versionsCnt], firmwarejson + ios->value->start, verslen);
-        if (isBeta) strncat(versions[versionsCnt], "[B]", strlen("[B]"));
-        versions[versionsCnt][verslen+1 + isBeta * strlen("[B]")] = 0;
+        if (isBeta) strncpy(&versions[versionsCnt][verslen], "[B]", strlen("[B]"));
+        versions[versionsCnt][verslen + isBeta * strlen("[B]")] = '\0';
     }
     versionsCnt = firmwares->size;
     qsort(versions, versionsCnt, sizeof(char *), &cmpfunc);
@@ -647,22 +654,24 @@ int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device,
     int versionsCnt;
     char **versions = getListOfiOSForDevice(firmwarejson, tokens, device, isOTA, &versionsCnt);
     
-    int rspn = 0;
-    char currVer = 0;
+    int rspn = 0,
+        currVer = 0,
+        nextVer = 0;
     for (int i=0; i<versionsCnt; i++) {
         if (i){
             int res = strcmp(versions[i-1], versions[i]);
             free(versions[i-1]);
             if (res == 0) continue;
         }
-        if (currVer && currVer != *versions[i]) printf("\n"), rspn = 0;
-        currVer = *versions[i];
-        if (!rspn) printf("[iOS %c] ",currVer);
         
         
+        nextVer = atoi(versions[i]);
+        if (currVer && currVer != nextVer) printf("\n"), rspn = 0;
+        currVer = nextVer;
+        if (!rspn) printf("[iOS %2i] ",currVer);
         int printed = 0;
         printf("%s%n",versions[i],&printed);
-        while (printed++ < 9) putchar(' ');
+        while (printed++ < 12) putchar(' ');
         if (++rspn>= MAX_PER_LINE) putchar('\n'), rspn = 0; else putchar(' ');
     }
     free(versions[versionsCnt-1]);
@@ -706,12 +715,3 @@ int checkFirmwareForDeviceExists(char *device, char *version, char *firmwareJson
     
     return 0;
 }
-
-
-
-
-
-
-
-
-
