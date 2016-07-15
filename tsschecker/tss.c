@@ -761,9 +761,12 @@ plist_t tss_request_send(plist_t tss_request, const char* server_url_string) {
 	
 		if (strstr(response->content, "MESSAGE=SUCCESS")) {
 			status_code = 0;
-			info("response successfully received\n");
+			info("success\n");
 			break;
 		}
+        else {
+            info("failure\n");
+        }
 
 		if (response->length > 0) {
 			error("TSS server returned: %s\n", response->content);
