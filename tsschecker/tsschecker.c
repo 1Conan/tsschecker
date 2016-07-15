@@ -420,7 +420,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
     
     
     if (print_tss_response) debug_plist(apticket);
-    if (save_shshblobs){
+    if (isSigned && save_shshblobs){
         plist_t manifest = 0;
         plist_from_xml(buildManifestBuffer, (unsigned)strlen(buildManifestBuffer), &manifest);
         plist_t build = plist_dict_get_item(manifest, "ProductBuildVersion");
