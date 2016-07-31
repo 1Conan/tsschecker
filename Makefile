@@ -1,5 +1,5 @@
 TARGET = tsschecker_tool
-CFLAGS += -Wall
+CFLAGS += -Wall -std=c11
 LDFLAGS += -lplist -lpartialzip-1.0 -lz -lcurl -lcrippy-1.0 -lxml2 -lm
 
 all : $(TARGET)
