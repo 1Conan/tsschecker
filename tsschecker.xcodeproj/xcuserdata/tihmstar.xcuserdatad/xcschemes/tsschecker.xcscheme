@@ -67,7 +67,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--debug"
+            argument = "-d iPhone6,2 -l -o -s --save-path /tmp/tss/"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -76,7 +76,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d iPhone7,2 -l --apnonce a0d98fd69e122797ad6fb27376e83d982d321eff"
-            isEnabled = "YES">
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--list-ios -d iPhone6,2 -o"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-e 5446162539728"

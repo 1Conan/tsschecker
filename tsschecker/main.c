@@ -278,8 +278,10 @@ int main(int argc, const char * argv[]) {
         char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, device, (flags & FLAG_OTA), &versionCnt);
         if (!versionCnt) reterror(-8, "[TSSC] ERROR: failed finding latest iOS. ota=%d\n",((flags & FLAG_OTA) != 0));
         char *bpos = NULL;
-        while((bpos = strstr(ios = strdup(versions[i++]),"[B]")) != 0 && !(flags & FLAG_OTA))
+        while((bpos = strstr(ios = strdup(versions[i++]),"[B]")) != 0){
+            if (flags & FLAG_BETA) break;
             if (--versionCnt == 0) reterror(-9, "[TSSC] ERROR: automatic iOS selection couldn't find non-beta iOS\n");
+        }
         info("[TSSC] selecting latest iOS: %s\n",ios);
         if (bpos) *bpos= '\0';
         if (versions) free(versions[versionCnt-1]),free(versions);
