@@ -8,6 +8,7 @@ done
 
 rm /tmp/ota.json
 rm /tmp/firmware.json
+rm /tmp/bbgcid.json
 
 while read device; do
   	if [ -z "$device" ]; then
