@@ -31,6 +31,7 @@ static struct option longopts[] = {
     { "list-devices",       no_argument,       NULL, '1' },
     { "list-ios",           no_argument,       NULL, '2' },
     { "build-manifest",     required_argument, NULL, 'm' },
+    { "save-path",          required_argument, NULL, '3' },
     { "print-tss-request",  no_argument,       NULL, '4' },
     { "print-tss-response", no_argument,       NULL, '5' },
     { "beta",               no_argument,       NULL, '6' },
@@ -66,8 +67,8 @@ void cmd_help(){
     printf("                 \t\tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
     printf("      --apnonce NONCE\t\tmanually specify APNONCE instead of using random one (not required for saving blobs)\n");
     printf("      --sepnonce NONCE\t\tmanually specify SEPNONCE instead of using random one (not required for saving blobs)\n");
+    printf("      --save-path PATH\t\tspecify path for saving blobs\n");
     printf("  -h, --help\t\t\tprints usage information\n");
-    
     printf("      --beta\t\t\trequest ticket for beta instead of normal relase (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known ios versions\n");
@@ -147,7 +148,6 @@ int main(int argc, const char * argv[]) {
     int opt = 0;
     long flags = 0;
     
-    
     char *device = 0;
     char *ios = 0;
     char *buildmanifest = 0;
@@ -203,6 +203,9 @@ int main(int argc, const char * argv[]) {
             case 'm': // long option: "build-manifest"; can be called as short option
                 flags |= FLAG_BUILDMANIFEST;
                 buildmanifest = optarg;
+                break;
+            case '3': // only long option: "save-path"
+                shshSavePath = optarg;
                 break;
             case '4': // only long option: "print-tss-request"
                 print_tss_request = 1;
@@ -274,8 +277,11 @@ int main(int argc, const char * argv[]) {
         int i = 0;
         char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, device, (flags & FLAG_OTA), &versionCnt);
         if (!versionCnt) reterror(-8, "[TSSC] ERROR: failed finding latest iOS. ota=%d\n",((flags & FLAG_OTA) != 0));
-        while(strstr(ios = strdup(versions[i++]),"[B]") != 0) if (--versionCnt == 0) reterror(-9, "[TSSC] ERROR: automatic iOS selection couldn't find non-beta iOS\n");
+        char *bpos = NULL;
+        while((bpos = strstr(ios = strdup(versions[i++]),"[B]")) != 0 && !(flags & FLAG_OTA))
+            if (--versionCnt == 0) reterror(-9, "[TSSC] ERROR: automatic iOS selection couldn't find non-beta iOS\n");
         info("[TSSC] selecting latest iOS: %s\n",ios);
+        if (bpos) *bpos= '\0';
         if (versions) free(versions[versionCnt-1]),free(versions);
     }
     
