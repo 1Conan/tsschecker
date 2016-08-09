@@ -450,10 +450,13 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         snprintf(fname+prePathLen, fnamelen, "/%s_%s_%s-%s.shsh",cecid,device,cpvers,cbuild);
         
         FILE *shshfile = fopen(fname, "w");
-        fwrite(data, strlen(data), 1, shshfile);
-        fclose(shshfile);
+        if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
+        else{
+            fwrite(data, strlen(data), 1, shshfile);
+            fclose(shshfile);
+            info("Saved shsh blobs!\n");
+        }
         
-        info("Saved shsh blobs!\n");
         
         plist_free(manifest);
         free(fname);
