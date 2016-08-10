@@ -32,6 +32,7 @@ int print_tss_request = 0;
 int print_tss_response = 0;
 int nocache = 0;
 int save_shshblobs = 0;
+const char *shshSavePath = "./";
 
 char *getBBCIDJson(){
     info("[TSSC] opening bbgcid.json\n");
@@ -439,16 +440,23 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         char* data = NULL;
         plist_to_xml(apticket, &data, &size);
         
-        size_t fnamelen = strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen("__-.shsh") + 1;
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen("/__-.shsh") + 1;
         char *fname = malloc(fnamelen);
         memset(fname, 0, fnamelen);
-        snprintf(fname, fnamelen, "%s_%s_%s-%s.shsh",cecid,device,cpvers,cbuild);
+        size_t prePathLen= strlen(shshSavePath);
+        if (shshSavePath[prePathLen-1] == '/') prePathLen--;
+        strncpy(fname, shshSavePath, prePathLen);
+        
+        snprintf(fname+prePathLen, fnamelen, "/%s_%s_%s-%s.shsh",cecid,device,cpvers,cbuild);
         
         FILE *shshfile = fopen(fname, "w");
-        fwrite(data, strlen(data), 1, shshfile);
-        fclose(shshfile);
+        if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
+        else{
+            fwrite(data, strlen(data), 1, shshfile);
+            fclose(shshfile);
+            info("Saved shsh blobs!\n");
+        }
         
-        info("Saved shsh blobs!\n");
         
         plist_free(manifest);
         free(fname);

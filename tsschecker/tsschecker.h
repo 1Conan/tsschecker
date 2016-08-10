@@ -20,6 +20,8 @@
 extern int print_tss_response;
 extern int nocache;
 extern int save_shshblobs;
+extern const char *shshSavePath;
+
 
 typedef struct{
     uint64_t ecid;
