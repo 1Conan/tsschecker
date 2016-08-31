@@ -10,7 +10,7 @@ $(TARGET) : $(OBJECTS)
 		@echo "Successfully built $(TARGET)"
 
 $(SRC_DIR)/%.o : $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS)  $< -c -o $@
+		$(CC) $(CFLAGS)  $< -c -o $@
 
 install : $(TARGET)
 		cp $(TARGET) /usr/local/bin/
