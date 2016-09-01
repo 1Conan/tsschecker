@@ -119,20 +119,20 @@ int parseTokens(char *json, jsmntok_t **tokens){
 
 #pragma mark get functions
 
-char *getFirmwareUrl(char *device, char *version,char *firmwarejson, jsmntok_t *tokens, int isOta, int useBeta){
+char *getFirmwareUrl(char *device, t_iosVersion versVals,char *firmwarejson, jsmntok_t *tokens){
     
-    jsmntok_t *devices = (isOta) ? tokens : objectForKey(tokens, firmwarejson, "devices");
+    jsmntok_t *devices = (versVals.isOta) ? tokens : objectForKey(tokens, firmwarejson, "devices");
     jsmntok_t *mydevice = objectForKey(devices, firmwarejson, device);
     jsmntok_t *firmwares = objectForKey(mydevice, firmwarejson, "firmwares");
     
     for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
-        jsmntok_t *ios = objectForKey(tmp, firmwarejson, "version");
-        if (ios->value->end - ios->value->start == strlen(version) && strncmp(version, firmwarejson + ios->value->start, strlen(version)) == 0) {
+        jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals.isBuildid) ? "buildid" : "version");
+        if (ios->value->end - ios->value->start == strlen(versVals.version) && strncmp(versVals.version, firmwarejson + ios->value->start, strlen(versVals.version)) == 0) {
             
-            if (isOta) {
+            if (versVals.isOta) {
                 jsmntok_t *releaseType = NULL;
-                if (useBeta && !(releaseType = objectForKey(tmp, firmwarejson, "releasetype"))) continue;
-                else if (!useBeta);
+                if (versVals.useBeta && !(releaseType = objectForKey(tmp, firmwarejson, "releasetype"))) continue;
+                else if (!versVals.useBeta);
                 else if (strncmp(firmwarejson + releaseType->value->start, "Beta", releaseType->value->end - releaseType->value->start) != 0) continue;
             }
             
@@ -142,6 +142,11 @@ char *getFirmwareUrl(char *device, char *version,char *firmwarejson, jsmntok_t *
             char *cpy = ret;
             memset(ret, 0, url->end - url->start+1);
             for (int i=url->start ; i< url->end; i++) *(cpy++) = firmwarejson[i];
+            
+            
+            jsmntok_t *i_vers = objectForKey(tmp, firmwarejson, "version");
+            jsmntok_t *i_build = objectForKey(tmp, firmwarejson, "buildid");
+            info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",i_vers->value->end - i_vers->value->start,firmwarejson + i_vers->value->start,i_build->value->end - i_build->value->start,firmwarejson + i_build->value->start);
             return ret;
         }
         
@@ -471,7 +476,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
     return isSigned;
 }
 
-int isManifestSignedForDevice(char *buildManifestPath, char **device, t_devicevals devVals, int checkBaseband, char **version){
+int isManifestSignedForDevice(char *buildManifestPath, char **device, t_devicevals devVals, t_iosVersion versVals){
     int isSigned = 0;
 #define reterror(a ...) {error(a); isSigned = -1; goto error;}
     plist_t manifest = NULL;
@@ -492,12 +497,13 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, t_deviceva
     fclose(fmanifest);
     
     plist_from_xml(bufManifest, (unsigned)strlen(bufManifest), &manifest);
-    if (version && !*version){
+    if (versVals.version && !*versVals.version){
         if (!manifest){
             warning("[TSSC] WARNING: could not find ProductVersion in BuildManifest.plist, failing to properly display iOS version\n");
         }else{
             ProductVersion = plist_dict_get_item(manifest, "ProductVersion");
-            plist_get_string_val(ProductVersion, version);
+            if (versVals.isBuildid) reterror("[TSSC] Error, this option is not supported with buildid. Please use -i instead\n");
+            plist_get_string_val(ProductVersion, (char**)&versVals.version);
         }
     }
     if (!*device) {
@@ -512,7 +518,7 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, t_deviceva
         else info("[TSSR] requesting ticket for %s\n",*device);
     }
     
-    isSigned = isManifestBufSignedForDevice(bufManifest, *device, devVals, checkBaseband);
+    isSigned = isManifestBufSignedForDevice(bufManifest, *device, devVals, !versVals.noBaseband);
     
 error:
     if (manifest) plist_free(manifest);
@@ -521,10 +527,10 @@ error:
 #undef reterror
 }
 
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char *version, char *device, t_devicevals devVals, int otaFirmware, int checkBaseband, int useBeta){
+int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, char *device, t_devicevals devVals){
     
-    if (atoi(version) <= 3) {
-        info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",version);
+    if (atoi(versVals.version) <= 3) {
+        info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals.version);
         return 1;
     }
     
@@ -533,14 +539,14 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, char
     char *url = NULL;
     char *buildManifest = NULL;
     
-    url = getFirmwareUrl(device, version, firmwareJson, firmwareTokens, otaFirmware, useBeta);
-    if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",device,version);
+    url = getFirmwareUrl(device, versVals, firmwareJson, firmwareTokens);
+    if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",device,versVals.version);
     
-    buildManifest = getBuildManifest(url, otaFirmware);
+    buildManifest = getBuildManifest(url, versVals.isOta);
     if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
     
     
-    isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, checkBaseband);
+    isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, !versVals.noBaseband);
     
 error:
     if (url) free(url);
@@ -704,17 +710,18 @@ int checkDeviceExists(char *device, char *firmwareJson, jsmntok_t *tokens, int i
     return 0;
 }
 
-int checkFirmwareForDeviceExists(char *device, char *version, char *firmwareJson, jsmntok_t *tokens, int isOta){
-    jsmntok_t *ctok = (isOta) ? tokens : objectForKey(tokens, firmwareJson, "devices");
+int checkFirmwareForDeviceExists(char *device, t_iosVersion versVals, char *firmwareJson, jsmntok_t *tokens){
+    
+    jsmntok_t *ctok = (versVals.isOta) ? tokens : objectForKey(tokens, firmwareJson, "devices");
     for (jsmntok_t *tmp = ctok->value; ; tmp = tmp->next) {
         if (strncmp(device, firmwareJson+tmp->start, tmp->end - tmp->start) == 0){
             jsmntok_t *firmwares = objectForKey(tmp, firmwareJson, "firmwares");
             
             for (jsmntok_t *tt = firmwares->value; tt ;tt = tt->next) {
                 
-                jsmntok_t *versiont = objectForKey(tt, firmwareJson, "version");
+                jsmntok_t *versiont = objectForKey(tt, firmwareJson, (versVals.isBuildid) ? "buildid" : "version");
                 size_t len = versiont->value->end - versiont->value->start;
-                if (len == strlen(version) && strncmp(version, firmwareJson + versiont->value->start, len) == 0) return 1;
+                if (len == strlen(versVals.version) && strncmp(versVals.version, firmwareJson + versiont->value->start, len) == 0) return 1;
             }
             break;
         }
