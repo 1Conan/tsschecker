@@ -45,7 +45,7 @@ int printListOfDevices(char *firmwarejson, jsmntok_t *tokens);
 int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA);
 
 char *getFirmwareUrl(char *device, t_iosVersion versVals,char *firmwarejson, jsmntok_t *tokens);
-char *getBuildManifest(char *url, int isOta);
+char *getBuildManifest(char *url, const char *device, const char *version, int isOta);
 int64_t getBBGCIDForDevice(char *deviceModel);
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals devVals, int checkBaseband);

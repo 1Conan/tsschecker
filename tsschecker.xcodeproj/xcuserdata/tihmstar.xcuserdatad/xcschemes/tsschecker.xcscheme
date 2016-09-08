@@ -67,7 +67,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-d iPhone7,2 --buildid 13C75"
+            argument = "-d iPhone7,2 -i 9.3.5 -o"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

@@ -170,30 +170,37 @@ int downloadPartialzip(char *url, char *file, char *dst){
     return partialzip_download_file(url, file, dst, &partialzip_callback);
 }
 
-char *getBuildManifest(char *url, int isOta){
+char *getBuildManifest(char *url, const char *device, const char *version, int isOta){
     struct stat st = {0};
     
-    //gen name
-    size_t len = strlen(url)-1;
-    char *name = NULL;
-    while (url[--len] != '/') name = url+len;
-    
-    len = strlen(url+len) + strlen(MANIFEST_SAVE_PATH) + 1 +1;
+    size_t len = strlen(MANIFEST_SAVE_PATH) + strlen("/_") + strlen(device) + strlen(version) +1;
     if (isOta) len += strlen("ota");
     char *fileDir = malloc(len);
     memset(fileDir, 0, len);
     
     strncat(fileDir, MANIFEST_SAVE_PATH, strlen(MANIFEST_SAVE_PATH));
     strncat(fileDir, "/", 1);
-    strncat(fileDir, name, strlen(MANIFEST_SAVE_PATH));
+    strncat(fileDir, device, strlen(device));
+    strncat(fileDir, "_", strlen("_"));
+    strncat(fileDir, version, strlen(version));
+    
     if (isOta) strncat(fileDir, "ota", strlen("ota"));
-
+    
     memset(&st, 0, sizeof(st));
     if (stat(MANIFEST_SAVE_PATH, &st) == -1) mkdir(MANIFEST_SAVE_PATH, 0700);
     
+    //gen name
+    char *name = fileDir + strlen(fileDir);
+    while (*--name != '/');
+    name ++;
+    
     //get file
-    info("[TSSC] opening Buildmanifest for %s\n",name);
     FILE *f = fopen(fileDir, "rb");
+    if (!url) {
+        if (!f) return NULL;
+        info("[TSSC] using cached Buildmanifest for %s\n",name);
+    }else info("[TSSC] opening Buildmanifest for %s\n",name);
+    
     
     if (!f || nocache){
         //download if it isn't there
@@ -381,7 +388,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
         reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
     }
-    
+
     if (is64Bit) {
         if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
             reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
@@ -539,12 +546,12 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
     char *url = NULL;
     char *buildManifest = NULL;
     
-    url = getFirmwareUrl(device, versVals, firmwareJson, firmwareTokens);
-    if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",device,versVals.version);
-    
-    buildManifest = getBuildManifest(url, versVals.isOta);
-    if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
-    
+    if (!(buildManifest = getBuildManifest(NULL, device, versVals.version, versVals.isOta))){
+        url = getFirmwareUrl(device, versVals, firmwareJson, firmwareTokens);
+        if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",device,versVals.version);
+        buildManifest = getBuildManifest(url, device, versVals.version, versVals.isOta);
+        if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
+    }    
     
     isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, !versVals.noBaseband);
     
