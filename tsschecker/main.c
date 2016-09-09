@@ -161,7 +161,6 @@ int main(int argc, const char * argv[]) {
     t_iosVersion versVals;
     memset(&versVals, 0, sizeof(versVals));
     memset(&devVals, 0, sizeof(devVals));
-
     
     if (argc == 1){
         cmd_help();

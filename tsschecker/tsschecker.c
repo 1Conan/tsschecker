@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <time.h>
+#include <openssl/sha.h>
+#include <stdio.h>
 #include "tsschecker.h"
 #include "jsmn.h"
 #include "download.h"
@@ -46,6 +48,7 @@ char *getBBCIDJson(){
     fseek(f, 0, SEEK_SET);
     char *fJson = malloc(fsize + 1);
     fread(fJson, fsize, 1, f);
+    fJson[fsize] = '\0';
     fclose(f);
     return fJson;
 }
@@ -329,32 +332,38 @@ int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbG
     return 0;
 }
 
-int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals devVals){
+int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     char nonce[noncelen+1];
     char sep_nonce[noncelen+1];
     
     int n=0;
     srand((unsigned int)time(NULL));
-    if (!devVals.ecid) for (int i=0; i<16; i++) devVals.ecid += (rand() % 10) * pow(10, n++);
+    if (!devVals->ecid) for (int i=0; i<16; i++) devVals->ecid += (rand() % 10) * pow(10, n++);
 
-    if (devVals.apnonce) memcpy(nonce, devVals.apnonce, noncelen+1);
-    else getRandNum(nonce, noncelen, 256);
+    if (devVals->apnonce) memcpy(nonce, devVals->apnonce, noncelen+1);
+    else {
+        unsigned char zz[8];
+        getRandNum((char*)zz, 8, 256);
+        
+        snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
+        SHA1(zz, 8, (unsigned char*)nonce);
+    }
     
-    if (devVals.sepnonce) memcpy(sep_nonce, devVals.sepnonce, noncelen+1);
+    if (devVals->sepnonce) memcpy(sep_nonce, devVals->sepnonce, noncelen+1);
     else getRandNum(sep_nonce, noncelen, 256);
     
     nonce[noncelen] = sep_nonce[noncelen] = 0;
     
-    debug("[TSSR] ecid=%llu\n",devVals.ecid);
+    debug("[TSSR] ecid=%llu\n",devVals->ecid);
     debug("[TSSR] nonce=%s\n",nonce);
     debug("[TSSR] sepnonce=%s\n",sep_nonce);
     
-    return tss_populate_devicevals(tssreq, devVals.ecid, nonce, noncelen, sep_nonce, noncelen, is64bit);
+    return tss_populate_devicevals(tssreq, devVals->ecid, nonce, noncelen, sep_nonce, noncelen, is64bit);
 }
 
 
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals devVals, int checkBaseband){
+int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals *devVals, int checkBaseband){
 #define reterror(a) {error(a); error = -1; goto error;}
     int error = 0;
     plist_t manifest = NULL;
@@ -428,9 +437,9 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     
-    tssrequest(&tssreq, buildManifestBuffer, device, devVals, checkBaseband);
+    tssrequest(&tssreq, buildManifestBuffer, device, &devVals, checkBaseband);
     isSigned = ((apticket = tss_request_send(tssreq, NULL)) > 0);
-    
+
     
     if (print_tss_response) debug_plist(apticket);
     if (isSigned && save_shshblobs){
@@ -450,16 +459,17 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         
         uint32_t size = 0;
         char* data = NULL;
+        if (*devVals.generator) plist_dict_set_item(apticket, "generator", plist_new_string(devVals.generator));
         plist_to_xml(apticket, &data, &size);
         
-        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen("/__-.shsh") + 1;
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen("/__-.shsh2") + 1;
         char *fname = malloc(fnamelen);
         memset(fname, 0, fnamelen);
         size_t prePathLen= strlen(shshSavePath);
         if (shshSavePath[prePathLen-1] == '/') prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        snprintf(fname+prePathLen, fnamelen, "/%s_%s_%s-%s.shsh",cecid,device,cpvers,cbuild);
+        snprintf(fname+prePathLen, fnamelen, "/%s_%s_%s-%s.shsh2",cecid,device,cpvers,cbuild);
         
         FILE *shshfile = fopen(fname, "w");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
@@ -551,7 +561,7 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
         if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",device,versVals.version);
         buildManifest = getBuildManifest(url, device, versVals.version, versVals.isOta);
         if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
-    }    
+    }
     
     isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, !versVals.noBaseband);
     

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8747AC531D83006100349BB9 /* libcrypto.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 8747AC521D83006100349BB9 /* libcrypto.tbd */; };
 		87CEC4C91C576BD9006E75FC /* tss.c in Sources */ = {isa = PBXBuildFile; fileRef = 87CEC4C81C576BD9006E75FC /* tss.c */; };
 		87EB90A31C2940CD002CEE70 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 87EB90A21C2940CD002CEE70 /* main.c */; };
 		87EB90AA1C2940EC002CEE70 /* libpartialzip-1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90A91C2940EC002CEE70 /* libpartialzip-1.0.0.dylib */; };
@@ -30,6 +31,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		8747AC521D83006100349BB9 /* libcrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcrypto.tbd; path = usr/lib/libcrypto.tbd; sourceTree = SDKROOT; };
 		87CEC4C71C57677D006E75FC /* all.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = all.h; sourceTree = "<group>"; };
 		87CEC4C81C576BD9006E75FC /* tss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tss.c; sourceTree = "<group>"; };
 		87CEC4CA1C576BE0006E75FC /* tss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tss.h; sourceTree = "<group>"; };
@@ -51,6 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8747AC531D83006100349BB9 /* libcrypto.tbd in Frameworks */,
 				87EB90AE1C294108002CEE70 /* libcurl.tbd in Frameworks */,
 				87EB90AC1C2940FB002CEE70 /* libplist.3.dylib in Frameworks */,
 				87EB90AA1C2940EC002CEE70 /* libpartialzip-1.0.0.dylib in Frameworks */,
@@ -72,6 +75,7 @@
 		87EB90961C2940CD002CEE70 = {
 			isa = PBXGroup;
 			children = (
+				8747AC521D83006100349BB9 /* libcrypto.tbd */,
 				87EB90AD1C294108002CEE70 /* libcurl.tbd */,
 				87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */,
 				87EB90A91C2940EC002CEE70 /* libpartialzip-1.0.0.dylib */,
@@ -255,7 +259,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				GCC_PREFIX_HEADER = "";
-				HEADER_SEARCH_PATHS = /usr/local/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					/opt/local/include,
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -266,7 +273,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				GCC_PREFIX_HEADER = "";
-				HEADER_SEARCH_PATHS = /usr/local/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					/opt/local/include,
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

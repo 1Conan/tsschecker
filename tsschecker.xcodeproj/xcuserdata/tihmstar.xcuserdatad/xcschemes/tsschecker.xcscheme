@@ -67,12 +67,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-d iPhone7,2 -i 9.3.5 -o"
+            argument = "-s"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-d iPhone7,2 -i 9.3.5"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-e 5446162539728"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
