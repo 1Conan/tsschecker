@@ -20,15 +20,15 @@ while read device; do
 	echo -n "saving normal blob ... "
 	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh -l);code=$?
 	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
-	if [ $code -eq 1 ]; then echo " ok"; else echo " failed"; echo $ret;fi
+	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
 	echo -n "saving ota blob ... "
 	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_ota -l -o);code=$?
 	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
-	if [ $code -eq 1 ]; then echo " ok"; else echo " failed"; echo $ret;fi
+	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
 	echo -n "saving beta ota blob ... "
 	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_beta_ota -l -o --beta);code=$?
 	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
-	if [ $code -eq 1 ]; then echo " ok"; else echo " failed"; echo $ret;fi	
+	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
 done <devices.txt
 
 
