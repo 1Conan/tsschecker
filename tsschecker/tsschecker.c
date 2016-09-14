@@ -557,6 +557,12 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
     char *buildManifest = NULL;
     
     if (!(buildManifest = getBuildManifest(NULL, device, versVals.version, versVals.isOta))){
+        
+        
+        if (!checkFirmwareForDeviceExists(device, versVals, firmwareJson, firmwareTokens))
+            return error("[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",device,versVals.version), 0;
+        
+        
         url = getFirmwareUrl(device, versVals, firmwareJson, firmwareTokens);
         if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",device,versVals.version);
         buildManifest = getBuildManifest(url, device, versVals.version, versVals.isOta);
