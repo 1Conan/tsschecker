@@ -200,7 +200,7 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
     //get file
     FILE *f = fopen(fileDir, "rb");
     if (!url) {
-        if (!f) return NULL;
+        if (!f || nocache) return NULL;
         info("[TSSC] using cached Buildmanifest for %s\n",name);
     }else info("[TSSC] opening Buildmanifest for %s\n",name);
     
