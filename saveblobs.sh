@@ -1,14 +1,14 @@
 #!/bin/bash
-
+cd /var/shsh
 declare -a DIRS=("shsh" "shsh_ota" "shsh_beta_ota")
 for dir in "${DIRS[@]}"
 do
 	mkdir $dir 2>/dev/null
 done
 
-rm /tmp/ota.json
-rm /tmp/firmware.json
-rm /tmp/bbgcid.json
+rm /tmp/ota.json 2>/dev/null
+rm /tmp/firmware.json 2>/dev/null
+rm /tmp/bbgcid.json 2>/dev/null
 
 while read device; do
   	if [ -z "$device" ]; then
@@ -16,42 +16,41 @@ while read device; do
 	fi
 	model=$(echo $device | cut -d ' ' -f 1)
 	ecid=$(echo $device | cut -d ' ' -f 2)
-	echo saving blobs for $model $ecid
-	echo -n "saving normal blob ... "
-	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh -l);code=$?
-	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
-	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
-	echo -n "saving ota blob ... "
-	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_ota -l -o);code=$?
-	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
-	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
-	echo -n "saving beta ota blob ... "
-	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_beta_ota -l -o --beta);code=$?
-	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
-	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
-done <devices.txt
 
-
-
-DATE=$(date +"%Y-%m-%d")
-echo "backing up shsh files"
-for dir in "${DIRS[@]}"
-do
-	MOVED="no"
-	for i in $dir/*.shsh;
+	i=2
+	ap=""
+	sp=""
+	cnt="true";
+	while [ "$cnt" == "true" ];
 	do
-
-		DST=$(echo $i | rev | cut -c 6- | rev)
-		if ! [[ "$DST" =~ "--" ]]; then
-			DST="$DST--$DATE.shsh"
-			echo moving $DST
-			mv $i $DST
-			MOVED="yes"
+		cnt="false"
+		apnonce=$(echo $device | cut -d ':' -f $i)
+		apn=""
+		sp=""
+		if [ "$apnonce" != "$device" ] && [ -n "$apnonce" ]; then
+			apn=$apnonce
+			sp="/$apnonce"
+			ap="--apnonce $apnonce"
+			i=$(($i+1))
+			mkdir "shsh$sp" 2>/dev/null
+			cnt="true"
 		fi
+		echo saving blobs for $model $ecid $apn
+	        echo -n "saving normal blob ... "
+	        ret=$(tsschecker -d $model -e $ecid -s --save-path "shsh$sp" -l $ap);code=$?
+	        echo "$ret" >>/tmp/tsschecker_saveblobs_fullog.log
+		echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
+		if [ $code -eq 1 ]; then echo " ok"; else echo " failed"; echo $ret;fi
 	done
 
-	if [ $MOVED == "no" ]; then
-		echo "nothing to move in "$dir
-	fi
-
-done
+	echo -n "saving ota blob ... "
+	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_ota -l -o);code=$?
+	echo "$ret" >>/tmp/tsschecker_saveblobs_fullog.log
+	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
+	if [ $code -eq 1 ]; then echo " ok"; else echo " failed"; echo $ret;fi
+	echo -n "saving beta ota blob ... "
+	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_beta_ota -l -o --beta);code=$?
+	echo "$ret" >>/tmp/tsschecker_saveblobs_fullog.log
+	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
+	if [ $code -eq 1 ]; then echo " ok"; else echo " failed"; echo $ret;fi	
+done <devices.txt
