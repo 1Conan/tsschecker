@@ -322,6 +322,6 @@ error:
     if (devVals.sepnonce) free(devVals.sepnonce);
     if (firmwareJson) free(firmwareJson);
     if (firmwareTokens) free(firmwareTokens);
-    return err ? err : isSigned;
+    return err ? err : !isSigned;
 #undef reterror
 }
