@@ -42,6 +42,10 @@
 #define FMT_qu "%qu"
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define TSS_CLIENT_VERSION_STRING "libauthinstall-293.1.16"
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
@@ -58,6 +62,7 @@ typedef struct {
 } tss_response;
 
 #define MAX_PRINT_LEN 64*1024
+#ifndef NO_DEBUG_PLIST
 void debug_plist(plist_t plist) {
     uint32_t size = 0;
     char* data = NULL;
@@ -68,7 +73,8 @@ void debug_plist(plist_t plist) {
         info("%s:supressed printing %i bytes plist...\n", __FILE__, size);
     free(data);
 }
-
+#endif
+#ifndef NO_GENERATE_GUID
 char *generate_guid()
 {
     char *guid = (char *) malloc(sizeof(char) * 37);
@@ -87,6 +93,7 @@ char *generate_guid()
     guid[36] = '\0';
     return guid;
 }
+#endif
 
 char* ecid_to_string(uint64_t ecid) {
 	char* ecid_string = malloc(ECID_STRSIZE);
