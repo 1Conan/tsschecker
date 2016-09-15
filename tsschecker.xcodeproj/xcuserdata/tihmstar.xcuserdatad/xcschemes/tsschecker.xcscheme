@@ -71,7 +71,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-d iPhone7,2 -i 9.3.5"
+            argument = "-d iPhone6,2 -l --nocache"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

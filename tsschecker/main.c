@@ -306,7 +306,6 @@ int main(int argc, const char * argv[]) {
         }else{
             if (!device) reterror(-3,"[TSSC] ERROR: please specify a device for this option\n\tuse -h for more help\n");
             if (!versVals.version) reterror(-5,"[TSSC] ERROR: please specify an iOS version or buildID for this option\n\tuse -h for more help\n");
-            if (!checkFirmwareForDeviceExists(device, versVals, firmwareJson, firmwareTokens)) reterror(-6, "[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",device,versVals.version);
             
             isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, versVals, device, devVals);
         }
