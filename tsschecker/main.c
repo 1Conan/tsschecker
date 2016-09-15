@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include "download.h"
 #include "tsschecker.h"
-#include "all.h"
+#include "all_tsschecker.h"
 
 
 #define FLAG_LIST_IOS       1 << 0
@@ -20,7 +20,6 @@
 #define FLAG_BUILDMANIFEST  1 << 2
 #define FLAG_LATEST_IOS     1 << 3
 
-int dbglog;
 int idevicerestore_debug;
 #define reterror(code,a ...) {error(a); err = code; goto error;}
 
@@ -186,7 +185,7 @@ int main(int argc, const char * argv[]) {
                 ecid = optarg;
                 break;
             case 'b': // long option: "no-baseband"; can be called as short option
-                versVals.noBaseband = 1;
+                versVals.basebandMode = kBasebandModeWithoutBaseband;
                 break;
             case 'l': // long option: "latest"; can be called as short option
                 flags |= FLAG_LATEST_IOS;
