@@ -1,29 +1,18 @@
 TARGET = tsschecker_tool
-CFLAGS += -Wall -std=c11 -I /opt/local/include
-LDFLAGS += -lplist -lpartialzip-1.0 -lz -lcurl -lcrippy-1.0 -lxml2 -lm -lcrypto
-
+CFLAGS += -Wall -std=c11
+LDFLAGS += -lplist -lpartialzip-1.0 -lz -lcurl -lcrippy-1.0 -lxml2 -lm
+SRC_DIR += tsschecker
+OBJECTS += $(SRC_DIR)/main.o $(SRC_DIR)/download.o $(SRC_DIR)/jsmn.o $(SRC_DIR)/tss.o $(SRC_DIR)/tsschecker.o
 all : $(TARGET)
 
-tsschecker_tool : tsschecker/main.o tsschecker/download.o tsschecker/jsmn.o tsschecker/tss.o tsschecker/tsschecker.o
-		$(CC) $(CFLAGS) tsschecker/main.o tsschecker/download.o tsschecker/jsmn.o tsschecker/tss.o tsschecker/tsschecker.o $(LDFLAGS) -o $(TARGET)
+$(TARGET) : $(OBJECTS)
+		$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
 		@echo "Successfully built $(TARGET)"
 
-main.o : tsschecker/main.c
-		$(CC) $(CFLAGS) -c tsschecker/main.c -o tsschecker/main.o
+$(SRC_DIR)/%.o : $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS)  $< -c -o $@
 
-download.o : tsschecker/download.c 
-		$(CC) $(CFLAGS) -c tsschecker/download.c -o tsschecker/download.o
-
-jsmn.o : tsschecker/jsmn.c
-		$(CC) $(CFLAGS) -c tsschecker/jsmn.c -o tsschecker/jsmn.o
-
-tss.o : tsschecker/tss.c
-		$(CC) $(CFLAGS) -c tsschecker/tss.c -o tsschecker/tss.o
-
-tsschecker.o :
-		$(CC) $(CFLAGS) -c tsschecker/tsschecker.c -o tsschecker/tsschecker.o
-
-install :
+install : $(TARGET)
 		cp $(TARGET) /usr/local/bin/
 		@echo "Installed $(TARGET)"
 clean :
