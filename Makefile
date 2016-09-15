@@ -1,4 +1,5 @@
 TARGET = tsschecker_tool
+INSTALLTARGET = tsschecker
 CFLAGS += -Wall -std=c11
 LDFLAGS += -lplist -lpartialzip-1.0 -lz -lcurl -lcrippy-1.0 -lxml2 -lm
 SRC_DIR += tsschecker
@@ -12,10 +13,10 @@ $(TARGET) : $(OBJECTS)
 		@echo "Successfully built $(TARGET)"
 
 $(SRC_DIR)/%.o : $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS)  $< -c -o $@
+		$(CC) $(CFLAGS)  $< -c -o $@
 
 install : $(TARGET)
-		cp $(TARGET) /usr/local/bin/
-		@echo "Installed $(TARGET)"
+		cp $(TARGET) /usr/local/bin/$(INSTALLTARGET)
+		@echo "Installed $(INSTALLTARGET)"
 clean :
-		rm -rf tsschecker/*.o $(TARGET)	
+		rm -rf tsschecker/*.o $(TARGET)
