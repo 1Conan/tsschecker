@@ -67,6 +67,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--no-baseband=2"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-s"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -79,7 +83,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-d iPhone4,1 -l"
+            argument = "-d iPhone3,1 -l"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

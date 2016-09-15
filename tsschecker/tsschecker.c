@@ -310,8 +310,8 @@ int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbG
     srand((unsigned int)time(NULL));
     int n=0; for (int i=1; i<7; i++) BbChipID += (rand() % 10) * pow(10, ++n);
     
-    
-    plist_dict_set_item(parameters, "BbNonce", plist_new_data(bbnonce, noncelen));
+    /* BasebandNonce not required */
+//    plist_dict_set_item(parameters, "BbNonce", plist_new_data(bbnonce, noncelen));
     plist_dict_set_item(parameters, "BbChipID", plist_new_uint(BbChipID));
     plist_dict_set_item(parameters, "BbGoldCertId", plist_new_uint(BbGoldCertId));
     plist_dict_set_item(parameters, "BbSNUM", plist_new_data(bbsnum, 4));
@@ -409,6 +409,8 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
                 reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
             }
         }
+    }else{
+        info("[TSSR] User specified to request only a Baseband ticket.\n");
     }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {

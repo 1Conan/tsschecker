@@ -40,7 +40,7 @@ static struct option longopts[] = {
     { "buildid",            required_argument, NULL, 'B' },
     { "ecid",               required_argument, NULL, 'e' },
     { "help",               no_argument,       NULL, 'h' },
-    { "no-baseband",        no_argument,       NULL, 'b' },
+    { "no-baseband",        optional_argument, NULL, 'b' },
     { "ota",                no_argument,       NULL, 'o' },
     { "save",               no_argument,       NULL, 's' },
     { "latest",             no_argument,       NULL, 'l' },
@@ -185,7 +185,8 @@ int main(int argc, const char * argv[]) {
                 ecid = optarg;
                 break;
             case 'b': // long option: "no-baseband"; can be called as short option
-                versVals.basebandMode = kBasebandModeWithoutBaseband;
+                if (optarg) versVals.basebandMode = atoi(optarg);
+                else versVals.basebandMode = kBasebandModeWithoutBaseband;
                 break;
             case 'l': // long option: "latest"; can be called as short option
                 flags |= FLAG_LATEST_IOS;
