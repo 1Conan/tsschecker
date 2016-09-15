@@ -1,2 +1,3 @@
+/tsschecker/*.o
 /tsschecker_tool
 .DS_Store

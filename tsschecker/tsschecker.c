@@ -11,13 +11,19 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <time.h>
-#include <openssl/sha.h>
 #include <stdio.h>
 #include "tsschecker.h"
 #include "jsmn.h"
 #include "download.h"
 #include <libpartialzip-1.0/libpartialzip.h>
 #include "tss.h"
+
+#ifdef __APPLE__
+#   include <CommonCrypto/CommonDigest.h>
+#   define SHA1(d, n, md) CC_SHA1(d, n, md)
+#else
+#   include <openssl/sha.h>
+#endif // __APPLE__
 
 #define FIRMWARE_JSON_PATH "/tmp/firmware.json"
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
