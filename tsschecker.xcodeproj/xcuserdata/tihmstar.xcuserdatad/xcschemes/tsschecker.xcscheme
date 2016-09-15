@@ -72,10 +72,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d iPhone6,2 -l --nocache"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-e 5446162539728"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-d iPhone4,1 -l"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

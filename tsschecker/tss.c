@@ -535,7 +535,7 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 			free(key);
 			continue;
 		}
-
+        
 		/* copy this entry */
 		plist_t tss_entry = plist_copy(manifest_entry);
 
@@ -552,8 +552,9 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 		/* Make sure we have a Digest key even if empty */
 		plist_t node = plist_access_path(manifest_entry, 1, "Digest");
 		if (!node) {
-			debug("DEBUG: No Digest data, using empty value for entry %s\n", key);
-			plist_dict_set_item(tss_entry, "Digest", plist_new_data(NULL, 0));
+			debug("DEBUG: No Digest data, not including key %s\n", key);
+            free(key);
+            continue;
 		}
 
 		/* finally add entry to request */
