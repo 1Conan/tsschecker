@@ -30,6 +30,7 @@
 
 #pragma mark getJson functions
 
+int dbglog = 0;
 int print_tss_request = 0;
 int print_tss_response = 0;
 int nocache = 0;
@@ -236,7 +237,7 @@ int64_t getBBGCIDForDevice(char *deviceModel){
     
     jsmntok_t *tokens = NULL;
     int cnt = parseTokens(myjson, &tokens);
-    if (cnt < 1) reterror("[TSSC] ERROR: parsing bbgcid.json failed!\n");
+    if (cnt < 1) reterror("[TSSC] parsing bbgcid.json failed!\n");
     
     
     jsmntok_t *device = objectForKey(tokens, myjson, deviceModel);
@@ -363,7 +364,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
 
 
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals *devVals, int checkBaseband){
+int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals devVals, t_basebandMode basebandMode){
 #define reterror(a) {error(a); error = -1; goto error;}
     int error = 0;
     plist_t manifest = NULL;
@@ -387,30 +388,35 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
     int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
     
-    tss_populate_random(tssparameter,is64Bit,devVals);
+    tss_populate_random(tssparameter,is64Bit,&devVals);
     tss_parameters_add_from_manifest(tssparameter, id0);
     
-    if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
-        reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
-    }
-
-    if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
-        reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
-    }
-
-    if (is64Bit) {
-        if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
-            reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
+    if (basebandMode != kBasebandModeOnlyBaseband) {
+        if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
+            reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
         }
-    } else {
-        if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
-            reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
+        
+        if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
+            reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+        }
+        
+        if (is64Bit) {
+            if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
+                reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
+            }
+        } else {
+            if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
+                reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
+            }
         }
     }
     
-    if (checkBaseband) {
-        int64_t BbGoldCertId = getBBGCIDForDevice(device);
+    if (basebandMode != kBasebandModeWithoutBaseband) {
+        int64_t BbGoldCertId = (devVals.bbgcid) ? devVals.bbgcid : getBBGCIDForDevice(device);
         if (BbGoldCertId == -1) {
+            if (basebandMode == kBasebandModeOnlyBaseband){
+                reterror("[TSSR] failed to get BasebandGoldCertID, but requested to get only baseband ticket. Aborting here!\n");
+            }
             warning("[TSSR] WARNING: there was an error getting BasebandGoldCertID, continuing without requesting Baseband ticket\n");
         }else if (BbGoldCertId) {
             tss_populate_basebandvals(tssreq,tssparameter,BbGoldCertId);
@@ -422,7 +428,6 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
         info("[TSSR] User specified not to request a Baseband ticket.\n");
     }
     
-    
     *tssrequest = tssreq;
 error:
     if (manifest) plist_free(manifest);
@@ -432,12 +437,15 @@ error:
 #undef reterror
 }
 
-int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devicevals devVals, int checkBaseband){
+int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devicevals devVals, t_basebandMode basebandMode){
     int isSigned = 0;
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     
-    tssrequest(&tssreq, buildManifestBuffer, device, &devVals, checkBaseband);
+    if (tssrequest(&tssreq, buildManifestBuffer, device, devVals, basebandMode)){
+        error("[TSSR] faild to build tssrequest\n");
+        goto error;
+    }
     isSigned = ((apticket = tss_request_send(tssreq, NULL)) > 0);
 
     
@@ -487,13 +495,13 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         free(data);
     }
     
-//error:
+error:
     if (tssreq) plist_free(tssreq);
     if (apticket) plist_free(apticket);
     return isSigned;
 }
 
-int isManifestSignedForDevice(char *buildManifestPath, char **device, t_devicevals devVals, t_iosVersion versVals){
+int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_devicevals devVals, t_iosVersion versVals){
     int isSigned = 0;
 #define reterror(a ...) {error(a); isSigned = -1; goto error;}
     plist_t manifest = NULL;
@@ -501,6 +509,7 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, t_deviceva
     plist_t SupportedProductTypes = NULL;
     plist_t mDevice = NULL;
     char *bufManifest = NULL;
+    char *ldevice = NULL;
     
     info("[TSSC] opening %s\n",buildManifestPath);
     //filehandling
@@ -510,6 +519,7 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, t_deviceva
     long fsize = ftell(fmanifest);
     fseek(fmanifest, 0, SEEK_SET);
     bufManifest = (char*)malloc(fsize + 1);
+    bufManifest[fsize] = '\0';
     fread(bufManifest, fsize, 1, fmanifest);
     fclose(fmanifest);
     
@@ -523,19 +533,21 @@ int isManifestSignedForDevice(char *buildManifestPath, char **device, t_deviceva
             plist_get_string_val(ProductVersion, (char**)&versVals.version);
         }
     }
-    if (!*device) {
+    if (device) ldevice = *device;
+    else{
         if (manifest){
             SupportedProductTypes = plist_dict_get_item(manifest, "SupportedProductTypes");
             if (SupportedProductTypes) {
                 mDevice = plist_array_get_item(SupportedProductTypes, 0);
-                plist_get_string_val(mDevice, device);
+                plist_get_string_val(mDevice, &ldevice);
             }
         }
-        if (!*device) reterror("[TSSR] ERROR: device wasn't specified and could not be fetched from BuildManifest\n")
-        else info("[TSSR] requesting ticket for %s\n",*device);
+        if (!ldevice) reterror("[TSSR] ERROR: device wasn't specified and could not be fetched from BuildManifest\n")
+            else info("[TSSR] requesting ticket for %s\n",ldevice);
     }
     
-    isSigned = isManifestBufSignedForDevice(bufManifest, *device, devVals, !versVals.noBaseband);
+    isSigned = isManifestBufSignedForDevice(bufManifest, ldevice, devVals, versVals.basebandMode);
+    if (device) *device = ldevice;
     
 error:
     if (manifest) plist_free(manifest);
@@ -569,8 +581,8 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
         if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
     }
     
-    isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, !versVals.noBaseband);
-    
+    isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, versVals.basebandMode);
+
 error:
     if (url) free(url);
     if (buildManifest) free(buildManifest);

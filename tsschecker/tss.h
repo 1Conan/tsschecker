@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 #include <plist/plist.h>
-#include "all.h"
+#include "all_tsschecker.h"
 
 extern int print_tss_request;
 
