@@ -25,14 +25,22 @@
 #   include <openssl/sha.h>
 #endif // __APPLE__
 
-#define FIRMWARE_JSON_PATH "/tmp/firmware.json"
+
+#ifdef WIN32
+#define TMP_PATH "%tmp%"
+#else
+#define TMP_PATH "/tmp"
+#endif
+
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
-#define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
-#define BBGCID_JSON_PATH "/tmp/bbgcid.json"
 #define BBGCID_JSON_URL "http://api.tihmstar.net/bbgcid?condensed=1"
 
-#define MANIFEST_SAVE_PATH "/tmp/tsschecker"
+
+#define FIRMWARE_JSON_PATH TMP_PATH"/firmware.json"
+#define FIRMWARE_OTA_JSON_PATH TMP_PATH"/ota.json"
+#define MANIFEST_SAVE_PATH TMP_PATH"/tsschecker"
+#define BBGCID_JSON_PATH TMP_PATH"/bbgcid.json"
 
 #pragma mark getJson functions
 
