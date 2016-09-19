@@ -25,14 +25,64 @@
 #   include <openssl/sha.h>
 #endif // __APPLE__
 
-#define FIRMWARE_JSON_PATH "/tmp/firmware.json"
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
-#define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
-#define BBGCID_JSON_PATH "/tmp/bbgcid.json"
 #define BBGCID_JSON_URL "http://api.tihmstar.net/bbgcid?condensed=1"
 
+
+#ifdef WIN32
+static int win_path_didinit = 0;
+static const char *win_paths[4];
+
+enum paths{
+    kWINPathTSSCHECKER,
+    kWINPathBBGCID,
+    kWINPathOTA,
+    kWINPathFIRMWARE
+};
+
+static const char *win_pathvars[]={
+    "\\tsschecker",
+    "\\bbgcid.json",
+    "\\ota.json",
+    "\\firmware,json"
+};
+
+static const char *win_path_get(enum paths path){
+    if (!win_path_didinit) memset(win_paths, 0, sizeof(win_paths));
+    if (win_paths[path]) return win_paths[path];
+    
+    const char *tmp = getenv("TMP");
+    if (tmp && *tmp){
+        size_t len = strlen(tmp) + strlen(win_pathvars[path]) + 1;
+        win_paths[path] = (char *)malloc(len);
+        memset((char*)win_paths[path], '\0', len);
+        strncat((char*)win_paths[path], tmp, strlen(tmp));
+        strncat((char*)win_paths[path], win_pathvars[path], strlen(win_pathvars[path]));
+        return win_paths[path];
+    }
+    
+    error("DEBUG: tmp=%s win_paths[path]=%s\n",tmp,win_paths[path]);
+    error("FATAL could not get TMP path. exiting!\n");
+    exit(123);
+    return NULL;
+}
+
+#define MANIFEST_SAVE_PATH win_path_get(kWINPathTSSCHECKER)
+#define BBGCID_JSON_PATH win_path_get(kWINPathBBGCID)
+#define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
+#define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
+#define DIRECTORY_DELIMITER "\\"
+
+#else
+
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
+#define BBGCID_JSON_PATH "/tmp/bbgcid.json"
+#define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
+#define FIRMWARE_JSON_PATH "/tmp/firmware.json"
+#define DIRECTORY_DELIMITER "/"
+
+#endif
 
 #pragma mark getJson functions
 
@@ -41,7 +91,7 @@ int print_tss_request = 0;
 int print_tss_response = 0;
 int nocache = 0;
 int save_shshblobs = 0;
-const char *shshSavePath = "./";
+const char *shshSavePath = "."DIRECTORY_DELIMITER;
 
 char *getBBCIDJson(){
     info("[TSSC] opening bbgcid.json\n");
@@ -189,7 +239,7 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
     memset(fileDir, 0, len);
     
     strncat(fileDir, MANIFEST_SAVE_PATH, strlen(MANIFEST_SAVE_PATH));
-    strncat(fileDir, "/", 1);
+    strncat(fileDir, DIRECTORY_DELIMITER, 1);
     strncat(fileDir, device, strlen(device));
     strncat(fileDir, "_", strlen("_"));
     strncat(fileDir, version, strlen(version));
@@ -478,14 +528,14 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         if (*devVals.generator) plist_dict_set_item(apticket, "generator", plist_new_string(devVals.generator));
         plist_to_xml(apticket, &data, &size);
         
-        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen("/__-.shsh2") + 1;
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER"__-.shsh2") + 1;
         char *fname = malloc(fnamelen);
         memset(fname, 0, fnamelen);
         size_t prePathLen= strlen(shshSavePath);
         if (shshSavePath[prePathLen-1] == '/') prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        snprintf(fname+prePathLen, fnamelen, "/%s_%s_%s-%s.shsh2",cecid,device,cpvers,cbuild);
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER"%s_%s_%s-%s.shsh2",cecid,device,cpvers,cbuild);
         
         FILE *shshfile = fopen(fname, "w");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
