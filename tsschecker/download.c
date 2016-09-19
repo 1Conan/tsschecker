@@ -25,11 +25,6 @@ int downloadFile(const char *url, const char *dstPath){
     curl_easy_setopt(mcurl, CURLOPT_WRITEFUNCTION, my_fwrite);
     curl_easy_setopt(mcurl, CURLOPT_WRITEDATA, dfile);
     
-#ifdef WIN32
-    //i know this is bad, but i don't want to spend hours on debugging this
-    curl_easy_setopt(mcurl, CURLOPT_SSL_VERIFYPEER, 0);
-#endif
-    
     CURLcode res = curl_easy_perform(mcurl);
     curl_easy_cleanup(mcurl);
     fclose(dfile);
