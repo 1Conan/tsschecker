@@ -16,8 +16,8 @@ AC_PROG_INSTALL
 PKG_CHECK_MODULES(libplist, libplist >= 1.0)
 PKG_CHECK_MODULES(libplistmm, libplist++ >= 1.0)
 PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
-PKG_CHECK_MODULES(libpartialzip, libpartialzip-1.0 >=1.0)
-PKG_CHECK_MODULES(libcrypto, libcrypto >=1.0)
+PKG_CHECK_MODULES(libpartialzip, libpartialzip-1.0 >= 1.0)
+PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)
 
 
 # Checks for header files.
