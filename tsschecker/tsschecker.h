@@ -48,15 +48,15 @@ typedef struct{
     int useBeta     : 1;
     int isBuildid   : 1;
 }t_iosVersion;
-
+    
 char *getFirmwareJson();
 char *getOtaJson();
-int parseTokens(char *json, jsmntok_t **tokens);
-char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA, int *versionCntt);
+int parseTokens(const char *json, jsmntok_t **tokens);
+char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *device, int isOTA, int *versionCntt);
 int printListOfDevices(char *firmwarejson, jsmntok_t *tokens);
 int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA);
 
-char *getFirmwareUrl(char *device, t_iosVersion versVals,char *firmwarejson, jsmntok_t *tokens);
+char *getFirmwareUrl(const char *device, t_iosVersion versVals, const char *firmwarejson, jsmntok_t *tokens);
 char *getBuildManifest(char *url, const char *device, const char *version, int isOta);
 int64_t getBBGCIDForDevice(char *deviceModel);
 
@@ -69,6 +69,9 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
 int checkDeviceExists(char *device, char *firmwareJson, jsmntok_t *tokens, int isOta);
 int checkFirmwareForDeviceExists(char *device, t_iosVersion version, char *firmwareJson, jsmntok_t *tokens);
 
+int downloadPartialzip(const char *url, const char *file, const char *dst);
+
+    
 #ifdef __cplusplus
 }
 #endif

@@ -101,7 +101,7 @@ void printJString(jsmntok_t *str, char * firmwarejson){
     putchar('\n');
 }
 
-jsmntok_t *objectForKey(jsmntok_t *tokens, char *firmwareJson, char*key){
+jsmntok_t *objectForKey(jsmntok_t *tokens, const char *firmwareJson, const char*key){
     
     jsmntok_t *dictElements = tokens->value;
     for (jsmntok_t *tmp = dictElements; ; tmp = tmp->next) {
@@ -114,7 +114,7 @@ jsmntok_t *objectForKey(jsmntok_t *tokens, char *firmwareJson, char*key){
     return NULL;
 }
 
-int parseTokens(char *json, jsmntok_t **tokens){
+int parseTokens(const char *json, jsmntok_t **tokens){
     jsmn_parser parser;
     jsmn_init(&parser);
     
@@ -129,7 +129,7 @@ int parseTokens(char *json, jsmntok_t **tokens){
 
 #pragma mark get functions
 
-char *getFirmwareUrl(char *device, t_iosVersion versVals,char *firmwarejson, jsmntok_t *tokens){
+char *getFirmwareUrl(const char *device, t_iosVersion versVals, const char *firmwarejson, jsmntok_t *tokens){
     
     jsmntok_t *devices = (versVals.isOta) ? tokens : objectForKey(tokens, firmwarejson, "devices");
     jsmntok_t *mydevice = objectForKey(devices, firmwarejson, device);
@@ -175,7 +175,7 @@ static void partialzip_callback(partialzip_t* info, partialzip_file_t* file, siz
     info("\n");
 }
 
-int downloadPartialzip(char *url, char *file, char *dst){
+int downloadPartialzip(const char *url, const char *file, const char *dst){
     log("[LPZP] downloading %s from %s\n\n",file,url);
     return partialzip_download_file(url, file, dst, &partialzip_callback);
 }
@@ -664,7 +664,7 @@ int cmpfunc(const void * a, const void * b){
     }
 }
 
-char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA, int *versionCntt){
+char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *device, int isOTA, int *versionCntt){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
     jsmntok_t *firmwares = NULL;
     if (isOTA) {
