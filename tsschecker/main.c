@@ -282,6 +282,7 @@ int main(int argc, const char * argv[]) {
         char *bpos = NULL;
         while((bpos = strstr(versVals.version = strdup(versions[i++]),"[B]")) != 0){
             if (versVals.useBeta) break;
+            free((char*)versVals.version);
             if (--versionCnt == 0) reterror(-9, "[TSSC] automatic iOS selection couldn't find non-beta iOS\n");
         }
         info("[TSSC] selecting latest iOS: %s\n",versVals.version);
