@@ -28,5 +28,9 @@ int downloadFile(const char *url, const char *dstPath){
     CURLcode res = curl_easy_perform(mcurl);
     curl_easy_cleanup(mcurl);
     fclose(dfile);
-    return (res == CURLE_OK) ? 0 : res;
+    if (res != CURLE_OK){
+        error("failed to download file from=%s to=%s CURLcode=%d\n",url,dstPath,res);
+        return res;
+    }
+    return 0;
 }
