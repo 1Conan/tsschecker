@@ -420,7 +420,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
 
 
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals devVals, t_basebandMode basebandMode){
+int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals *devVals, t_basebandMode basebandMode){
 #define reterror(a) {error(a); error = -1; goto error;}
     int error = 0;
     plist_t manifest = NULL;
@@ -444,7 +444,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
     int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
     
-    tss_populate_random(tssparameter,is64Bit,&devVals);
+    tss_populate_random(tssparameter,is64Bit,devVals);
     tss_parameters_add_from_manifest(tssparameter, id0);
     
     if (basebandMode != kBasebandModeOnlyBaseband) {
@@ -470,7 +470,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
-        int64_t BbGoldCertId = (devVals.bbgcid) ? devVals.bbgcid : getBBGCIDForDevice(device);
+        int64_t BbGoldCertId = (devVals->bbgcid) ? devVals->bbgcid : getBBGCIDForDevice(device);
         if (BbGoldCertId == -1) {
             if (basebandMode == kBasebandModeOnlyBaseband){
                 reterror("[TSSR] failed to get BasebandGoldCertID, but requested to get only baseband ticket. Aborting here!\n");
@@ -500,7 +500,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     
-    if (tssrequest(&tssreq, buildManifestBuffer, device, devVals, basebandMode)){
+    if (tssrequest(&tssreq, buildManifestBuffer, device, &devVals, basebandMode)){
         error("[TSSR] faild to build tssrequest\n");
         goto error;
     }
@@ -525,7 +525,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         
         uint32_t size = 0;
         char* data = NULL;
-        if (*devVals.generator) plist_dict_set_item(apticket, "generator", plist_new_string(devVals.generator));
+        if (*devVals.generator)
+            plist_dict_set_item(apticket, "generator", plist_new_string(devVals.generator));
         plist_to_xml(apticket, &data, &size);
         
         size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER"__-.shsh2") + 1;
