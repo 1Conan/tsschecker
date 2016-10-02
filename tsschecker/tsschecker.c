@@ -560,7 +560,7 @@ error:
     return isSigned;
 }
 
-int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_devicevals devVals, t_iosVersion versVals){
+int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_devicevals *devVals, t_iosVersion *versVals){
     int isSigned = 0;
 #define reterror(a ...) {error(a); isSigned = -1; goto error;}
     plist_t manifest = NULL;
@@ -583,13 +583,13 @@ int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_de
     fclose(fmanifest);
     
     plist_from_xml(bufManifest, (unsigned)strlen(bufManifest), &manifest);
-    if (versVals.version && !*versVals.version){
+    if (!versVals->version){
         if (!manifest){
             warning("[TSSC] WARNING: could not find ProductVersion in BuildManifest.plist, failing to properly display iOS version\n");
         }else{
             ProductVersion = plist_dict_get_item(manifest, "ProductVersion");
-            if (versVals.isBuildid) reterror("[TSSC] Error, this option is not supported with buildid. Please use -i instead\n");
-            plist_get_string_val(ProductVersion, (char**)&versVals.version);
+            if (versVals->isBuildid) reterror("[TSSC] Error, this option is not supported with buildid. Please use -i instead\n");
+            plist_get_string_val(ProductVersion, (char**)&versVals->version);
         }
     }
     if (device) ldevice = *device;
@@ -605,7 +605,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_de
             else info("[TSSR] requesting ticket for %s\n",ldevice);
     }
     
-    isSigned = isManifestBufSignedForDevice(bufManifest, ldevice, devVals, versVals.basebandMode);
+    isSigned = isManifestBufSignedForDevice(bufManifest, ldevice, *devVals, versVals->basebandMode);
     if (device) *device = ldevice;
     
 error:

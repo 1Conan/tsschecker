@@ -61,7 +61,7 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
 int64_t getBBGCIDForDevice(char *deviceModel);
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals *devVals, t_basebandMode basebandMode);
-int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_devicevals devVals, t_iosVersion versVals);
+int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_devicevals *devVals, t_iosVersion *versVals);
 int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devicevals devVals, t_basebandMode basebandMode);
 int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, char *device, t_devicevals devVals);
 

@@ -302,7 +302,7 @@ int main(int argc, const char * argv[]) {
         if (buildmanifest) {
             if (device && !checkDeviceExists(device, firmwareJson, firmwareTokens, versVals.isOta)) reterror(-4,"[TSSC] device %s could not be found in devicelist\n",device);
             
-            isSigned = isManifestSignedForDevice(buildmanifest, &device, devVals, versVals);
+            isSigned = isManifestSignedForDevice(buildmanifest, &device, &devVals, &versVals);
 
         }else{
             if (!device) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
