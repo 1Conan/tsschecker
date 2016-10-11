@@ -72,7 +72,8 @@ static const char *win_path_get(enum paths path){
 #define BBGCID_JSON_PATH win_path_get(kWINPathBBGCID)
 #define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
-#define DIRECTORY_DELIMITER "\\"
+#define DIRECTORY_DELIMITER_STR "\\"
+#define DIRECTORY_DELIMITER_CHR '\\'
 
 #else
 
@@ -80,7 +81,8 @@ static const char *win_path_get(enum paths path){
 #define BBGCID_JSON_PATH "/tmp/bbgcid.json"
 #define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
 #define FIRMWARE_JSON_PATH "/tmp/firmware.json"
-#define DIRECTORY_DELIMITER "/"
+#define DIRECTORY_DELIMITER_STR "/"
+#define DIRECTORY_DELIMITER_CHR '/'
 
 #endif
 
@@ -91,7 +93,7 @@ int print_tss_request = 0;
 int print_tss_response = 0;
 int nocache = 0;
 int save_shshblobs = 0;
-const char *shshSavePath = "."DIRECTORY_DELIMITER;
+const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
 char *getBBCIDJson(){
     info("[TSSC] opening bbgcid.json\n");
@@ -239,7 +241,7 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
     memset(fileDir, 0, len);
     
     strncat(fileDir, MANIFEST_SAVE_PATH, strlen(MANIFEST_SAVE_PATH));
-    strncat(fileDir, DIRECTORY_DELIMITER, 1);
+    strncat(fileDir, DIRECTORY_DELIMITER_STR, 1);
     strncat(fileDir, device, strlen(device));
     strncat(fileDir, "_", strlen("_"));
     strncat(fileDir, version, strlen(version));
@@ -251,7 +253,7 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
     
     //gen name
     char *name = fileDir + strlen(fileDir);
-    while (*--name != '/');
+    while (*--name != DIRECTORY_DELIMITER_CHR);
     name ++;
     
     //get file
@@ -529,14 +531,14 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
             plist_dict_set_item(apticket, "generator", plist_new_string(devVals.generator));
         plist_to_xml(apticket, &data, &size);
         
-        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER"__-.shsh2") + 1;
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"__-.shsh2") + 1;
         char *fname = malloc(fnamelen);
         memset(fname, 0, fnamelen);
         size_t prePathLen= strlen(shshSavePath);
-        if (shshSavePath[prePathLen-1] == '/') prePathLen--;
+        if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER"%s_%s_%s-%s.shsh2",cecid,device,cpvers,cbuild);
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh2",cecid,device,cpvers,cbuild);
         
         FILE *shshfile = fopen(fname, "w");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
