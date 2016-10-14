@@ -277,6 +277,7 @@ int main(int argc, const char * argv[]) {
     if (flags & FLAG_LATEST_IOS && !versVals.version){
         int versionCnt = 0;
         int i = 0;
+            
         char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, device, versVals.isOta, &versionCnt);
         if (!versionCnt) reterror(-8, "[TSSC] failed finding latest iOS. ota=%d\n",versVals.isOta);
         char *bpos = NULL;

@@ -723,12 +723,16 @@ char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *
     if (isOTA) {
         log("[JSON] printing ota list for device %s\n",device);
         jsmntok_t *mydevice = objectForKey(tokens, firmwarejson, device);
+        if (!mydevice)
+            return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
         firmwares = objectForKey(mydevice, firmwarejson, "firmwares");
         
     }else{
         log("[JSON] printing ipsw list for device %s\n",device);
         jsmntok_t *devices = objectForKey(tokens, firmwarejson, "devices");
         jsmntok_t *mydevice = objectForKey(devices, firmwarejson, device);
+        if (!mydevice)
+            return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
         firmwares = objectForKey(mydevice, firmwarejson, "firmwares");
     }
     

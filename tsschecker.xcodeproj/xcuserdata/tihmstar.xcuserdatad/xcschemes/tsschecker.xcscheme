@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d iPhone7,1 -s -m /tmp/BuildManifest.plist"
+            argument = "-d iphone6,2 -l --nocache"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
