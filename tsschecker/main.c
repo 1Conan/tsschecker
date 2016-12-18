@@ -82,6 +82,12 @@ int64_t parseECID(const char *ecid){
     int isHex = 0;
     int64_t ret = 0;
     
+    //in case hex ecid only contains digits, specify with 0x1235
+    if (strncmp(ecid, "0x", 2) == 0){
+        isHex = 1;
+        ecidBK = ecid+2;
+    }
+    
     while (*ecid && !isHex) {
         char c = *(ecid++);
         if (c >= '0' && c<='9') {
