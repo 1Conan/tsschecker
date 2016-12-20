@@ -45,7 +45,7 @@ static const char *win_pathvars[]={
     "\\tsschecker",
     "\\bbgcid.json",
     "\\ota.json",
-    "\\firmware,json"
+    "\\firmware.json"
 };
 
 static const char *win_path_get(enum paths path){
