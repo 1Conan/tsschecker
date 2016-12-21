@@ -9,6 +9,7 @@ OBJECTS += $(SRC_DIR)/main.o $(SRC_DIR)/download.o $(SRC_DIR)/jsmn.o $(SRC_DIR)/
 all : $(TARGET)
 
 $(TARGET) : $(OBJECTS)
+		./setBuildVersion.sh
 		$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
 		@echo "Successfully built $(TARGET)"
 

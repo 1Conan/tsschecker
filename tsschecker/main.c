@@ -50,7 +50,8 @@ static struct option longopts[] = {
 
 void cmd_help(){
     printf("Usage: tsschecker [OPTIONS]\n");
-    printf("Checks (real) signing status of device/firmware\n\n");
+    printf("Checks (real) signing status of device/firmware\n");
+    printf("Version: "VERSION_COMMIT_SHA" - "VERSION_COMMIT_COUNT"\n\n");
     
     printf("  -d, --device MODEL\t\tspecific device by its MODEL (eg. iPhone4,1)\n");
     printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");

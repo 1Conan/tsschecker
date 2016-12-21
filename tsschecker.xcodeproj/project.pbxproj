@@ -113,6 +113,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 87EB90A61C2940CD002CEE70 /* Build configuration list for PBXNativeTarget "tsschecker" */;
 			buildPhases = (
+				871E9CFA1E0B1D760066364B /* set build version */,
 				87EB909B1C2940CD002CEE70 /* Sources */,
 				87EB909C1C2940CD002CEE70 /* Frameworks */,
 				87EB909D1C2940CD002CEE70 /* CopyFiles */,
@@ -156,6 +157,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		871E9CFA1E0B1D760066364B /* set build version */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "set build version";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = ./setBuildVersion.sh;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		87EB909B1C2940CD002CEE70 /* Sources */ = {
