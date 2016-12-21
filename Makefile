@@ -5,11 +5,14 @@ LDFLAGS += -lplist -lpartialzip-1.0 -lz -lcurl -lcrippy-1.0 -lxml2 -lm -lcrypto
 SRC_DIR += tsschecker
 OBJECTS += $(SRC_DIR)/main.o $(SRC_DIR)/download.o $(SRC_DIR)/jsmn.o $(SRC_DIR)/tss.o $(SRC_DIR)/tsschecker.o
 
+.PHONY: set_version
 
 all : $(TARGET)
 
-$(TARGET) : $(OBJECTS)
-		./setBuildVersion.sh
+set_version : 
+	./setBuildVersion.sh
+
+$(TARGET) : set_version $(OBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
 		@echo "Successfully built $(TARGET)"
 
