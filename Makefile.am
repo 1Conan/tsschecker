@@ -1,2 +1,1 @@
-./setBuildVersion.sh
 SUBDIRS=tsschecker
