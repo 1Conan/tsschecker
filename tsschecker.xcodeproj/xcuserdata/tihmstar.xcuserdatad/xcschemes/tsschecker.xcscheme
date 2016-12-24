@@ -63,8 +63,8 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d iphone6,2 -l --nocache"
-            isEnabled = "NO">
+            argument = "-d iPhone6,2 -l --nocache"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

@@ -15,7 +15,7 @@
 #include "tsschecker.h"
 #include "jsmn.h"
 #include "download.h"
-#include <libpartialzip-1.0/libpartialzip.h>
+#include <libfragmentzip/libfragmentzip.h>
 #include "tss.h"
 
 #ifdef __APPLE__
@@ -221,15 +221,25 @@ static void printline(int percent){
     info("]");
 }
 
-static void partialzip_callback(partialzip_t* info, partialzip_file_t* file, size_t progress){
+static void fragmentzip_callback(uint progress){
     info("\x1b[A\033[J"); //clear 2 lines
     printline((int)progress);
     info("\n");
 }
 
 int downloadPartialzip(const char *url, const char *file, const char *dst){
-    log("[LPZP] downloading %s from %s\n\n",file,url);
-    return partialzip_download_file(url, file, dst, &partialzip_callback);
+    log("[LFZP] downloading %s from %s\n\n",file,url);
+    fragmentzip_t *info = fragmentzip_open(url);
+    if (!info) {
+        error("[LFZP] failed to open url");
+        return -1;
+    }
+    int ret = fragmentzip_download_file(info, file, dst, fragmentzip_callback);
+    if (ret){
+        error("[LFZP] failed to download file\n");
+    }
+    fragmentzip_close(info);
+    return ret;
 }
 
 char *getBuildManifest(char *url, const char *device, const char *version, int isOta){

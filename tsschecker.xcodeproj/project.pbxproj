@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		87CD9A3D1E0F35FE00E566B7 /* libfragmentzip.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */; };
 		87CEC4C91C576BD9006E75FC /* tss.c in Sources */ = {isa = PBXBuildFile; fileRef = 87CEC4C81C576BD9006E75FC /* tss.c */; };
 		87EB90A31C2940CD002CEE70 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 87EB90A21C2940CD002CEE70 /* main.c */; };
-		87EB90AA1C2940EC002CEE70 /* libpartialzip-1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90A91C2940EC002CEE70 /* libpartialzip-1.0.0.dylib */; };
 		87EB90AC1C2940FB002CEE70 /* libplist.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */; };
 		87EB90AE1C294108002CEE70 /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90AD1C294108002CEE70 /* libcurl.tbd */; };
 		87F927AC1C3E44CE00343510 /* tsschecker.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927AA1C3E44CE00343510 /* tsschecker.c */; };
@@ -32,6 +32,7 @@
 /* Begin PBXFileReference section */
 		8747AC521D83006100349BB9 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
 		87AD68BB1D8ACE7F0094A99F /* all_tsschecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = all_tsschecker.h; sourceTree = "<group>"; };
+		87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfragmentzip.0.dylib; path = ../../../../usr/local/lib/libfragmentzip.0.dylib; sourceTree = "<group>"; };
 		87CEC4C81C576BD9006E75FC /* tss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tss.c; sourceTree = "<group>"; };
 		87CEC4CA1C576BE0006E75FC /* tss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tss.h; sourceTree = "<group>"; };
 		87EB909F1C2940CD002CEE70 /* tsschecker */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tsschecker; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,15 +53,23 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				87CD9A3D1E0F35FE00E566B7 /* libfragmentzip.0.dylib in Frameworks */,
 				87EB90AE1C294108002CEE70 /* libcurl.tbd in Frameworks */,
 				87EB90AC1C2940FB002CEE70 /* libplist.3.dylib in Frameworks */,
-				87EB90AA1C2940EC002CEE70 /* libpartialzip-1.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		87CD9A3B1E0F35FE00E566B7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		87CEC4CB1C576BE8006E75FC /* libs */ = {
 			isa = PBXGroup;
 			children = (
@@ -79,6 +88,7 @@
 				87EB90A91C2940EC002CEE70 /* libpartialzip-1.0.0.dylib */,
 				87EB90A11C2940CD002CEE70 /* tsschecker */,
 				87EB90A01C2940CD002CEE70 /* Products */,
+				87CD9A3B1E0F35FE00E566B7 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -113,7 +123,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 87EB90A61C2940CD002CEE70 /* Build configuration list for PBXNativeTarget "tsschecker" */;
 			buildPhases = (
-				871E9CFA1E0B1D760066364B /* set build version */,
 				87EB909B1C2940CD002CEE70 /* Sources */,
 				87EB909C1C2940CD002CEE70 /* Frameworks */,
 				87EB909D1C2940CD002CEE70 /* CopyFiles */,
@@ -157,23 +166,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		871E9CFA1E0B1D760066364B /* set build version */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "set build version";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = ./setBuildVersion.sh;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		87EB909B1C2940CD002CEE70 /* Sources */ = {
