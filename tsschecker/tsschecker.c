@@ -231,7 +231,7 @@ int downloadPartialzip(const char *url, const char *file, const char *dst){
     log("[LFZP] downloading %s from %s\n\n",file,url);
     fragmentzip_t *info = fragmentzip_open(url);
     if (!info) {
-        error("[LFZP] failed to open url");
+        error("[LFZP] failed to open url\n");
         return -1;
     }
     int ret = fragmentzip_download_file(info, file, dst, fragmentzip_callback);

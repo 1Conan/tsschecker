@@ -4,7 +4,7 @@ _tsschecker is a powerful tool to check tss signing status of various devices an
 Latest compiled version can be found here:  
 (MacOS + Linux + Windows)  
 http://api.tihmstar.net/builds/tsschecker/tsschecker-latest.zip
-  
+
 ## Features  
 * Allows you to get lists of all devices and all iOS/OTA versions for a specific device.
 * Can check signing status for default iOS versions and beta ipsws (by specifying a `BuildManifest.plist`)
@@ -16,7 +16,7 @@ By using all of its customization possibilities, you might discover a combinatio
 ## Dependencies  
 * [libcurl](https://curl.haxx.se/libcurl/)
 * [libplist](https://github.com/libimobiledevice/libplist)
-* [libpartialzip](http://www.openjailbreak.org/projects/libpartialzip-1-0)
+* [libfragmentzip](https://github.com/tihmstar/libfragmentzip)
 
 ## Bundled libraries  
 These libraries are already in the source so you don't need to install them.

@@ -37,7 +37,6 @@
 		87CEC4CA1C576BE0006E75FC /* tss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tss.h; sourceTree = "<group>"; };
 		87EB909F1C2940CD002CEE70 /* tsschecker */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tsschecker; sourceTree = BUILT_PRODUCTS_DIR; };
 		87EB90A21C2940CD002CEE70 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		87EB90A91C2940EC002CEE70 /* libpartialzip-1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libpartialzip-1.0.0.dylib"; path = "../../../../../usr/local/lib/libpartialzip-1.0.0.dylib"; sourceTree = "<group>"; };
 		87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libplist.3.dylib; path = ../../../../../usr/local/lib/libplist.3.dylib; sourceTree = "<group>"; };
 		87EB90AD1C294108002CEE70 /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
 		87F927AA1C3E44CE00343510 /* tsschecker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tsschecker.c; sourceTree = "<group>"; };
@@ -85,7 +84,6 @@
 				8747AC521D83006100349BB9 /* libcrypto.dylib */,
 				87EB90AD1C294108002CEE70 /* libcurl.tbd */,
 				87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */,
-				87EB90A91C2940EC002CEE70 /* libpartialzip-1.0.0.dylib */,
 				87EB90A11C2940CD002CEE70 /* tsschecker */,
 				87EB90A01C2940CD002CEE70 /* Products */,
 				87CD9A3B1E0F35FE00E566B7 /* Frameworks */,

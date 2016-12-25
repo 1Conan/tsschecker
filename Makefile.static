@@ -1,7 +1,7 @@
 TARGET = tsschecker_tool
 INSTALLTARGET = tsschecker
 CFLAGS += -Wall -std=c11
-LDFLAGS += -l:libplist.a -l:libxml2.a -l:liblzma.a -l:libpartialzip-1.0.a -lcurl -l:libcrippy-1.0.a -lm -lcrypto -lz
+LDFLAGS += -l:libplist.a -l:libxml2.a -l:liblzma.a -l:libfragmentzip.a -lcurl -lm -lcrypto -lz
 SRC_DIR += tsschecker
 OBJECTS += $(SRC_DIR)/main.o $(SRC_DIR)/download.o $(SRC_DIR)/jsmn.o $(SRC_DIR)/tss.o $(SRC_DIR)/tsschecker.o
 

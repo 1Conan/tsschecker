@@ -13,11 +13,9 @@ AC_PROG_INSTALL
 
 # Checks for libraries.
 
-PKG_CHECK_MODULES(libxml, libxml-2.0 >= 2.7.8)
 PKG_CHECK_MODULES(libplist, libplist >= 1.0)
-PKG_CHECK_MODULES(libplistmm, libplist++ >= 1.0)
 PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
-PKG_CHECK_MODULES(libpartialzip, libpartialzip-1.0 >= 1.0)
+PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 1.0)
 PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)
 
 
