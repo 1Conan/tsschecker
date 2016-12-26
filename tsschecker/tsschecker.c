@@ -221,7 +221,7 @@ static void printline(int percent){
     info("]");
 }
 
-static void fragmentzip_callback(uint progress){
+static void fragmentzip_callback(unsigned int progress){
     info("\x1b[A\033[J"); //clear 2 lines
     printline((int)progress);
     info("\n");
