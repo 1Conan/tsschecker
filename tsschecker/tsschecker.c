@@ -29,8 +29,9 @@
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
 #define BBGCID_JSON_URL "http://api.tihmstar.net/bbgcid?condensed=1"
 
-
 #ifdef WIN32
+#include <windows.h>
+#define __mkdir(path, mode) mkdir(path)
 static int win_path_didinit = 0;
 static const char *win_paths[4];
 
@@ -83,6 +84,10 @@ static const char *win_path_get(enum paths path){
 #define FIRMWARE_JSON_PATH "/tmp/firmware.json"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
+
+
+#include <sys/stat.h>
+#define __mkdir(path, mode) mkdir(path, mode)
 
 #endif
 
@@ -259,7 +264,7 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
     if (isOta) strncat(fileDir, "ota", strlen("ota"));
     
     memset(&st, 0, sizeof(st));
-    if (stat(MANIFEST_SAVE_PATH, &st) == -1) mkdir(MANIFEST_SAVE_PATH, 0700);
+    if (stat(MANIFEST_SAVE_PATH, &st) == -1) __mkdir(MANIFEST_SAVE_PATH, 0700);
     
     //gen name
     char *name = fileDir + strlen(fileDir);
