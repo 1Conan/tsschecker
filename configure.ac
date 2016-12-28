@@ -10,6 +10,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 CFLAGS+=" -std=c11"
 AC_PROG_INSTALL
+AC_PROG_LIBTOOL
 
 # Checks for libraries.
 
@@ -35,6 +36,16 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset mkdir pow strchr strdup strstr])
+
+case $CFLAGS in
+  *TSSCHECKER_NOMAIN*)
+    nomain=true
+  ;;
+  *)
+  ;;
+esac
+
+AM_CONDITIONAL(NOMAIN, test x$nomain == xtrue)
 
 AC_CONFIG_FILES([Makefile tsschecker/Makefile])
 AC_OUTPUT
