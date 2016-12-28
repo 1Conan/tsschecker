@@ -553,7 +553,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
         if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh2",cecid,device,cpvers,cbuild);
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh%s",cecid,device,cpvers,cbuild, (*devVals.generator) ? "2" : "");
         
         FILE *shshfile = fopen(fname, "w");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
