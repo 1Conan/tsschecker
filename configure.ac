@@ -18,7 +18,7 @@ PKG_CHECK_MODULES(libplist, libplist >= 1.0)
 PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
 PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 1.0)
 PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)
-PKG_CHECK_MODULES(libirecovery, libirecovery >= 1.0)
+PKG_CHECK_MODULES(libirecovery, libirecovery >= 0.2.0)
 
 
 # Checks for header files.
