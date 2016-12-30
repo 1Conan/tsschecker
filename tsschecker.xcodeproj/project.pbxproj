@@ -12,6 +12,7 @@
 		87EB90A31C2940CD002CEE70 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 87EB90A21C2940CD002CEE70 /* main.c */; };
 		87EB90AC1C2940FB002CEE70 /* libplist.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */; };
 		87EB90AE1C294108002CEE70 /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90AD1C294108002CEE70 /* libcurl.tbd */; };
+		87F1F6791E168ABE00301726 /* libirecovery.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87F1F6781E168ABE00301726 /* libirecovery.2.dylib */; };
 		87F927AC1C3E44CE00343510 /* tsschecker.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927AA1C3E44CE00343510 /* tsschecker.c */; };
 		87F927AF1C3E455200343510 /* download.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927AD1C3E455200343510 /* download.c */; };
 		87F927B21C3E490F00343510 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927B01C3E490F00343510 /* jsmn.c */; };
@@ -39,6 +40,7 @@
 		87EB90A21C2940CD002CEE70 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libplist.3.dylib; path = ../../../../../usr/local/lib/libplist.3.dylib; sourceTree = "<group>"; };
 		87EB90AD1C294108002CEE70 /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
+		87F1F6781E168ABE00301726 /* libirecovery.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libirecovery.2.dylib; path = ../../../../usr/local/lib/libirecovery.2.dylib; sourceTree = "<group>"; };
 		87F927AA1C3E44CE00343510 /* tsschecker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tsschecker.c; sourceTree = "<group>"; };
 		87F927AB1C3E44CE00343510 /* tsschecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tsschecker.h; sourceTree = "<group>"; };
 		87F927AD1C3E455200343510 /* download.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = download.c; sourceTree = "<group>"; };
@@ -52,6 +54,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				87F1F6791E168ABE00301726 /* libirecovery.2.dylib in Frameworks */,
 				87CD9A3D1E0F35FE00E566B7 /* libfragmentzip.0.dylib in Frameworks */,
 				87EB90AE1C294108002CEE70 /* libcurl.tbd in Frameworks */,
 				87EB90AC1C2940FB002CEE70 /* libplist.3.dylib in Frameworks */,
@@ -64,6 +67,7 @@
 		87CD9A3B1E0F35FE00E566B7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				87F1F6781E168ABE00301726 /* libirecovery.2.dylib */,
 				87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */,
 			);
 			name = Frameworks;

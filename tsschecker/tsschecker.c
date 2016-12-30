@@ -16,6 +16,7 @@
 #include "jsmn.h"
 #include "download.h"
 #include <libfragmentzip/libfragmentzip.h>
+#include <libirecovery.h>
 #include "tss.h"
 
 #ifdef __APPLE__
@@ -147,6 +148,52 @@ char *getOtaJson(){
     fread(fJson, fsize, 1, f);
     fclose(f);
     return fJson;
+}
+
+#pragma mark more get functions
+
+const char *getBoardconfigFromModel(const char *model){
+    
+    irecv_device_t table = irecv_devices_get_all();
+    //iterate through table until find correct entry
+    //table is terminated with {NULL, NULL, -1, -1} entry, return that if device not found
+    while (table->product_type && strncmp(model, table->product_type, strlen(model)) != 0)
+        table++;
+    
+    return table->hardware_model;
+}
+
+plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall){
+    plist_t rt = NULL;
+#define reterror(a ... ) {error(a); rt = NULL; goto error;}
+    
+    plist_t buildidentities = plist_dict_get_item(buildManifest, "BuildIdentities");
+    if (!buildidentities || plist_get_node_type(buildidentities) != PLIST_ARRAY){
+        reterror("[TSSR] Error: could not get BuildIdentities\n");
+    }
+    for (int i=0; i<plist_array_get_size(buildidentities); i++) {
+        rt = plist_array_get_item(buildidentities, i);
+        if (!rt || plist_get_node_type(rt) != PLIST_DICT){
+            reterror("[TSSR] Error: could not get id%d\n",i);
+        }
+        plist_t infodict = plist_dict_get_item(rt, "Info");
+        if (!infodict || plist_get_node_type(infodict) != PLIST_DICT){
+            reterror("[TSSR] Error: could not get infodict\n");
+        }
+        plist_t RestoreBehavior = plist_dict_get_item(infodict, "RestoreBehavior");
+        if (!RestoreBehavior || plist_get_node_type(RestoreBehavior) != PLIST_STRING){
+            reterror("[TSSR] Error: could not get RestoreBehavior\n");
+        }
+        char *string = NULL;
+        plist_get_string_val(RestoreBehavior, &string);
+        if (strncmp(string, (isUpdateInstall ? "" : "Erase"), strlen(string)) == 0)
+            break;
+        else
+            rt = NULL;
+    }
+    
+error:
+    return rt;
 }
 
 #pragma mark json functions
@@ -446,11 +493,8 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     
     plist_from_xml(buildManifest, (unsigned)strlen(buildManifest), &manifest);
     
-    plist_t buildidentities = plist_dict_get_item(manifest, "BuildIdentities");
-    if (!buildidentities || plist_get_node_type(buildidentities) != PLIST_ARRAY){
-        reterror("[TSSR] Error: could not get BuildIdentities\n");
-    }
-    plist_t id0 = plist_array_get_item(buildidentities, 0);
+    
+    plist_t id0 = getBuildidentity(manifest, device, devVals->isUpgradeInstall);
     if (!id0 || plist_get_node_type(id0) != PLIST_DICT){
         reterror("[TSSR] Error: could not get id0\n");
     }

@@ -149,7 +149,6 @@ int main(int argc, const char * argv[]) {
     int err = 0;
     int isSigned = 0;
     
-    
     dbglog = 1;
     idevicerestore_debug = 0;
     save_shshblobs = 0;
@@ -163,10 +162,8 @@ int main(int argc, const char * argv[]) {
     
     char *apnonce = 0;
     char *sepnonce = 0;
-    t_devicevals devVals;
-    t_iosVersion versVals;
-    memset(&versVals, 0, sizeof(versVals));
-    memset(&devVals, 0, sizeof(devVals));
+    t_devicevals devVals = {0};
+    t_iosVersion versVals = {0};
     
     if (argc == 1){
         cmd_help();

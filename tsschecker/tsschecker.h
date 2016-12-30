@@ -19,6 +19,7 @@ extern "C" {
 #include "tss.h"
 #include "all_tsschecker.h"
 #define noncelen 20
+#warning TODO THIS IS WRONG FOR iPHONE7
 
 extern int dbglog;
 extern int print_tss_response;
@@ -33,6 +34,7 @@ typedef struct{
     char *apnonce;
     char *sepnonce;
     char generator[19];
+    int isUpgradeInstall : 1;
 }t_devicevals;
 
 typedef enum{
@@ -70,6 +72,9 @@ int checkDeviceExists(char *device, char *firmwareJson, jsmntok_t *tokens, int i
 int checkFirmwareForDeviceExists(char *device, t_iosVersion version, char *firmwareJson, jsmntok_t *tokens);
 
 int downloadPartialzip(const char *url, const char *file, const char *dst);
+
+const char *getBoardconfigFromModel(const char *model);
+plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall);
 
     
 #ifdef __cplusplus
