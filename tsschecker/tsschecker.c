@@ -692,7 +692,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
             plist_get_string_val(ProductVersion, (char**)&versVals->version);
         }
     }
-    if (devVals) devVals->deviceModel = ldevice;
+    if (!devVals->deviceModel) devVals->deviceModel = ldevice;
     else{
         if (manifest){
             SupportedProductTypes = plist_dict_get_item(manifest, "SupportedProductTypes");
@@ -706,7 +706,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     }
     
     isSigned = isManifestBufSignedForDevice(bufManifest, *devVals, versVals->basebandMode);
-    if (devVals) devVals->deviceModel = ldevice; //TODO why is this set 2 times?
+    if (!devVals->deviceModel) devVals->deviceModel = ldevice; //TODO why is this set 2 times?
     
 error:
     if (manifest) plist_free(manifest);
