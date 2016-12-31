@@ -119,10 +119,13 @@ int64_t parseECID(const char *ecid){
     return ret;
 }
 
-char *parseNonce(const char *nonce){
-    char *ret = malloc((noncelen+1)*sizeof(char));
-    memset(ret, 0, noncelen+1);
-    int nlen = 0;
+char *parseNonce(const char *nonce, size_t *parsedLen){
+    size_t nonceLen = strlen(nonce);
+    nonceLen = nonceLen/2 + nonceLen%2; //one byte more if len is odd
+   
+    char *ret = malloc((nonceLen+1)*sizeof(char));
+    memset(ret, 0, nonceLen+1);
+    unsigned int nlen = 0;
     
     int next = strlen(nonce)%2 == 0;
     char tmp = 0;
@@ -139,9 +142,10 @@ char *parseNonce(const char *nonce){
         }else{
             return 0; //ERROR parsing failed
         }
-        if ((next =! next) && nlen < noncelen) ret[nlen++] = tmp,tmp=0;
+        if ((next =! next) && nlen < nonceLen) ret[nlen++] = tmp,tmp=0;
     }
     
+    if (parsedLen) *parsedLen = nlen;
     return ret;
 }
 
@@ -156,7 +160,6 @@ int main(int argc, const char * argv[]) {
     int opt = 0;
     long flags = 0;
     
-    char *device = 0;
     char *buildmanifest = 0;
     char *ecid = 0;
     
@@ -175,7 +178,7 @@ int main(int argc, const char * argv[]) {
                 cmd_help();
                 return 0;
             case 'd': // long option: "device"; can be called as short option
-                device = optarg;
+                devVals.deviceModel = optarg;
                 break;
             case 'i': // long option: "ios"; can be called as short option
                 if (versVals.version) reterror(-9, "[TSSC] parsing parameter failed!\n");
@@ -252,7 +255,7 @@ int main(int argc, const char * argv[]) {
         }
     }
     if (apnonce) {
-        if ((devVals.apnonce = parseNonce(apnonce)) ){
+        if ((devVals.apnonce = parseNonce(apnonce,&devVals.parsedApnonceLen)) ){
             info("[TSSC] manually specified apnonce to use, parsed \"%s\" to hex:",apnonce);
             unsigned char *tmp = (unsigned char*)devVals.apnonce;
             while (*tmp) info("%02x",*tmp++);
@@ -262,7 +265,7 @@ int main(int argc, const char * argv[]) {
         }
     }
     if (sepnonce) {
-        if ((devVals.sepnonce = parseNonce(sepnonce)) ){
+        if ((devVals.sepnonce = parseNonce(sepnonce,&devVals.parsedSepnonceLen)) ){
             info("[TSSC] manually specified sepnonce to use, parsed \"%s\" to hex:",sepnonce);
             unsigned char *tmp = (unsigned char*)devVals.sepnonce;
             while (*tmp) info("%02x",*tmp++);
@@ -282,7 +285,7 @@ int main(int argc, const char * argv[]) {
         int versionCnt = 0;
         int i = 0;
             
-        char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, device, versVals.isOta, &versionCnt);
+        char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, devVals.deviceModel, versVals.isOta, &versionCnt);
         if (!versionCnt) reterror(-8, "[TSSC] failed finding latest iOS. ota=%d\n",versVals.isOta);
         char *bpos = NULL;
         while((bpos = strstr(versVals.version = strdup(versions[i++]),"[B]")) != 0){
@@ -298,25 +301,25 @@ int main(int argc, const char * argv[]) {
     if (flags & FLAG_LIST_DEVICES) {
         printListOfDevices(firmwareJson, firmwareTokens);
     }else if (flags & FLAG_LIST_IOS){
-        if (!device) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
-        if (!checkDeviceExists(device, firmwareJson, firmwareTokens, versVals.isOta)) reterror(-4,"[TSSC] device %s could not be found in devicelist\n",device);
+        if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
+        if (!checkDeviceExists(devVals.deviceModel, firmwareJson, firmwareTokens, versVals.isOta)) reterror(-4,"[TSSC] device %s could not be found in devicelist\n",devVals.deviceModel);
         
-        printListOfiOSForDevice(firmwareJson, firmwareTokens, device, versVals.isOta);
+        printListOfiOSForDevice(firmwareJson, firmwareTokens, devVals.deviceModel, versVals.isOta);
     }else{
         //request ticket
         if (buildmanifest) {
-            if (device && !checkDeviceExists(device, firmwareJson, firmwareTokens, versVals.isOta)) reterror(-4,"[TSSC] device %s could not be found in devicelist\n",device);
+            if (devVals.deviceModel && !checkDeviceExists(devVals.deviceModel, firmwareJson, firmwareTokens, versVals.isOta)) reterror(-4,"[TSSC] device %s could not be found in devicelist\n",devVals.deviceModel);
             
-            isSigned = isManifestSignedForDevice(buildmanifest, &device, &devVals, &versVals);
+            isSigned = isManifestSignedForDevice(buildmanifest, &devVals, &versVals);
 
         }else{
-            if (!device) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
+            if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
             if (!versVals.version) reterror(-5,"[TSSC] please specify an iOS version or buildID for this option\n\tuse -h for more help\n");
             
-            isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, versVals, device, devVals);
+            isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, versVals, devVals);
         }
         
-        if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.isBuildid) ? "Build" : "iOS" ,versVals.version,device, (isSigned) ? "IS" : "IS NOT");
+        if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.isBuildid) ? "Build" : "iOS" ,versVals.version,devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");
         else putchar('\n'),error("[TSSC] checking tss status failed!\n");
     }
     

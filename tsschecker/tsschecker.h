@@ -18,9 +18,7 @@ extern "C" {
 #include <plist/plist.h>
 #include "tss.h"
 #include "all_tsschecker.h"
-#define noncelen 20
-#warning TODO THIS IS WRONG FOR iPHONE7
-
+    
 extern int dbglog;
 extern int print_tss_response;
 extern int nocache;
@@ -29,10 +27,13 @@ extern const char *shshSavePath;
 
 
 typedef struct{
+    char *deviceModel;
     uint64_t ecid;
     uint64_t bbgcid;
     char *apnonce;
+    size_t parsedApnonceLen;
     char *sepnonce;
+    size_t parsedSepnonceLen;
     char generator[19];
     int isUpgradeInstall : 1;
 }t_devicevals;
@@ -62,10 +63,10 @@ char *getFirmwareUrl(const char *device, t_iosVersion versVals, const char *firm
 char *getBuildManifest(char *url, const char *device, const char *version, int isOta);
 int64_t getBBGCIDForDevice(char *deviceModel);
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals *devVals, t_basebandMode basebandMode);
-int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_devicevals *devVals, t_iosVersion *versVals);
-int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devicevals devVals, t_basebandMode basebandMode);
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, char *device, t_devicevals devVals);
+int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode);
+int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_iosVersion *versVals);
+int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals devVals, t_basebandMode basebandMode);
+int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, t_devicevals devVals);
 
 
 int checkDeviceExists(char *device, char *firmwareJson, jsmntok_t *tokens, int isOta);

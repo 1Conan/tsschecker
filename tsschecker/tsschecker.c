@@ -30,6 +30,12 @@
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
 #define BBGCID_JSON_URL "http://api.tihmstar.net/bbgcid?condensed=1"
 
+#warning TODO verify these values are actually correct for all devices (iPhone7)
+#define NONCELEN_BASEBAND 20 
+#define NONCELEN_SEP      20
+
+
+
 #ifdef WIN32
 #include <windows.h>
 #define __mkdir(path, mode) mkdir(path)
@@ -421,11 +427,11 @@ int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t n
 
 int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbGoldCertId){
     plist_t parameters = plist_new_dict();
-    char bbnonce[noncelen+1];
+    char bbnonce[NONCELEN_BASEBAND+1];
     char bbsnum[5];
     int64_t BbChipID = 0;
     
-    getRandNum(bbnonce, noncelen, 256);
+    getRandNum(bbnonce, NONCELEN_BASEBAND, 256);
     getRandNum(bbsnum, 4, 256);
     srand((unsigned int)time(NULL));
     int n=0; for (int i=1; i<7; i++) BbChipID += (rand() % 10) * pow(10, ++n);
@@ -454,37 +460,66 @@ int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbG
 }
 
 int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
-    char nonce[noncelen+1];
-    char sep_nonce[noncelen+1];
+    size_t nonceLen = 20; //valid for all devices up to iPhone7
+    if (strncmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0)
+        nonceLen = 32;
+    
+    
+    char *nonce = (char*)malloc(nonceLen+1);
+    char sep_nonce[NONCELEN_SEP+1];
     
     int n=0;
     srand((unsigned int)time(NULL));
     if (!devVals->ecid) for (int i=0; i<16; i++) devVals->ecid += (rand() % 10) * pow(10, n++);
 
-    if (devVals->apnonce) memcpy(nonce, devVals->apnonce, noncelen+1);
-    else {
-        unsigned char zz[8];
-        getRandNum((char*)zz, 8, 256);
-        
-        snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
-        SHA1(zz, 8, (unsigned char*)nonce);
+    if (devVals->apnonce){
+        if (devVals->parsedApnonceLen == nonceLen)
+            memcpy(nonce, devVals->apnonce, nonceLen+1);
+        else
+            return error("[TSSR] parsed APNoncelen != requiredAPNoncelen (%u != %u)\n",(unsigned int)devVals->parsedApnonceLen,(unsigned int)nonceLen),-1;
+    }else {
+        if (nonceLen == 20) {
+            //this is a pre iPhone7 device
+            //nonce is derived from generator with SHA1
+            unsigned char zz[8];
+            getRandNum((char*)zz, 8, 256);
+            
+            snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
+            SHA1(zz, 8, (unsigned char*)nonce);
+        }else if (nonceLen == 32){
+            //this is an iPhone7 device
+            //nonce is derived from generator with ????
+            error("iPhone7 device detected! Automatic generator->nonce calculation failed. Please manually specify an apnonce with len=%u\n",(unsigned int)nonceLen);
+#warning TODO implement iPhone7 generator->nonce algorithm
+            return -1;
+        }else{
+            return error("[TSSR] Automatic generator->nonce calculation failed. Unknown device with noncelen=%u\n",(unsigned int)nonceLen),-1;
+        }
     }
     
-    if (devVals->sepnonce) memcpy(sep_nonce, devVals->sepnonce, noncelen+1);
-    else getRandNum(sep_nonce, noncelen, 256);
+    if (devVals->sepnonce){
+        if (devVals->parsedApnonceLen == NONCELEN_SEP)
+            memcpy(sep_nonce, devVals->sepnonce, NONCELEN_SEP+1);
+        else
+            return error("[TSSR] parsed SEPNoncelen != requiredSEPNoncelen (%u != %u)",(unsigned int)devVals->parsedSepnonceLen,(unsigned int)NONCELEN_SEP),-1;
+    }else
+        getRandNum(sep_nonce, NONCELEN_SEP, 256);
     
-    nonce[noncelen] = sep_nonce[noncelen] = 0;
+    nonce[nonceLen] = '\0';
+    sep_nonce[NONCELEN_SEP] = '\0';
     
     debug("[TSSR] ecid=%llu\n",devVals->ecid);
     debug("[TSSR] nonce=%s\n",nonce);
     debug("[TSSR] sepnonce=%s\n",sep_nonce);
     
-    return tss_populate_devicevals(tssreq, devVals->ecid, nonce, noncelen, sep_nonce, noncelen, is64bit);
+    int rt = tss_populate_devicevals(tssreq, devVals->ecid, nonce, nonceLen, sep_nonce, NONCELEN_SEP, is64bit);
+    free(nonce);
+    return rt;
 }
 
 
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicevals *devVals, t_basebandMode basebandMode){
+int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode){
 #define reterror(a) {error(a); error = -1; goto error;}
     int error = 0;
     plist_t manifest = NULL;
@@ -494,7 +529,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     plist_from_xml(buildManifest, (unsigned)strlen(buildManifest), &manifest);
     
     
-    plist_t id0 = getBuildidentity(manifest, device, devVals->isUpgradeInstall);
+    plist_t id0 = getBuildidentity(manifest, devVals->deviceModel, devVals->isUpgradeInstall);
     if (!id0 || plist_get_node_type(id0) != PLIST_DICT){
         reterror("[TSSR] Error: could not get id0\n");
     }
@@ -505,7 +540,9 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
     int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
     
-    tss_populate_random(tssparameter,is64Bit,devVals);
+    if (tss_populate_random(tssparameter,is64Bit,devVals))
+        reterror("[TSSR] failed to populate tss request\n");
+    
     tss_parameters_add_from_manifest(tssparameter, id0);
     
     if (basebandMode != kBasebandModeOnlyBaseband) {
@@ -531,7 +568,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
     }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
-        int64_t BbGoldCertId = (devVals->bbgcid) ? devVals->bbgcid : getBBGCIDForDevice(device);
+        int64_t BbGoldCertId = (devVals->bbgcid) ? devVals->bbgcid : getBBGCIDForDevice(devVals->deviceModel);
         if (BbGoldCertId == -1) {
             if (basebandMode == kBasebandModeOnlyBaseband){
                 reterror("[TSSR] failed to get BasebandGoldCertID, but requested to get only baseband ticket. Aborting here!\n");
@@ -541,7 +578,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, char *device, t_devicev
             tss_populate_basebandvals(tssreq,tssparameter,BbGoldCertId);
             tss_request_add_baseband_tags(tssreq, tssparameter, NULL);
         }else{
-            log("[TSSR] LOG: device %s doesn't need a Baseband ticket, continuing without requesting a Baseband ticket\n",device);
+            log("[TSSR] LOG: device %s doesn't need a Baseband ticket, continuing without requesting a Baseband ticket\n",devVals->deviceModel);
         }
     }else{
         info("[TSSR] User specified not to request a Baseband ticket.\n");
@@ -556,12 +593,12 @@ error:
 #undef reterror
 }
 
-int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devicevals devVals, t_basebandMode basebandMode){
+int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals devVals, t_basebandMode basebandMode){
     int isSigned = 0;
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     
-    if (tssrequest(&tssreq, buildManifestBuffer, device, &devVals, basebandMode)){
+    if (tssrequest(&tssreq, buildManifestBuffer, &devVals, basebandMode)){
         error("[TSSR] faild to build tssrequest\n");
         goto error;
     }
@@ -590,14 +627,14 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, char *device, t_devi
             plist_dict_set_item(apticket, "generator", plist_new_string(devVals.generator));
         plist_to_xml(apticket, &data, &size);
         
-        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(device) + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"__-.shsh2") + 1;
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(devVals.deviceModel) + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"__-.shsh2") + 1;
         char *fname = malloc(fnamelen);
         memset(fname, 0, fnamelen);
         size_t prePathLen= strlen(shshSavePath);
         if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh%s",cecid,device,cpvers,cbuild, (*devVals.generator) ? "2" : "");
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh%s",cecid,devVals.deviceModel,cpvers,cbuild, (*devVals.generator) ? "2" : "");
         
         FILE *shshfile = fopen(fname, "w");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
@@ -621,7 +658,7 @@ error:
     return isSigned;
 }
 
-int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_devicevals *devVals, t_iosVersion *versVals){
+int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_iosVersion *versVals){
     int isSigned = 0;
 #define reterror(a ...) {error(a); isSigned = -1; goto error;}
     plist_t manifest = NULL;
@@ -653,7 +690,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_de
             plist_get_string_val(ProductVersion, (char**)&versVals->version);
         }
     }
-    if (device) ldevice = *device;
+    if (devVals) devVals->deviceModel = ldevice;
     else{
         if (manifest){
             SupportedProductTypes = plist_dict_get_item(manifest, "SupportedProductTypes");
@@ -666,8 +703,8 @@ int isManifestSignedForDevice(const char *buildManifestPath, char **device, t_de
             else info("[TSSR] requesting ticket for %s\n",ldevice);
     }
     
-    isSigned = isManifestBufSignedForDevice(bufManifest, ldevice, *devVals, versVals->basebandMode);
-    if (device) *device = ldevice;
+    isSigned = isManifestBufSignedForDevice(bufManifest, *devVals, versVals->basebandMode);
+    if (devVals) devVals->deviceModel = ldevice; //TODO why is this set 2 times?
     
 error:
     if (manifest) plist_free(manifest);
@@ -676,7 +713,7 @@ error:
 #undef reterror
 }
 
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, char *device, t_devicevals devVals){
+int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, t_devicevals devVals){
     
     if (atoi(versVals.version) <= 3) {
         info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals.version);
@@ -688,20 +725,20 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
     char *url = NULL;
     char *buildManifest = NULL;
     
-    if (!(buildManifest = getBuildManifest(NULL, device, versVals.version, versVals.isOta))){
+    if (!(buildManifest = getBuildManifest(NULL, devVals.deviceModel, versVals.version, versVals.isOta))){
         
         
-        if (!checkFirmwareForDeviceExists(device, versVals, firmwareJson, firmwareTokens))
-            return error("[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",device,versVals.version), 0;
+        if (!checkFirmwareForDeviceExists(devVals.deviceModel, versVals, firmwareJson, firmwareTokens))
+            return error("[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",devVals.deviceModel,versVals.version), 0;
         
         
-        url = getFirmwareUrl(device, versVals, firmwareJson, firmwareTokens);
-        if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",device,versVals.version);
-        buildManifest = getBuildManifest(url, device, versVals.version, versVals.isOta);
+        url = getFirmwareUrl(devVals.deviceModel, versVals, firmwareJson, firmwareTokens);
+        if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals.deviceModel,versVals.version);
+        buildManifest = getBuildManifest(url, devVals.deviceModel, versVals.version, versVals.isOta);
         if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
     }
     
-    isSigned = isManifestBufSignedForDevice(buildManifest, device, devVals, versVals.basebandMode);
+    isSigned = isManifestBufSignedForDevice(buildManifest, devVals, versVals.basebandMode);
 
 error:
     if (url) free(url);
