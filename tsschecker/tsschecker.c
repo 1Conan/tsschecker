@@ -668,7 +668,6 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     plist_t SupportedProductTypes = NULL;
     plist_t mDevice = NULL;
     char *bufManifest = NULL;
-    char *ldevice = NULL;
     
     info("[TSSC] opening %s\n",buildManifestPath);
     //filehandling
@@ -683,30 +682,33 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     fclose(fmanifest);
     
     plist_from_xml(bufManifest, (unsigned)strlen(bufManifest), &manifest);
+    if (!manifest)
+        reterror("[TSSC] failed to load manifest\n");
+    
     if (!versVals->version){
-        if (!manifest){
-            warning("[TSSC] WARNING: could not find ProductVersion in BuildManifest.plist, failing to properly display iOS version\n");
-        }else{
-            ProductVersion = plist_dict_get_item(manifest, "ProductVersion");
-            if (versVals->isBuildid) reterror("[TSSC] Error, this option is not supported with buildid. Please use -i instead\n");
-            plist_get_string_val(ProductVersion, (char**)&versVals->version);
-        }
+        ProductVersion = plist_dict_get_item(manifest, "ProductVersion");
+        if (versVals->isBuildid) //TODO is this really an issue?
+            reterror("[TSSC] Error, this option is not supported with buildid. Please use -i instead\n");
+        plist_get_string_val(ProductVersion, (char**)&versVals->version);
     }
-    if (!devVals->deviceModel) devVals->deviceModel = ldevice;
-    else{
-        if (manifest){
-            SupportedProductTypes = plist_dict_get_item(manifest, "SupportedProductTypes");
-            if (SupportedProductTypes) {
-                mDevice = plist_array_get_item(SupportedProductTypes, 0);
-                plist_get_string_val(mDevice, &ldevice);
-            }
+    if (!devVals->deviceModel)
+        reterror("[TSSC] can't proceed without devicemodel\n");
+    
+    SupportedProductTypes = plist_dict_get_item(manifest, "SupportedProductTypes");
+    if (SupportedProductTypes) {
+        for (int i=0; i<plist_array_get_size(SupportedProductTypes); i++) {
+            mDevice = plist_array_get_item(SupportedProductTypes, 0);
+            char *ldevice = NULL;
+            plist_get_string_val(mDevice, &ldevice);
+            if (strncmp(ldevice, devVals->deviceModel, strlen(devVals->deviceModel)) == 0)
+                goto checkedDeviceModel;
         }
-        if (!ldevice) reterror("[TSSR] ERROR: device wasn't specified and could not be fetched from BuildManifest\n")
-            else info("[TSSR] requesting ticket for %s\n",ldevice);
     }
     
+    reterror("[TSSC] selected device can't be used with that buildmanifest\n");
+    
+checkedDeviceModel:
     isSigned = isManifestBufSignedForDevice(bufManifest, *devVals, versVals->basebandMode);
-    if (!devVals->deviceModel) devVals->deviceModel = ldevice; //TODO why is this set 2 times?
     
 error:
     if (manifest) plist_free(manifest);
