@@ -461,6 +461,8 @@ int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbG
 
 int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     size_t nonceLen = 20; //valid for all devices up to iPhone7
+    if (!devVals->deviceModel)
+        return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
     if (strncmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0)
         nonceLen = 32;
     
