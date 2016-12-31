@@ -697,7 +697,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     SupportedProductTypes = plist_dict_get_item(manifest, "SupportedProductTypes");
     if (SupportedProductTypes) {
         for (int i=0; i<plist_array_get_size(SupportedProductTypes); i++) {
-            mDevice = plist_array_get_item(SupportedProductTypes, 0);
+            mDevice = plist_array_get_item(SupportedProductTypes, i);
             char *ldevice = NULL;
             plist_get_string_val(mDevice, &ldevice);
             if (strncmp(ldevice, devVals->deviceModel, strlen(devVals->deviceModel)) == 0)
