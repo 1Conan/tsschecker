@@ -570,6 +570,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, 
     }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
+        //TODO: verify that this being int64_t instead of uint64_t doesn't actually break something
         int64_t BbGoldCertId = (devVals->bbgcid) ? devVals->bbgcid : getBBGCIDForDevice(devVals->deviceModel);
         if (BbGoldCertId == -1) {
             if (basebandMode == kBasebandModeOnlyBaseband){
