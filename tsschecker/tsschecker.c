@@ -546,26 +546,29 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, 
         reterror("[TSSR] failed to populate tss request\n");
     
     tss_parameters_add_from_manifest(tssparameter, id0);
+    if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
+        reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+    }
     
-    if (basebandMode != kBasebandModeOnlyBaseband) {
-        if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
-            reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+    if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
+        reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+    }
+    
+    if (is64Bit) {
+        if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
+            reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
         }
-        
-        if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
-            reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+    } else {
+        if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
+            reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
         }
-        
-        if (is64Bit) {
-            if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
-                reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
-            }
-        } else {
-            if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
-                reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
-            }
-        }
-    }else{
+    }
+    if (basebandMode == kBasebandModeOnlyBaseband) {
+        if (plist_dict_get_item(tssreq, "@ApImg4Ticket"))
+            plist_dict_set_item(tssreq, "@ApImg4Ticket", plist_new_bool(0));
+        if (plist_dict_get_item(tssreq, "@APTicket"))
+            plist_dict_set_item(tssreq, "@APTicket", plist_new_bool(0));
+        //TODO don't use .shsh2 ending and don't save generator when saving only baseband
         info("[TSSR] User specified to request only a Baseband ticket.\n");
     }
     
