@@ -192,7 +192,7 @@ plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateI
         }
         char *string = NULL;
         plist_get_string_val(RestoreBehavior, &string);
-        if (strncmp(string, (isUpdateInstall ? "" : "Erase"), strlen(string)) == 0)
+        if (strncmp(string, (isUpdateInstall ? "Update" : "Erase"), strlen(string)) == 0)
             break;
         else
             rt = NULL;
