@@ -27,20 +27,25 @@ These libraries are already in the source so you don't need to install them.
 _(might become outdated):_
 
 Usage: `tsschecker [OPTIONS]`
-
 | option (short) | option (long)             | description                                                                       |
 |----------------|---------------------------|-----------------------------------------------------------------------------------|
-|  `-d`          | `--device MODEL`          |	specify device by its MODEL (eg. `iPhone4,1`)                                    |
+|  `-d`          | `--device MODEL`          | specify device by its MODEL (eg. `iPhone4,1`)                                     |
 |  `-i`          | `--ios VERSION`           | specify iOS version (eg. `6.1.3`)                                                 |
-|  `-h`          | `--help`                  |		prints usage information                                                       |
-|  `-o`          | `--ota`	                 |	check OTA signing status, instead of normal restore                              |
-|  `-b`          | `--no-baseband`           |	don't check baseband signing status. Request a ticket without baseband           |
+|				         | `--buildid BUILDID`		   | specific buildid instead of iOS version (eg. `13C75`)							               |
+|				         | `--boardconfig BOARD`	   | specific boardconfig instead of iPhone model (eg. `n61ap`)						             |
+|  `-h`          | `--help`                  | prints usage information                                                          |
+|  `-o`          | `--ota`	                 | check OTA signing status, instead of normal restore                               |
+|  `-b`          | `--no-baseband`           | don't check baseband signing status. Request a ticket without baseband            |
 |  `-m`          |`--build-manifest MANIFEST`| manually specify buildmanifest. (can be used with `-d`)                           |  
-|  `-s`          |`--save`		     | save fetched shsh blobs (mostly makes sense with -e)                              |  
-|  `-e`          | `--ecid ECID`	           | manually specify an ECID to be used for fetching blobs, instead of using random ones. <br>ECID must be either dec or hex eg. `5482657301265` or `ab46efcbf71`                                                          |
-|                |  `--beta`	               |	request ticket for beta instead of normal release (use with `-o`)                |
+|  `-s`          | `--save`		     		       | save fetched shsh blobs (mostly makes sense with -e)                              |
+|  `-l`			     | `--latest`  				       | use latest public iOS version instead of manually specifying one<br>especially useful with `-s` and `-e` for saving blobs                                                                                              |
+|      			     | `--apnonce NONCE`   		   | manually specify APNONCE instead of using random one (not required for saving blobs)|
+|      			     | `--sepnonce NONCE`        | manually specify SEPNONCE instead of using random one (not required for saving blobs) 		                                                                                                                                  |
+|      			     | `--save-path PATH`        | specify path for saving blobs 		 														 |
+|  `-e`          | `--ecid ECID`	         | manually specify an ECID to be used for fetching blobs, instead of using random ones. <br>ECID must be either dec or hex eg. `5482657301265` or `ab46efcbf71`                                                          |
+|                |  `--beta`	             | request ticket for beta instead of normal release (use with `-o`)                |
 |                | `--list-devices`          | list all known devices                                                            |
 |                |`--list-ios`	             | list all known iOS versions                                                       |
-|                |`--nocache`       	       | ignore caches and re-download required files                                      |
+|                |`--nocache`       	     | ignore caches and re-download required files                                      |
 |                |`--print-tss-request`      | prints tss request that will be sent (plist)                                      |
 |                |`--print-tss-response`     | prints tss response that come from Apple (plist)                                  |
