@@ -14,7 +14,9 @@ while read device; do
   	if [ -z "$device" ]; then
 		continue
 	fi
-	model=$(echo $device | cut -d ' ' -f 1)
+	modelWithBoard=$(echo $device | cut -d ' ' -f 1)
+	model=$(echo $modelWithBoard | cut -d '-' -f 1)
+	board=$(echo $modelWithBoard | cut -d '-' -f 2)
 	ecid=$(echo $device | cut -d ' ' -f 2)
 
 	i=2
@@ -35,6 +37,11 @@ while read device; do
 			mkdir "shsh$sp" 2>/dev/null
 			cnt="true"
 		fi
+		
+		if [ "$board" != "$device" ] && [ -n "$board" ]; then
+			ap="$ap --boardconfig $board"
+		fi
+		
 		echo saving blobs for $model $ecid $apn
 	        echo -n "saving normal blob ... "
 	        ret=$(tsschecker -d $model -e $ecid -s --save-path "shsh$sp" -l $ap);code=$?
