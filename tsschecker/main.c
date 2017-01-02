@@ -37,13 +37,14 @@ static struct option longopts[] = {
     { "sepnonce",           required_argument, NULL, '9' },
     { "device",             required_argument, NULL, 'd' },
     { "ios",                required_argument, NULL, 'i' },
-    { "buildid",            required_argument, NULL, 'B' },
     { "ecid",               required_argument, NULL, 'e' },
     { "help",               no_argument,       NULL, 'h' },
     { "no-baseband",        optional_argument, NULL, 'b' },
     { "ota",                no_argument,       NULL, 'o' },
     { "save",               no_argument,       NULL, 's' },
     { "latest",             no_argument,       NULL, 'l' },
+    { "boardconfig",        required_argument, NULL, 'B' },
+    { "buildid",            required_argument, NULL, 'Z' },
     { "debug",              no_argument,       NULL, '0' },
     { NULL, 0, NULL, 0 }
 };
@@ -56,6 +57,7 @@ void cmd_help(){
     printf("  -d, --device MODEL\t\tspecific device by its MODEL (eg. iPhone4,1)\n");
     printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
     printf("      --buildid BUILDID\t\tspecific buildid instead of iOS version (eg. 13C75)\n");
+    printf("      --boardconfig BOARD\tspecific boardconfig instead of iPhone model (eg. n61ap)\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
@@ -172,7 +174,7 @@ int main(int argc, const char * argv[]) {
         cmd_help();
         return -1;
     }
-    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:hslbo", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hslbo", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -184,9 +186,12 @@ int main(int argc, const char * argv[]) {
                 if (versVals.version) reterror(-9, "[TSSC] parsing parameter failed!\n");
                 versVals.version = optarg;
                 break;
-            case 'B': // long option: "ios"; can be called as short option
+            case 'Z': // long option: "ios"; can be called as short option
                 versVals.version = optarg;
                 versVals.isBuildid = 1;
+                break;
+            case 'B': // long option: "boardconfig"; can be called as short option
+                devVals.deviceBoard = optarg;
                 break;
             case 'e': // long option: "ecid"; can be called as short option
                 ecid = optarg;
@@ -247,6 +252,11 @@ int main(int argc, const char * argv[]) {
     char *firmwareJson = NULL;
     jsmntok_t *firmwareTokens = NULL;
     
+    if (!devVals.deviceModel)
+        if (!(devVals.deviceModel = (char*)getModelFromBoardconfig(devVals.deviceBoard)))
+            reterror(-25, "[TSSC] If you using --boardconfig please also specify devicemodel with -d\n");
+            
+    
     if (ecid) {
         if ((devVals.ecid = parseECID(ecid)) == 0){
             reterror(-7, "[TSSC] manually specified ecid=%s, but parsing failed\n",ecid);
@@ -286,7 +296,7 @@ int main(int argc, const char * argv[]) {
         int i = 0;
             
         char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, devVals.deviceModel, versVals.isOta, &versionCnt);
-        if (!versionCnt) reterror(-8, "[TSSC] failed finding latest iOS. ota=%d\n",versVals.isOta);
+        if (!versionCnt) reterror(-8, "[TSSC] failed finding latest iOS. If you using --boardconfig please also specify devicemodel with -d ota=%d\n",versVals.isOta);
         char *bpos = NULL;
         while((bpos = strstr(versVals.version = strdup(versions[i++]),"[B]")) != 0){
             if (versVals.useBeta) break;
@@ -301,14 +311,15 @@ int main(int argc, const char * argv[]) {
     if (flags & FLAG_LIST_DEVICES) {
         printListOfDevices(firmwareJson, firmwareTokens);
     }else if (flags & FLAG_LIST_IOS){
-        if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
-        if (!checkDeviceExists(devVals.deviceModel, firmwareJson, firmwareTokens, versVals.isOta)) reterror(-4,"[TSSC] device %s could not be found in devicelist\n",devVals.deviceModel);
-        
+        if (!devVals.deviceModel)
+            reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
+
         printListOfiOSForDevice(firmwareJson, firmwareTokens, devVals.deviceModel, versVals.isOta);
     }else{
         //request ticket
         if (buildmanifest) {
-            if (devVals.deviceModel && !checkDeviceExists(devVals.deviceModel, firmwareJson, firmwareTokens, versVals.isOta)) reterror(-4,"[TSSC] device %s could not be found in devicelist\n",devVals.deviceModel);
+            if (devVals.deviceModel && !getFirmwaresForDevice(devVals.deviceModel, firmwareJson, firmwareTokens, versVals.isOta))
+                reterror(-4,"[TSSC] device %s could not be found in devicelist\n",devVals.deviceModel);
             
             isSigned = isManifestSignedForDevice(buildmanifest, &devVals, &versVals);
 
@@ -316,7 +327,7 @@ int main(int argc, const char * argv[]) {
             if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
             if (!versVals.version) reterror(-5,"[TSSC] please specify an iOS version or buildID for this option\n\tuse -h for more help\n");
             
-            isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, versVals, devVals);
+            isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, &versVals, &devVals);
         }
         
         if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.isBuildid) ? "Build" : "iOS" ,versVals.version,devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");

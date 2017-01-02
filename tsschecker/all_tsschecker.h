@@ -13,7 +13,7 @@ extern int idevicerestore_debug;
 
 #define info(a ...) printf(a)
 #define log(a ...) if (dbglog) printf(a)
-#define warning(a ...) if (dbglog) printf(a)
+#define warning(a ...) if (dbglog) printf("[WARNING] "), printf(a)
 #define debug(a ...) if (idevicerestore_debug) printf(a)
 #define error(a ...) printf("[Error] "),printf(a)
 

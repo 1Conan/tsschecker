@@ -27,7 +27,8 @@ extern const char *shshSavePath;
 
 
 typedef struct{
-    char *deviceModel;
+    char *deviceModel; //either model, or boardconfig
+    char *deviceBoard;
     uint64_t ecid;
     uint64_t bbgcid;
     char *apnonce;
@@ -58,23 +59,26 @@ int parseTokens(const char *json, jsmntok_t **tokens);
 char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *device, int isOTA, int *versionCntt);
 int printListOfDevices(char *firmwarejson, jsmntok_t *tokens);
 int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA);
-
-char *getFirmwareUrl(const char *device, t_iosVersion versVals, const char *firmwarejson, jsmntok_t *tokens);
+    
+char *getFirmwareUrl(t_devicevals *devVals, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens);
 char *getBuildManifest(char *url, const char *device, const char *version, int isOta);
-int64_t getBBGCIDForDevice(char *deviceModel);
+int64_t getBBGCIDForDevice(const char *deviceModel);
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode);
 int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_iosVersion *versVals);
-int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals devVals, t_basebandMode basebandMode);
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, t_devicevals devVals);
+int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVals, t_basebandMode basebandMode);
+int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals);
 
 
-int checkDeviceExists(char *device, char *firmwareJson, jsmntok_t *tokens, int isOta);
-int checkFirmwareForDeviceExists(char *device, t_iosVersion version, char *firmwareJson, jsmntok_t *tokens);
+jsmntok_t *getFirmwaresForDevice(const char *device, const char *firmwareJson, jsmntok_t *tokens, int isOta);
+
+    
+int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, char *firmwareJson, jsmntok_t *tokens);
 
 int downloadPartialzip(const char *url, const char *file, const char *dst);
 
 const char *getBoardconfigFromModel(const char *model);
+const char *getModelFromBoardconfig(const char *boardconfig);
 plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall);
 plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *boardconfig, int isUpdateInstall);
 

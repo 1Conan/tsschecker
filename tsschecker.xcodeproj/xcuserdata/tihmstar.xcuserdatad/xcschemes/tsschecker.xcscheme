@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d iPhone8,1 --buildid 14B150"
+            argument = "-B n71map -l -d iPhone8,1 -s --nocache -e 3411363070206737"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

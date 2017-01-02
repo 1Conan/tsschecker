@@ -159,14 +159,43 @@ char *getOtaJson(){
 #pragma mark more get functions
 
 const char *getBoardconfigFromModel(const char *model){
-    
+    const char *rt = NULL;
     irecv_device_t table = irecv_devices_get_all();
     //iterate through table until find correct entry
     //table is terminated with {NULL, NULL, -1, -1} entry, return that if device not found
-    while (table->product_type && strncmp(model, table->product_type, strlen(model)) != 0)
+    while (table->product_type){
+        if (strncmp(model, table->product_type, strlen(model)) == 0){
+            if (rt){
+                warning("can't unambiguously map model to boardconfig for device %s\n",model);
+                return NULL;
+            }else
+                rt = table->hardware_model;
+        }
+        
         table++;
+    }
     
-    return table->hardware_model;
+    return rt;
+}
+
+const char *getModelFromBoardconfig(const char *boardconfig){
+    const char *rt = NULL;
+    irecv_device_t table = irecv_devices_get_all();
+    //iterate through table until find correct entry
+    //table is terminated with {NULL, NULL, -1, -1} entry, return that if device not found
+    while (table->product_type){
+        if (strncmp(boardconfig, table->hardware_model, strlen(boardconfig)) == 0){
+            if (rt){
+                warning("can't unambiguously map boardconfig to model for device %s\n",boardconfig);
+                return NULL;
+            }else
+                rt = table->product_type;
+        }
+        
+        table++;
+    }
+    
+    return rt;
 }
 
 plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *boardconfig, int isUpdateInstall){
@@ -209,6 +238,7 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
     
 error:
     return rt;
+#undef reterror
 }
 
 plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall){
@@ -217,12 +247,13 @@ plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateI
     
     const char *boardconfig = getBoardconfigFromModel(model);
     if (!boardconfig)
-        reterror("[TSSR] Error: cant find boardconfig for device=%s\n",model);
+        reterror("[TSSR] cant find boardconfig for device=%s please manuall use --boardconfig\n",model);
     
     rt = getBuildidentityWithBoardconfig(buildManifest, boardconfig, isUpdateInstall);
     
 error:
     return rt;
+#undef reterror
 }
 
 
@@ -263,20 +294,18 @@ int parseTokens(const char *json, jsmntok_t **tokens){
 
 #pragma mark get functions
 
-char *getFirmwareUrl(const char *device, t_iosVersion versVals, const char *firmwarejson, jsmntok_t *tokens){
+char *getFirmwareUrl(t_devicevals *devVals, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
     
-    jsmntok_t *devices = (versVals.isOta) ? tokens : objectForKey(tokens, firmwarejson, "devices");
-    jsmntok_t *mydevice = objectForKey(devices, firmwarejson, device);
-    jsmntok_t *firmwares = objectForKey(mydevice, firmwarejson, "firmwares");
+    jsmntok_t *firmwares = getFirmwaresForDevice(devVals->deviceModel, firmwarejson, tokens, versVals->isOta);
     
     for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
-        jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals.isBuildid) ? "buildid" : "version");
-        if (ios->value->end - ios->value->start == strlen(versVals.version) && strncmp(versVals.version, firmwarejson + ios->value->start, strlen(versVals.version)) == 0) {
+        jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals->isBuildid) ? "buildid" : "version");
+        if (ios->value->end - ios->value->start == strlen(versVals->version) && strncmp(versVals->version, firmwarejson + ios->value->start, strlen(versVals->version)) == 0) {
             
-            if (versVals.isOta) {
+            if (versVals->isOta) {
                 jsmntok_t *releaseType = NULL;
-                if (versVals.useBeta && !(releaseType = objectForKey(tmp, firmwarejson, "releasetype"))) continue;
-                else if (!versVals.useBeta);
+                if (versVals->useBeta && !(releaseType = objectForKey(tmp, firmwarejson, "releasetype"))) continue;
+                else if (!versVals->useBeta);
                 else if (strncmp(firmwarejson + releaseType->value->start, "Beta", releaseType->value->end - releaseType->value->start) != 0) continue;
             }
             
@@ -379,7 +408,7 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
     return buildmanifest;
 }
 
-int64_t getBBGCIDForDevice(char *deviceModel){
+int64_t getBBGCIDForDevice(const char *deviceModel){
     int64_t bbgcid = 0;
 #define reterror(a ... ) {error(a); bbgcid = -1; goto error;}
     
@@ -487,6 +516,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     size_t nonceLen = 20; //valid for all devices up to iPhone7
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
+    
     if (strncmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0)
         nonceLen = 32;
     
@@ -555,7 +585,11 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, 
     plist_from_xml(buildManifest, (unsigned)strlen(buildManifest), &manifest);
     
     
-    plist_t id0 = getBuildidentity(manifest, devVals->deviceModel, devVals->isUpgradeInstall);
+    plist_t id0 = (devVals->deviceBoard)
+                ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, devVals->isUpgradeInstall)
+                : getBuildidentity(manifest, devVals->deviceModel, devVals->isUpgradeInstall);
+    
+    
     if (!id0 || plist_get_node_type(id0) != PLIST_DICT){
         reterror("[TSSR] Error: could not get id0\n");
     }
@@ -598,6 +632,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, 
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
         //TODO: verify that this being int64_t instead of uint64_t doesn't actually break something
+        
         int64_t BbGoldCertId = (devVals->bbgcid) ? devVals->bbgcid : getBBGCIDForDevice(devVals->deviceModel);
         if (BbGoldCertId == -1) {
             if (basebandMode == kBasebandModeOnlyBaseband){
@@ -623,12 +658,12 @@ error:
 #undef reterror
 }
 
-int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals devVals, t_basebandMode basebandMode){
+int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVals, t_basebandMode basebandMode){
     int isSigned = 0;
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     
-    if (tssrequest(&tssreq, buildManifestBuffer, &devVals, basebandMode)){
+    if (tssrequest(&tssreq, buildManifestBuffer, devVals, basebandMode)){
         error("[TSSR] faild to build tssrequest\n");
         goto error;
     }
@@ -647,24 +682,33 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals devVals
         plist_get_string_val(pvers, &cpvers);
         
         plist_t pecid = plist_dict_get_item(tssreq, "ApECID");
-        plist_get_uint_val(pecid, &devVals.ecid);
-        char *cecid = ecid_to_string(devVals.ecid);
+        plist_get_uint_val(pecid, &devVals->ecid);
+        char *cecid = ecid_to_string(devVals->ecid);
         
         
         uint32_t size = 0;
         char* data = NULL;
-        if (*devVals.generator)
-            plist_dict_set_item(apticket, "generator", plist_new_string(devVals.generator));
+        if (*devVals->generator)
+            plist_dict_set_item(apticket, "generator", plist_new_string(devVals->generator));
         plist_to_xml(apticket, &data, &size);
         
-        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + strlen(devVals.deviceModel) + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"__-.shsh2") + 1;
+        
+        size_t tmpDeviceNameSize = strlen(devVals->deviceModel) + strlen(devVals->deviceBoard) + strlen("_") + 1;
+        char *tmpDevicename = (char *)malloc(tmpDeviceNameSize);
+        memset(tmpDevicename, 0, tmpDeviceNameSize);
+        snprintf(tmpDevicename, tmpDeviceNameSize, "%s", devVals->deviceModel);
+        if (devVals->deviceBoard) snprintf(tmpDevicename+strlen(tmpDevicename), tmpDeviceNameSize-strlen(tmpDevicename), "_%s",devVals->deviceBoard);
+        
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + tmpDeviceNameSize + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"__-.shsh2") + 1;
         char *fname = malloc(fnamelen);
         memset(fname, 0, fnamelen);
         size_t prePathLen= strlen(shshSavePath);
         if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh%s",cecid,devVals.deviceModel,cpvers,cbuild, (*devVals.generator) ? "2" : "");
+        
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, (*devVals->generator) ? "2" : "");
+        
         
         FILE *shshfile = fopen(fname, "w");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
@@ -674,7 +718,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals devVals
             info("Saved shsh blobs!\n");
         }
         
-        
+        free(tmpDevicename);
         plist_free(manifest);
         free(fname);
         free(cpvers);
@@ -720,7 +764,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
         plist_get_string_val(ProductVersion, (char**)&versVals->version);
     }
     if (!devVals->deviceModel)
-        reterror("[TSSC] can't proceed without devicemodel\n");
+        reterror("[TSSC] can't proceed without device info\n");
     
     SupportedProductTypes = plist_dict_get_item(manifest, "SupportedProductTypes");
     if (SupportedProductTypes) {
@@ -736,7 +780,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     reterror("[TSSC] selected device can't be used with that buildmanifest\n");
     
 checkedDeviceModel:
-    isSigned = isManifestBufSignedForDevice(bufManifest, *devVals, versVals->basebandMode);
+    isSigned = isManifestBufSignedForDevice(bufManifest, devVals, versVals->basebandMode);
     
 error:
     if (manifest) plist_free(manifest);
@@ -745,32 +789,31 @@ error:
 #undef reterror
 }
 
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion versVals, t_devicevals devVals){
-    
-    if (atoi(versVals.version) <= 3) {
-        info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals.version);
+int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals){
+#define reterror(a ... ) {error(a); goto error;}
+    if (atoi(versVals->version) <= 3) {
+        info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals->version);
         return 1;
     }
     
     int isSigned = 0;
-#define reterror(a ... ) {error(a); goto error;}
     char *url = NULL;
     char *buildManifest = NULL;
     
-    if (!(buildManifest = getBuildManifest(NULL, devVals.deviceModel, versVals.version, versVals.isOta))){
+    if (!(buildManifest = getBuildManifest(NULL, devVals->deviceModel, versVals->version, versVals->isOta))){
         
         
-        if (!checkFirmwareForDeviceExists(devVals.deviceModel, versVals, firmwareJson, firmwareTokens))
-            return error("[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",devVals.deviceModel,versVals.version), 0;
+        if (!checkFirmwareForDeviceExists(devVals, versVals, firmwareJson, firmwareTokens))
+            return error("[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",devVals->deviceModel,versVals->version), 0;
         
         
-        url = getFirmwareUrl(devVals.deviceModel, versVals, firmwareJson, firmwareTokens);
-        if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals.deviceModel,versVals.version);
-        buildManifest = getBuildManifest(url, devVals.deviceModel, versVals.version, versVals.isOta);
+        url = getFirmwareUrl(devVals, versVals, firmwareJson, firmwareTokens);
+        if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,versVals->version);
+        buildManifest = getBuildManifest(url, devVals->deviceModel, versVals->version, versVals->isOta);
         if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
     }
     
-    isSigned = isManifestBufSignedForDevice(buildManifest, devVals, versVals.basebandMode);
+    isSigned = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode);
 
 error:
     if (url) free(url);
@@ -847,28 +890,17 @@ int cmpfunc(const void * a, const void * b){
 
 char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *device, int isOTA, int *versionCntt){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
-    jsmntok_t *firmwares = NULL;
-    if (isOTA) {
-        log("[JSON] printing ota list for device %s\n",device);
-        jsmntok_t *mydevice = objectForKey(tokens, firmwarejson, device);
-        if (!mydevice)
-            return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
-        firmwares = objectForKey(mydevice, firmwarejson, "firmwares");
-        
-    }else{
-        log("[JSON] printing ipsw list for device %s\n",device);
-        jsmntok_t *devices = objectForKey(tokens, firmwarejson, "devices");
-        jsmntok_t *mydevice = objectForKey(devices, firmwarejson, device);
-        if (!mydevice)
-            return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
-        firmwares = objectForKey(mydevice, firmwarejson, "firmwares");
-    }
+    jsmntok_t *firmwares = getFirmwaresForDevice(device, firmwarejson, tokens, isOTA);
+    
+    if (!firmwares)
+        return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
     
     int versionsCnt = firmwares->size;
     char **versions = (char**)malloc(versionsCnt * sizeof(char *));
     
     
     for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
+        
         jsmntok_t *ios = objectForKey(tmp, firmwarejson, "version");
         
         int verslen= ios->value->end-ios->value->start;
@@ -927,33 +959,30 @@ int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device,
 
 #pragma mark check functions
 
-int checkDeviceExists(char *device, char *firmwareJson, jsmntok_t *tokens, int isOta){
+jsmntok_t *getFirmwaresForDevice(const char *device, const char *firmwareJson, jsmntok_t *tokens, int isOta){
     jsmntok_t *ctok = (isOta) ? tokens : objectForKey(tokens, firmwareJson, "devices");
     for (jsmntok_t *tmp = ctok->value; ; tmp = tmp->next) {
-        if (strncmp(device, firmwareJson+tmp->start, tmp->end - tmp->start) == 0) return 1;
+        
+        if (strncmp(device, firmwareJson+tmp->start, tmp->end - tmp->start) == 0)
+            return objectForKey(tmp, firmwareJson, "firmwares");
         
         if (tmp->next == ctok->value) break;
     }
     
-    return 0;
+    return NULL;
 }
 
-int checkFirmwareForDeviceExists(char *device, t_iosVersion versVals, char *firmwareJson, jsmntok_t *tokens){
+int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, char *firmwareJson, jsmntok_t *tokens){
     
-    jsmntok_t *ctok = (versVals.isOta) ? tokens : objectForKey(tokens, firmwareJson, "devices");
-    for (jsmntok_t *tmp = ctok->value; ; tmp = tmp->next) {
-        if (strncmp(device, firmwareJson+tmp->start, tmp->end - tmp->start) == 0){
-            jsmntok_t *firmwares = objectForKey(tmp, firmwareJson, "firmwares");
-            
-            for (jsmntok_t *tt = firmwares->value; tt ;tt = tt->next) {
-                
-                jsmntok_t *versiont = objectForKey(tt, firmwareJson, (versVals.isBuildid) ? "buildid" : "version");
-                size_t len = versiont->value->end - versiont->value->start;
-                if (len == strlen(versVals.version) && strncmp(versVals.version, firmwareJson + versiont->value->start, len) == 0) return 1;
-            }
-            break;
-        }
-        if (tmp->next == ctok->value) break;
+    jsmntok_t *firmwares = getFirmwaresForDevice(devVals->deviceModel, firmwareJson, tokens, versVals->isOta);
+    if (!firmwares)
+        return 0;
+    
+    for (jsmntok_t *tt = firmwares->value; tt ;tt = tt->next) {
+        
+        jsmntok_t *versiont = objectForKey(tt, firmwareJson, (versVals->isBuildid) ? "buildid" : "version");
+        size_t len = versiont->value->end - versiont->value->start;
+        if (len == strlen(versVals->version) && strncmp(versVals->version, firmwareJson + versiont->value->start, len) == 0) return 1;
     }
     
     return 0;
