@@ -253,7 +253,7 @@ int main(int argc, const char * argv[]) {
     jsmntok_t *firmwareTokens = NULL;
     
     if (!devVals.deviceModel)
-        if (!(devVals.deviceModel = (char*)getModelFromBoardconfig(devVals.deviceBoard)))
+        if (devVals.deviceBoard && !(devVals.deviceModel = (char*)getModelFromBoardconfig(devVals.deviceBoard)))
             reterror(-25, "[TSSC] If you using --boardconfig please also specify devicemodel with -d\n");
             
     

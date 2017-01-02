@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d iPod7,1 -i 10.2 -s"
+            argument = "-d  iPhone7,2--list-ios-version"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
