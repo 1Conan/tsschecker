@@ -10,6 +10,7 @@
 #include <getopt.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "download.h"
 #include "tsschecker.h"
 #include "all_tsschecker.h"
@@ -180,7 +181,7 @@ int main(int argc, const char * argv[]) {
                 cmd_help();
                 return 0;
             case 'd': // long option: "device"; can be called as short option
-                devVals.deviceModel = optarg;
+                devVals.deviceModel = strdup(optarg);
                 break;
             case 'i': // long option: "ios"; can be called as short option
                 if (versVals.version) reterror(-9, "[TSSC] parsing parameter failed!\n");
@@ -191,7 +192,7 @@ int main(int argc, const char * argv[]) {
                 versVals.isBuildid = 1;
                 break;
             case 'B': // long option: "boardconfig"; can be called as short option
-                devVals.deviceBoard = optarg;
+                devVals.deviceBoard = strdup(optarg);
                 break;
             case 'e': // long option: "ecid"; can be called as short option
                 ecid = optarg;
@@ -252,10 +253,21 @@ int main(int argc, const char * argv[]) {
     char *firmwareJson = NULL;
     jsmntok_t *firmwareTokens = NULL;
     
-    if (!devVals.deviceModel)
-        if (devVals.deviceBoard && !(devVals.deviceModel = (char*)getModelFromBoardconfig(devVals.deviceBoard)))
-            reterror(-25, "[TSSC] If you using --boardconfig please also specify devicemodel with -d\n");
-            
+    if (devVals.deviceBoard)
+        for (int i=0; i<strlen(devVals.deviceBoard); i++)
+            devVals.deviceBoard[i] = tolower(devVals.deviceBoard[i]);
+    
+    
+    if (!devVals.deviceModel){
+        if (devVals.deviceBoard){
+            char *tmp = NULL;
+            if ((tmp = (char*)getModelFromBoardconfig(devVals.deviceBoard)))
+                devVals.deviceModel = strdup(tmp);
+            else
+                reterror(-25, "[TSSC] If you using --boardconfig please also specify devicemodel with -d\n");
+        }
+    }
+        
     
     if (ecid) {
         if ((devVals.ecid = parseECID(ecid)) == 0){
@@ -337,6 +349,8 @@ int main(int argc, const char * argv[]) {
     
     
 error:
+    if (devVals.deviceBoard) free(devVals.deviceBoard);
+    if (devVals.deviceModel) free(devVals.deviceModel);
     if (devVals.apnonce) free(devVals.apnonce);
     if (devVals.sepnonce) free(devVals.sepnonce);
     if (firmwareJson) free(firmwareJson);
