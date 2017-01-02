@@ -52,8 +52,7 @@ static struct option longopts[] = {
 
 void cmd_help(){
     printf("Usage: tsschecker [OPTIONS]\n");
-    printf("Checks (real) signing status of device/firmware\n");
-    printf("Version: "VERSION_COMMIT_SHA" - "VERSION_COMMIT_COUNT"\n\n");
+    printf("Checks (real) signing status of device/firmware\n\n");
     
     printf("  -d, --device MODEL\t\tspecific device by its MODEL (eg. iPhone4,1)\n");
     printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
@@ -155,6 +154,7 @@ char *parseNonce(const char *nonce, size_t *parsedLen){
 int main(int argc, const char * argv[]) {
     int err = 0;
     int isSigned = 0;
+    printf("Version: "VERSION_COMMIT_SHA" - "VERSION_COMMIT_COUNT"\n");
     
     dbglog = 1;
     idevicerestore_debug = 0;
