@@ -27,6 +27,7 @@ These libraries are already in the source so you don't need to install them.
 _(might become outdated):_
 
 Usage: `tsschecker [OPTIONS]`
+
 | option (short) | option (long)             | description                                                                       |
 |----------------|---------------------------|-----------------------------------------------------------------------------------|
 |  `-d`          | `--device MODEL`          | specify device by its MODEL (eg. `iPhone4,1`)                                     |
