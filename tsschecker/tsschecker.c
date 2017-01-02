@@ -169,13 +169,9 @@ const char *getBoardconfigFromModel(const char *model){
     return table->hardware_model;
 }
 
-plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall){
+plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *boardconfig, int isUpdateInstall){
     plist_t rt = NULL;
 #define reterror(a ... ) {error(a); rt = NULL; goto error;}
-    
-    const char *boardconfig = getBoardconfigFromModel(model);
-    if (!boardconfig)
-        reterror("[TSSR] Error: cant find boardconfig for device=%s\n",model);
     
     plist_t buildidentities = plist_dict_get_item(buildManifest, "BuildIdentities");
     if (!buildidentities || plist_get_node_type(buildidentities) != PLIST_ARRAY){
@@ -214,6 +210,21 @@ plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateI
 error:
     return rt;
 }
+
+plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall){
+    plist_t rt = NULL;
+#define reterror(a ... ) {error(a); rt = NULL; goto error;}
+    
+    const char *boardconfig = getBoardconfigFromModel(model);
+    if (!boardconfig)
+        reterror("[TSSR] Error: cant find boardconfig for device=%s\n",model);
+    
+    rt = getBuildidentityWithBoardconfig(buildManifest, boardconfig, isUpdateInstall);
+    
+error:
+    return rt;
+}
+
 
 #pragma mark json functions
 

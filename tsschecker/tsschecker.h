@@ -76,6 +76,8 @@ int downloadPartialzip(const char *url, const char *file, const char *dst);
 
 const char *getBoardconfigFromModel(const char *model);
 plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall);
+plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *boardconfig, int isUpdateInstall);
+
 
     
 #ifdef __cplusplus
