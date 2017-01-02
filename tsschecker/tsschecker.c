@@ -173,6 +173,10 @@ plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateI
     plist_t rt = NULL;
 #define reterror(a ... ) {error(a); rt = NULL; goto error;}
     
+    const char *boardconfig = getBoardconfigFromModel(model);
+    if (!boardconfig)
+        reterror("[TSSR] Error: cant find boardconfig for device=%s\n",model);
+    
     plist_t buildidentities = plist_dict_get_item(buildManifest, "BuildIdentities");
     if (!buildidentities || plist_get_node_type(buildidentities) != PLIST_ARRAY){
         reterror("[TSSR] Error: could not get BuildIdentities\n");
@@ -192,10 +196,19 @@ plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateI
         }
         char *string = NULL;
         plist_get_string_val(RestoreBehavior, &string);
-        if (strncmp(string, (isUpdateInstall ? "Update" : "Erase"), strlen(string)) == 0)
-            break;
-        else
+        if (strncmp(string, (isUpdateInstall ? "Update" : "Erase"), strlen(string)) != 0)
             rt = NULL;
+        
+        plist_t DeviceClass = plist_dict_get_item(infodict, "DeviceClass");
+        if (!DeviceClass || plist_get_node_type(DeviceClass) != PLIST_STRING){
+            reterror("[TSSR] Error: could not get DeviceClass\n");
+        }
+        plist_get_string_val(DeviceClass, &string);
+        if (strncmp(string, boardconfig, strlen(boardconfig)) != 0)
+            rt = NULL;
+        else
+            break;
+        
     }
     
 error:
