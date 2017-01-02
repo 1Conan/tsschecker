@@ -693,7 +693,9 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         plist_to_xml(apticket, &data, &size);
         
         
-        size_t tmpDeviceNameSize = strlen(devVals->deviceModel) + strlen(devVals->deviceBoard) + strlen("_") + 1;
+        size_t tmpDeviceNameSize = strlen(devVals->deviceModel) + strlen("_") + 1;
+        if (devVals->deviceBoard) tmpDeviceNameSize += strlen(devVals->deviceBoard);
+        
         char *tmpDevicename = (char *)malloc(tmpDeviceNameSize);
         memset(tmpDevicename, 0, tmpDeviceNameSize);
         snprintf(tmpDevicename, tmpDeviceNameSize, "%s", devVals->deviceModel);

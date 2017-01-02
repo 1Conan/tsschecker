@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-B n71map -l -d iPhone8,1 -s --nocache -e 3411363070206737"
+            argument = "-d iPod7,1 -i 10.2 -s"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
