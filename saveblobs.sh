@@ -44,8 +44,8 @@ while read device; do
 			cnt="true"
 		fi
 		
-		echo saving blobs for $model $ecid $apn
-	        echo -n "saving normal blob ..."
+		echo saving blobs for $modelWithBoard $ecid $apn
+	        echo -n "saving normal blob ... "
 	        ret=$(tsschecker -d $model -e $ecid -s --save-path "shsh$sp" -l $ap $hw);code=$?
 	        echo "$ret" >>/tmp/tsschecker_saveblobs_fullog.log
 		echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
