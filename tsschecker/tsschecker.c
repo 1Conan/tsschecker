@@ -221,7 +221,9 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
         }
         char *string = NULL;
         plist_get_string_val(RestoreBehavior, &string);
-        if (strncmp(string, (isUpdateInstall ? "Update" : "Erase"), strlen(string)) != 0)
+        //assuming there are only Erase and Update. If it's not Erase it must be Update
+        //also converting isUpdateInstall to bool (1 or 0)
+        if (strncmp(string, "Erase", strlen(string)) == (isUpdateInstall != 0))
             rt = NULL;
         
         plist_t DeviceClass = plist_dict_get_item(infodict, "DeviceClass");
