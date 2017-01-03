@@ -294,9 +294,9 @@ int parseTokens(const char *json, jsmntok_t **tokens){
 
 #pragma mark get functions
 
-char *getFirmwareUrl(t_devicevals *devVals, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
     
-    jsmntok_t *firmwares = getFirmwaresForDevice(devVals->deviceModel, firmwarejson, tokens, versVals->isOta);
+    jsmntok_t *firmwares = getFirmwaresForDevice(deviceModel, firmwarejson, tokens, versVals->isOta);
     
     for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
         jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals->isBuildid) ? "buildid" : "version");
@@ -809,7 +809,7 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
             return error("[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",devVals->deviceModel,versVals->version), 0;
         
         
-        url = getFirmwareUrl(devVals, versVals, firmwareJson, firmwareTokens);
+        url = getFirmwareUrl(devVals->deviceModel, versVals, firmwareJson, firmwareTokens);
         if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,versVals->version);
         buildManifest = getBuildManifest(url, devVals->deviceModel, versVals->version, versVals->isOta);
         if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);

@@ -60,7 +60,7 @@ char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *
 int printListOfDevices(char *firmwarejson, jsmntok_t *tokens);
 int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA);
     
-char *getFirmwareUrl(t_devicevals *devVals, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens);
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens);
 char *getBuildManifest(char *url, const char *device, const char *version, int isOta);
 int64_t getBBGCIDForDevice(const char *deviceModel);
 
