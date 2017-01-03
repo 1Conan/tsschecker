@@ -22,6 +22,12 @@ while read device; do
 	i=2
 	ap=""
 	sp=""
+	hw=""
+	
+	if [ "$board" != "$model" ] && [ -n "$board" ]; then
+		hw="--boardconfig $board"
+	fi
+	
 	cnt="true";
 	while [ "$cnt" == "true" ];
 	do
@@ -38,25 +44,21 @@ while read device; do
 			cnt="true"
 		fi
 		
-		if [ "$board" != "$device" ] && [ -n "$board" ]; then
-			ap="$ap --boardconfig $board"
-		fi
-		
 		echo saving blobs for $model $ecid $apn
-	        echo -n "saving normal blob ... "
-	        ret=$(tsschecker -d $model -e $ecid -s --save-path "shsh$sp" -l $ap);code=$?
+	        echo -n "saving normal blob ..."
+	        ret=$(tsschecker -d $model -e $ecid -s --save-path "shsh$sp" -l $ap $hw);code=$?
 	        echo "$ret" >>/tmp/tsschecker_saveblobs_fullog.log
 		echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
 		if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
 	done
 
 	echo -n "saving ota blob ... "
-	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_ota -l -o);code=$?
+	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_ota -l -o $hw);code=$?
 	echo "$ret" >>/tmp/tsschecker_saveblobs_fullog.log
 	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
 	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi
 	echo -n "saving beta ota blob ... "
-	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_beta_ota -l -o --beta);code=$?
+	ret=$(tsschecker -d $model -e $ecid -s --save-path shsh_beta_ota -l -o --beta $hw);code=$?
 	echo "$ret" >>/tmp/tsschecker_saveblobs_fullog.log
 	echo -n $(echo $ret | grep -o "iOS .* for device" | rev | cut -c 12- | rev )
 	if [ $code -eq 0 ]; then echo " ok"; else echo " failed"; echo $ret;fi	
