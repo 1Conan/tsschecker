@@ -22,6 +22,7 @@
 #ifdef __APPLE__
 #   include <CommonCrypto/CommonDigest.h>
 #   define SHA1(d, n, md) CC_SHA1(d, n, md)
+#   define SHA384(d, n, md) CC_SHA384(d, n, md)
 #else
 #   include <openssl/sha.h>
 #endif // __APPLE__
@@ -549,11 +550,14 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
             SHA1(zz, 8, (unsigned char*)nonce);
         }else if (nonceLen == 32){
-            //this is an iPhone7 device
-            //nonce is derived from generator with ????
-            error("iPhone7 device detected! Automatic generator->nonce calculation failed. Please manually specify an apnonce with len=%u\n",(unsigned int)nonceLen);
-#warning TODO implement iPhone7 generator->nonce algorithm
-            return -1;
+            unsigned char zz[8];
+            getRandNum((char*)zz, 8, 256);
+            
+            snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
+            unsigned char genHash[48]; //SHA384 digest length
+            
+            SHA384(zz, 8, genHash);
+            memcpy(nonce, genHash, 32);
         }else{
             return error("[TSSR] Automatic generator->nonce calculation failed. Unknown device with noncelen=%u\n",(unsigned int)nonceLen),-1;
         }

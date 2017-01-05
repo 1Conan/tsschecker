@@ -63,7 +63,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d  iPhone7,2--list-ios-version"
+            argument = "-B d11ap -l"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-d iPhone9,2"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
