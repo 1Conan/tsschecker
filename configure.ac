@@ -12,6 +12,8 @@ CFLAGS+=" -std=c11"
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
+AC_CONFIG_MACRO_DIRS([m4])
+
 # Checks for libraries.
 
 PKG_CHECK_MODULES(libplist, libplist >= 1.0)
