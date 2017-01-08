@@ -12,12 +12,34 @@ CFLAGS+=" -std=c11"
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
+AC_CONFIG_MACRO_DIRS([m4])
+
 # Checks for libraries.
+
+AC_CANONICAL_HOST
+
+AC_ARG_WITH(
+    [libcrypto],
+    [AS_HELP_STRING([--with-libcrypto], [build with libcrypto (default for non-Mac)])],
+    [],
+    [
+        case "${host_os}" in
+            darwin*)
+                with_libcrypto=no
+                ;;
+            *)
+                with_libcrypto=yes
+                ;;
+        esac
+    ]
+)
 
 PKG_CHECK_MODULES(libplist, libplist >= 1.0)
 PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
 PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 1.0)
-PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)
+AS_IF([test "x$with_libcrypto" != xno],
+    [PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)]
+)
 PKG_CHECK_MODULES(libirecovery, libirecovery >= 0.2.0)
 
 
