@@ -297,11 +297,20 @@ int main(int argc, const char * argv[]) {
         }
     }
     
+reparse:
     firmwareJson = (versVals.isOta) ? getOtaJson() : getFirmwareJson();
     if (!firmwareJson) reterror(-6,"[TSSC] could not get firmware.json\n");
     
     int cnt = parseTokens(firmwareJson, &firmwareTokens);
-    if (cnt < 1) reterror(-2,"[TSSC] parsing %s.json failed\n",(versVals.isOta) ? "ota" : "firmware");
+    if (cnt < 1){
+        if (!nocache){
+            warning("[TSSC] error parsing cached %s.json. Trying to redownload\n",(versVals.isOta) ? "ota" : "firmware");
+            nocache = 1;
+            goto reparse; //in case cached json is corrupt, try to redownload and reparse one more time.
+        }
+        reterror(-2,"[TSSC] parsing %s.json failed\n",(versVals.isOta) ? "ota" : "firmware");
+    }
+    
     
     if (flags & FLAG_LATEST_IOS && !versVals.version){
         int versionCnt = 0;
