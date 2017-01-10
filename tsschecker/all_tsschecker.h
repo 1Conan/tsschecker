@@ -17,7 +17,7 @@ extern int idevicerestore_debug;
 #define debug(a ...) if (idevicerestore_debug) printf(a)
 #define error(a ...) printf("[Error] "),printf(a)
 
-#define VERSION_COMMIT_COUNT "undefined version number" //"126"
-#define VERSION_COMMIT_SHA "undefined version commit"   //"726c69695fe5337b9f9cf62046310c829908b058"
+#define VERSION_COMMIT_COUNT "180"
+#define VERSION_COMMIT_SHA "a29fb9f9495f3a93571457c43edab530c3f85f07"
 
 #endif /* all_h */
