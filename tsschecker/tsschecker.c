@@ -199,7 +199,7 @@ const char *getBoardconfigFromModel(const char *model){
     //iterate through table until find correct entry
     //table is terminated with {NULL, NULL, -1, -1} entry, return that if device not found
     while (table->product_type){
-        if (strncmp(model, table->product_type, strlen(model)) == 0){
+        if (strcasecmp(model, table->product_type) == 0){
             if (rt){
                 warning("can't unambiguously map model to boardconfig for device %s\n",model);
                 return NULL;
@@ -219,7 +219,7 @@ const char *getModelFromBoardconfig(const char *boardconfig){
     //iterate through table until find correct entry
     //table is terminated with {NULL, NULL, -1, -1} entry, return that if device not found
     while (table->product_type){
-        if (strncmp(boardconfig, table->hardware_model, strlen(boardconfig)) == 0){
+        if (strcasecmp(boardconfig, table->hardware_model) == 0){
             if (rt){
                 warning("can't unambiguously map boardconfig to model for device %s\n",boardconfig);
                 return NULL;
@@ -270,7 +270,7 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
             reterror("[TSSR] Error: could not get DeviceClass\n");
         }
         plist_get_string_val(DeviceClass, &string);
-        if (strncmp(string, boardconfig, strlen(boardconfig)) != 0)
+        if (strcasecmp(string, boardconfig) != 0)
             rt = NULL;
         else
             break;
@@ -453,7 +453,7 @@ int64_t getBBGCIDForDevice(const char *deviceModel){
     
     t_bbdevice bbdevs = bbdevices_get_all();
     
-    while (bbdevs->deviceModel && strcmp(bbdevs->deviceModel, deviceModel) != 0)
+    while (bbdevs->deviceModel && strcasecmp(bbdevs->deviceModel, deviceModel) != 0)
         bbdevs++;
     
     if (!bbdevs->deviceModel) {
@@ -541,7 +541,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
     
-    if (strncmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0)
+    if (strncasecmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0)
         nonceLen = 32;
     
     
@@ -801,7 +801,7 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
             mDevice = plist_array_get_item(SupportedProductTypes, i);
             char *ldevice = NULL;
             plist_get_string_val(mDevice, &ldevice);
-            if (strncmp(ldevice, devVals->deviceModel, strlen(devVals->deviceModel)) == 0)
+            if (strcasecmp(ldevice, devVals->deviceModel) == 0)
                 goto checkedDeviceModel;
         }
     }
@@ -992,7 +992,7 @@ jsmntok_t *getFirmwaresForDevice(const char *device, const char *firmwareJson, j
     jsmntok_t *ctok = (isOta) ? tokens : objectForKey(tokens, firmwareJson, "devices");
     for (jsmntok_t *tmp = ctok->value; ; tmp = tmp->next) {
         
-        if (strncmp(device, firmwareJson+tmp->start, tmp->end - tmp->start) == 0)
+        if (strncasecmp(device, firmwareJson+tmp->start, tmp->end - tmp->start) == 0)
             return objectForKey(tmp, firmwareJson, "firmwares");
         
         if (tmp->next == ctok->value) break;

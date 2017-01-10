@@ -267,7 +267,15 @@ int main(int argc, const char * argv[]) {
                 reterror(-25, "[TSSC] If you using --boardconfig please also specify devicemodel with -d\n");
         }
     }
-        
+    
+    for (char *c = devVals.deviceModel; *c; c++)
+        *c = tolower(*c); //make devicemodel lowercase
+    //make devicemodel look nice. This is completely optional
+    if (*devVals.deviceModel == 'i')
+        devVals.deviceModel[1] = toupper(devVals.deviceModel[1]);
+    else
+        devVals.deviceModel[0] = toupper(devVals.deviceModel[0]);
+    
     
     if (ecid) {
         if ((devVals.ecid = parseECID(ecid)) == 0){
