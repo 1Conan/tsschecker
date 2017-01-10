@@ -63,12 +63,12 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-B d11ap -l"
+            argument = "-B p102ap -l"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d iPhone9,2"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

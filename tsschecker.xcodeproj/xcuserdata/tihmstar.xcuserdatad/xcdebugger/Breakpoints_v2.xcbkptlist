@@ -46,7 +46,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "268"
-            endingLineNumber = "268">
+            endingLineNumber = "268"
+            landmarkName = "getBuildidentityWithBoardconfig()"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -93,7 +95,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "170"
             endingLineNumber = "170"
-            landmarkName = "getOtaJson()"
+            landmarkName = "getFirmwareJson()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -237,7 +239,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "170"
             endingLineNumber = "170"
-            landmarkName = "getOtaJson()"
+            landmarkName = "getFirmwareJson()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -253,7 +255,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "171"
             endingLineNumber = "171"
-            landmarkName = "getOtaJson()"
+            landmarkName = "getFirmwareJson()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -301,7 +303,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "190"
             endingLineNumber = "190"
-            landmarkName = "getBoardconfigFromModel()"
+            landmarkName = "getOtaJson()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -446,6 +448,22 @@
             startingLineNumber = "560"
             endingLineNumber = "560"
             landmarkName = "tss_populate_random()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "tsschecker/tsschecker.c"
+            timestampString = "505735120.386184"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "465"
+            endingLineNumber = "465"
+            landmarkName = "getBBGCIDForDevice()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

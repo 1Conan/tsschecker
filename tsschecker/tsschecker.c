@@ -457,7 +457,7 @@ int64_t getBBGCIDForDevice(const char *deviceModel){
     
     if (!bbdevs->deviceModel) {
         error("[TSSC] ERROR: device \"%s\" is not in bbgcid.json, which means it's BasebandGoldCertID isn't documented yet.\nIf you own such a device please consider contacting @tihmstar to get instructions how to contribute to this project.\n",deviceModel);
-    
+        return -1;
     }else if (!bbdevs->bbgcid) {
         warning("[TSSC] A BasebandGoldCertID is not required for %s\n",deviceModel);
     }
