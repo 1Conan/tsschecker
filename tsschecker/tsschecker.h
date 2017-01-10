@@ -25,6 +25,12 @@ extern int nocache;
 extern int save_shshblobs;
 extern const char *shshSavePath;
 
+struct bbdevice{
+    const char *deviceModel;
+    uint64_t bbgcid;
+};
+
+typedef struct bbdevice* t_bbdevice;
 
 typedef struct{
     char *deviceModel; //either model, or boardconfig
@@ -53,6 +59,8 @@ typedef struct{
     int isBuildid   : 1;
 }t_iosVersion;
     
+
+inline t_bbdevice bbdevices_get_all();
 char *getFirmwareJson();
 char *getOtaJson();
 int parseTokens(const char *json, jsmntok_t **tokens);

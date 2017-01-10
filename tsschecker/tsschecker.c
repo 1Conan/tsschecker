@@ -108,21 +108,39 @@ int nocache = 0;
 int save_shshblobs = 0;
 const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
-char *getBBCIDJson(){
-    info("[TSSC] opening bbgcid.json\n");
-    FILE *f = fopen(BBGCID_JSON_PATH, "rb");
-    if (!f || nocache){
-        downloadFile(BBGCID_JSON_URL, BBGCID_JSON_PATH);
-        f = fopen(BBGCID_JSON_PATH, "rb");
-    }
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    char *fJson = malloc(fsize + 1);
-    fread(fJson, fsize, 1, f);
-    fJson[fsize] = '\0';
-    fclose(f);
-    return fJson;
+
+static struct bbdevice bbdevices[] = {
+    {"iPod1,1", 0},
+    {"iPod2,1", 0},
+    {"iPod3,1", 0},
+    {"iPod4,1", 0},
+    {"iPod5,1", 0},
+    {"iPod7,1", 0},
+    
+    {"iPhone2,1", 0},
+    {"iPhone3,1", 257},
+    {"iPhone4,1", 2},
+    {"iPhone5,1", 3255536192},
+    {"iPhone5,2", 3255536192},
+    {"iPhone6,1", 3554301762},
+    {"iPhone6,2", 3554301762},
+    {"iPhone7,1", 3840149528},
+    {"iPhone7,2", 3840149528},
+    {"iPhone8,1", 3840149528},
+    {"iPhone8,2", 3840149528},
+    {"iPhone8,4", 3840149528},
+    
+    {"iPad2,2", 257},
+    {"iPad3,3", 4},
+    {"iPad3,6", 3255536192},
+    {"iPad4,2", 3554301762},
+    {"iPad4,4", 0},
+    {"iPad6,8", 3840149528},
+    {NULL,0}
+};
+
+t_bbdevice bbdevices_get_all() {
+    return bbdevices;
 }
 
 char *getFirmwareJson(){
@@ -416,37 +434,20 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
 }
 
 int64_t getBBGCIDForDevice(const char *deviceModel){
-    int64_t bbgcid = 0;
-#define reterror(a ... ) {error(a); bbgcid = -1; goto error;}
     
-    char *myjson = getBBCIDJson();
+    t_bbdevice bbdevs = bbdevices_get_all();
     
-    jsmntok_t *tokens = NULL;
-    int cnt = parseTokens(myjson, &tokens);
-    if (cnt < 1) reterror("[TSSC] parsing bbgcid.json failed!\n");
+    while (bbdevs->deviceModel && strcmp(bbdevs->deviceModel, deviceModel) != 0)
+        bbdevs++;
     
+    if (!bbdevs->deviceModel) {
+        error("[TSSC] ERROR: device \"%s\" is not in bbgcid.json, which means it's BasebandGoldCertID isn't documented yet.\nIf you own such a device please consider contacting @tihmstar to get instructions how to contribute to this project.\n",deviceModel);
     
-    jsmntok_t *device = objectForKey(tokens, myjson, deviceModel);
-    if (!device) {
-        reterror("[TSSC] ERROR: device \"%s\" is not in bbgcid.json, which means it's BasebandGoldCertID isn't documented yet.\nIf you own such a device please consider contacting @tihmstar (tihmstar@gmail.com) to get instructions how to contribute to this project.\n",deviceModel);
-    }
-    if (device->type == JSMN_PRIMITIVE) {
+    }else if (!bbdevs->bbgcid) {
         warning("[TSSC] WARNING: A BasebandGoldCertID is not required for %s\n",deviceModel);
-        bbgcid = 0;
-    }else{
-        device = device->value;
-        char * buf = malloc(device->end - device->size +1);
-        strncpy(buf, myjson+device->start,device->end - device->size);
-        buf[device->end - device->size] = 0;
-        bbgcid = atoll(buf);
-        free(buf);
     }
     
-error:
-    if (myjson) free(myjson);
-    if (tokens) free(tokens);
-    return bbgcid;
-#undef reterror
+    return bbdevs->bbgcid;
 }
 
 void debug_plist(plist_t plist);
