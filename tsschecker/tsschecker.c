@@ -450,7 +450,7 @@ int64_t getBBGCIDForDevice(const char *deviceModel){
         error("[TSSC] ERROR: device \"%s\" is not in bbgcid.json, which means it's BasebandGoldCertID isn't documented yet.\nIf you own such a device please consider contacting @tihmstar to get instructions how to contribute to this project.\n",deviceModel);
     
     }else if (!bbdevs->bbgcid) {
-        warning("[TSSC] WARNING: A BasebandGoldCertID is not required for %s\n",deviceModel);
+        warning("[TSSC] A BasebandGoldCertID is not required for %s\n",deviceModel);
     }
     
     return bbdevs->bbgcid;
@@ -655,7 +655,7 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, 
             if (basebandMode == kBasebandModeOnlyBaseband){
                 reterror("[TSSR] failed to get BasebandGoldCertID, but requested to get only baseband ticket. Aborting here!\n");
             }
-            warning("[TSSR] WARNING: there was an error getting BasebandGoldCertID, continuing without requesting Baseband ticket\n");
+            warning("[TSSR] there was an error getting BasebandGoldCertID, continuing without requesting Baseband ticket\n");
         }else if (BbGoldCertId) {
             tss_populate_basebandvals(tssreq,tssparameter,BbGoldCertId);
             tss_request_add_baseband_tags(tssreq, tssparameter, NULL);
@@ -811,7 +811,7 @@ error:
 int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals){
 #define reterror(a ... ) {error(a); goto error;}
     if (atoi(versVals->version) <= 3) {
-        info("[TSSC] WARNING: version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals->version);
+        info("[TSSC] version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals->version);
         return 1;
     }
     
