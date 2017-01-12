@@ -20,4 +20,12 @@ extern int idevicerestore_debug;
 #define VERSION_COMMIT_COUNT "183"
 #define VERSION_COMMIT_SHA "29635e38dab3f18061677b20d2196f391eb1e243"
 
+
+//statis assert
+#define CASSERT(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
+
+#define _impl_PASTE(a,b) a##b
+#define _impl_CASSERT_LINE(predicate, line, file) \
+typedef char _impl_PASTE(assertion_failed_##file##_,line)[2*!!(predicate)-1];
+
 #endif /* all_h */

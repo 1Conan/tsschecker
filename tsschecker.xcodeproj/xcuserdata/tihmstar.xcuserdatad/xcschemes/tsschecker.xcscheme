@@ -63,11 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-l"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-d iPAD3,3"
+            argument = "-d iPhone9,3 -l"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
