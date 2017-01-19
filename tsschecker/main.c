@@ -185,11 +185,10 @@ int main(int argc, const char * argv[]) {
                 break;
             case 'i': // long option: "ios"; can be called as short option
                 if (versVals.version) reterror(-9, "[TSSC] parsing parameter failed!\n");
-                versVals.version = optarg;
+                versVals.version = strdup(optarg);
                 break;
             case 'Z': // long option: "ios"; can be called as short option
-                versVals.version = optarg;
-                versVals.isBuildid = 1;
+                versVals.buildID = strdup(optarg);
                 break;
             case 'B': // long option: "boardconfig"; can be called as short option
                 devVals.deviceBoard = strdup(optarg);
@@ -359,7 +358,7 @@ reparse:
             isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, &versVals, &devVals);
         }
         
-        if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.isBuildid) ? "Build" : "iOS" ,versVals.version,devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");
+        if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.buildID) ? "Build" : "iOS" ,(versVals.buildID ? versVals.buildID : versVals.version),devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");
         else putchar('\n'),error("[TSSC] checking tss status failed!\n");
     }
     

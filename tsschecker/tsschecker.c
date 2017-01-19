@@ -338,13 +338,23 @@ int parseTokens(const char *json, jsmntok_t **tokens){
 
 #pragma mark get functions
 
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
+//returns NULL terminated array of t_versionURL objects
+t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
+#define jstrSize(j) (j->end - j->start)
+    t_versionURL *rets = NULL;
+    unsigned retcounter = 0;
     
     jsmntok_t *firmwares = getFirmwaresForDevice(deviceModel, firmwarejson, tokens, versVals->isOta);
+    const char *versstring = (versVals->buildID) ? versVals->buildID : versVals->version;
+    
+malloc_rets:
+    if (retcounter)
+        memset(rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
+    
     
     for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
-        jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals->isBuildid) ? "buildid" : "version");
-        if (ios->value->end - ios->value->start == strlen(versVals->version) && strncmp(versVals->version, firmwarejson + ios->value->start, strlen(versVals->version)) == 0) {
+        jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals->buildID) ? "buildid" : "version");
+        if (ios->value->end - ios->value->start == strlen(versstring) && strncmp(versstring, firmwarejson + ios->value->start, strlen(versstring)) == 0) {
             
             if (versVals->isOta) {
                 jsmntok_t *releaseType = NULL;
@@ -354,21 +364,59 @@ char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char
             }
             
             jsmntok_t *url = objectForKey(tmp, firmwarejson, "url")->value;
+            jsmntok_t *i_vers = objectForKey(tmp, firmwarejson, "version")->value;
+            jsmntok_t *i_build = objectForKey(tmp, firmwarejson, "buildid")->value;
             
-            char *ret = malloc(url->end - url->start+1);
-            char *cpy = ret;
-            memset(ret, 0, url->end - url->start+1);
-            for (int i=url->start ; i< url->end; i++) *(cpy++) = firmwarejson[i];
+            if (!versVals->version){
+                versVals->version = (char*)malloc(i_vers->size+1);
+                memcpy(versVals->version, firmwarejson+i_vers->start, i_vers->size);
+                versVals->version[i_vers->size] = '\0';
+            }
             
             
-            jsmntok_t *i_vers = objectForKey(tmp, firmwarejson, "version");
-            jsmntok_t *i_build = objectForKey(tmp, firmwarejson, "buildid");
-            info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",i_vers->value->end - i_vers->value->start,firmwarejson + i_vers->value->start,i_build->value->end - i_build->value->start,firmwarejson + i_build->value->start);
-            return ret;
+            if (!rets) retcounter++;
+            else{
+                info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",i_vers->end - i_vers->start,firmwarejson + i_vers->start,i_build->end - i_build->start,firmwarejson + i_build->start);
+                rets->version = (char*)malloc(jstrSize(i_vers)+1);
+                memcpy(rets->version, firmwarejson+i_vers->start, jstrSize(i_vers));
+                rets->version[jstrSize(i_vers)] = '\0';
+                
+                rets->buildID = (char*)malloc(jstrSize(i_build)+1);
+                memcpy(rets->buildID, firmwarejson+i_build->start, jstrSize(i_build));
+                rets->buildID[jstrSize(i_build)] = '\0';
+                
+                rets->url = (char*)malloc(jstrSize(url)+1);
+                memcpy(rets->url, firmwarejson+url->start, jstrSize(url));
+                rets->url[jstrSize(url)] = '\0';
+                rets++;
+            }
         }
-        
     }
-    return NULL;
+    if (!retcounter) return NULL;
+    else if (!rets) goto malloc_rets;
+    
+    
+    return rets-retcounter;
+#undef jstrSize
+}
+
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
+    warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
+    t_versionURL *versions = getFirmwareUrls(deviceModel, versVals, firmwarejson, tokens);
+    if (!versions)
+        return NULL;
+    char *ret = versions->url;
+    free(versions->buildID);
+    free(versions->version);
+    
+    while (++versions) {
+        free(versions->buildID);
+        free(versions->version);
+        free(versions->url);
+    }
+    
+    free(versions);
+    return ret;
 }
 
 static void printline(int percent){
@@ -397,10 +445,11 @@ int downloadPartialzip(const char *url, const char *file, const char *dst){
     return ret;
 }
 
-char *getBuildManifest(char *url, const char *device, const char *version, int isOta){
+char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta){
     struct stat st = {0};
     
-    size_t len = strlen(MANIFEST_SAVE_PATH) + strlen("/_") + strlen(device) + strlen(version) +1;
+    size_t len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + strlen(version) +1;
+    if (buildID) len += strlen(buildID);
     if (isOta) len += strlen("ota");
     char *fileDir = malloc(len);
     memset(fileDir, 0, len);
@@ -410,6 +459,10 @@ char *getBuildManifest(char *url, const char *device, const char *version, int i
     strncat(fileDir, device, strlen(device));
     strncat(fileDir, "_", strlen("_"));
     strncat(fileDir, version, strlen(version));
+    if (buildID){
+        strncat(fileDir, "_", strlen("_"));
+        strncat(fileDir, buildID, strlen(buildID));
+    }
     
     if (isOta) strncat(fileDir, "ota", strlen("ota"));
     
@@ -803,8 +856,6 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     
     if (!versVals->version){
         ProductVersion = plist_dict_get_item(manifest, "ProductVersion");
-        if (versVals->isBuildid) //TODO is this really an issue?
-            reterror("[TSSC] Error, this option is not supported with buildid. Please use -i instead\n");
         plist_get_string_val(ProductVersion, (char**)&versVals->version);
     }
     if (!devVals->deviceModel)
@@ -841,26 +892,31 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
     }
     
     int isSigned = 0;
-    char *url = NULL;
+    int isSignedOne = 0;
     char *buildManifest = NULL;
     
-    if (!(buildManifest = getBuildManifest(NULL, devVals->deviceModel, versVals->version, versVals->isOta))){
-        
-        
-        if (!checkFirmwareForDeviceExists(devVals, versVals, firmwareJson, firmwareTokens))
-            return error("[TSSC] ERROR: either device %s does not exist, or there is no iOS %s for it.\n",devVals->deviceModel,versVals->version), 0;
-        
-        
-        url = getFirmwareUrl(devVals->deviceModel, versVals, firmwareJson, firmwareTokens);
-        if (!url) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,versVals->version);
-        buildManifest = getBuildManifest(url, devVals->deviceModel, versVals->version, versVals->isOta);
-        if (!buildManifest) reterror("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",url);
-    }
-    
-    isSigned = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode);
+    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareJson, firmwareTokens);
+    if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,versVals->version);
 
+    for (t_versionURL *u = urls; u->url; u++) {
+        buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
+        if (!buildManifest) {
+            error("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",u->url);
+            continue;
+        }
+        
+        isSigned |= isSignedOne  = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode);
+        if (buildManifest) free(buildManifest), buildManifest = NULL;
+        info("iOS %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+        free(u->url),u->url = NULL;
+        free(u->buildID),u->buildID = NULL;
+        free(u->version),u->version = NULL;
+    }
+    free(urls),urls = NULL;
+    
+    
+    
 error:
-    if (url) free(url);
     if (buildManifest) free(buildManifest);
     return isSigned;
 #undef reterror
@@ -1022,11 +1078,12 @@ int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, 
     if (!firmwares)
         return 0;
     
+    const char *versstr = (versVals->buildID) ? versVals->buildID : versVals->version;
     for (jsmntok_t *tt = firmwares->value; tt ;tt = tt->next) {
         
-        jsmntok_t *versiont = objectForKey(tt, firmwareJson, (versVals->isBuildid) ? "buildid" : "version");
+        jsmntok_t *versiont = objectForKey(tt, firmwareJson, (versVals->buildID) ? "buildid" : "version");
         size_t len = versiont->value->end - versiont->value->start;
-        if (len == strlen(versVals->version) && strncmp(versVals->version, firmwareJson + versiont->value->start, len) == 0) return 1;
+        if (len == strlen(versstr) && strncmp(versstr, firmwareJson + versiont->value->start, len) == 0) return 1;
     }
     
     return 0;

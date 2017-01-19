@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d iPhone9,3 -l"
+            argument = "-d AppleTV5,3 -i 10.0.1"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

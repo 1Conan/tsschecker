@@ -52,13 +52,18 @@ typedef enum{
 }t_basebandMode;
 
 typedef struct{
-    const char *version;
+    char *version;
+    char *buildID;
     t_basebandMode basebandMode;
     int isOta       : 1;
     int useBeta     : 1;
-    int isBuildid   : 1;
 }t_iosVersion;
     
+typedef struct{
+    char *url;
+    char *version;
+    char *buildID;
+}t_versionURL;
 
 inline t_bbdevice bbdevices_get_all();
 char *getFirmwareJson();
@@ -69,7 +74,7 @@ int printListOfDevices(char *firmwarejson, jsmntok_t *tokens);
 int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA);
     
 char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens);
-char *getBuildManifest(char *url, const char *device, const char *version, int isOta);
+char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta);
 int64_t getBBGCIDForDevice(const char *deviceModel);
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode);
