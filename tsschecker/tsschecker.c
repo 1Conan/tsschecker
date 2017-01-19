@@ -403,20 +403,22 @@ malloc_rets:
 
 char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
     warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
-    t_versionURL *versions = getFirmwareUrls(deviceModel, versVals, firmwarejson, tokens);
+    t_versionURL *versions, *v;
+    versions = v = getFirmwareUrls(deviceModel, versVals, firmwarejson, tokens);
+    
     if (!versions)
         return NULL;
     char *ret = versions->url;
     free(versions->buildID);
     free(versions->version);
     
-    while (++versions) {
+    while ((++versions)->url) {
         free(versions->buildID);
         free(versions->version);
         free(versions->url);
     }
     
-    free(versions);
+    free(v);
     return ret;
 }
 
