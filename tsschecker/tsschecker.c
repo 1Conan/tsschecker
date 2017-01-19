@@ -644,7 +644,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     }
     
     if (devVals->sepnonce){
-        if (devVals->parsedApnonceLen == NONCELEN_SEP)
+        if (devVals->parsedSepnonceLen == NONCELEN_SEP)
             memcpy(sep_nonce, devVals->sepnonce, NONCELEN_SEP+1);
         else
             return error("[TSSR] parsed SEPNoncelen != requiredSEPNoncelen (%u != %u)",(unsigned int)devVals->parsedSepnonceLen,(unsigned int)NONCELEN_SEP),-1;
