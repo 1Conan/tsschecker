@@ -354,8 +354,8 @@ t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, c
     
 malloc_rets:
     if (retcounter)
-        memset(rets_base = rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
-    
+        memset(rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
+    rets_base = rets;
     
     for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
         jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals->buildID) ? "buildid" : "version");
