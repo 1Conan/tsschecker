@@ -306,6 +306,7 @@ int main(int argc, const char * argv[]) {
     
 reparse:
     firmwareJson = (versVals.isOta) ? getOtaJson() : getFirmwareJson();
+    devVals.isUpgradeInstall = (versVals.isOta); //there are no erase installs over OTA
     if (!firmwareJson) reterror(-6,"[TSSC] could not get firmware.json\n");
     
     int cnt = parseTokens(firmwareJson, &firmwareTokens);

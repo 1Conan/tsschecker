@@ -343,6 +343,7 @@ int parseTokens(const char *json, jsmntok_t **tokens){
 t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
 #define jstrSize(j) (j->end - j->start)
     t_versionURL *rets = NULL;
+    const t_versionURL *rets_base = NULL;
     unsigned retcounter = 0;
     
     jsmntok_t *firmwares = getFirmwaresForDevice(deviceModel, firmwarejson, tokens, versVals->isOta);
@@ -353,7 +354,7 @@ t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, c
     
 malloc_rets:
     if (retcounter)
-        memset(rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
+        memset(rets_base = rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
     
     
     for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
@@ -380,6 +381,16 @@ malloc_rets:
             
             if (!rets) retcounter++;
             else{
+                int skip = 0;
+                for (int i=0; rets_base[i].buildID; i++) {
+                    if (strncmp(rets_base[i].buildID, firmwarejson + i_build->start, jstrSize(i_build)) == 0){
+                        info("[TSSC] skipping duplicated buildid %s\n",rets_base[i].buildID);
+                        skip = 1;
+                        break;
+                    }
+                }
+                if (skip) continue;
+                
                 info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",i_vers->end - i_vers->start,firmwarejson + i_vers->start,i_build->end - i_build->start,firmwarejson + i_build->start);
                 rets->version = (char*)malloc(jstrSize(i_vers)+1);
                 memcpy(rets->version, firmwarejson+i_vers->start, jstrSize(i_vers));
@@ -400,7 +411,7 @@ malloc_rets:
     else if (!rets) goto malloc_rets;
     
     
-    return rets-retcounter;
+    return (t_versionURL*)rets_base;
 #undef jstrSize
 }
 
