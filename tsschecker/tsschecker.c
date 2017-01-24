@@ -348,6 +348,9 @@ t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, c
     jsmntok_t *firmwares = getFirmwaresForDevice(deviceModel, firmwarejson, tokens, versVals->isOta);
     const char *versstring = (versVals->buildID) ? versVals->buildID : versVals->version;
     
+    if (!firmwares)
+        return error("[TSSC] device '%s' could not be found in devicelist\n", deviceModel), NULL;
+    
 malloc_rets:
     if (retcounter)
         memset(rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
