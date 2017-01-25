@@ -805,6 +805,16 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         plist_to_xml(apticket, &data, &size);
         
         
+        char *apnonce = "";
+        size_t apnonceLen = 0;
+        
+        if ((apnonceLen = devVals->parsedApnonceLen*2)){
+            apnonce = (char*)malloc(apnonceLen+1);
+            memset(apnonce, 0, apnonceLen+1);
+            for (int i = 0; i < apnonceLen; i+=2)
+                snprintf(&apnonce[i], apnonceLen-i+1, "%02x",((unsigned char*)devVals->apnonce)[i/2]);
+        }
+        
         size_t tmpDeviceNameSize = strlen(devVals->deviceModel) + strlen("_") + 1;
         if (devVals->deviceBoard) tmpDeviceNameSize += strlen(devVals->deviceBoard);
         
@@ -813,15 +823,16 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         snprintf(tmpDevicename, tmpDeviceNameSize, "%s", devVals->deviceModel);
         if (devVals->deviceBoard) snprintf(tmpDevicename+strlen(tmpDevicename), tmpDeviceNameSize-strlen(tmpDevicename), "_%s",devVals->deviceBoard);
         
-        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + tmpDeviceNameSize + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"__-.shsh2") + 1;
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + tmpDeviceNameSize + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"___-.shsh2") + 1;
+        fnamelen += devVals->parsedApnonceLen*2;
+        
         char *fname = malloc(fnamelen);
         memset(fname, 0, fnamelen);
         size_t prePathLen= strlen(shshSavePath);
         if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, (*devVals->generator) ? "2" : "");
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, (*devVals->generator) ? "2" : "");
         
         
         FILE *shshfile = fopen(fname, "w");
@@ -832,6 +843,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             info("Saved shsh blobs!\n");
         }
         
+        if (apnonceLen) free(apnonce);
         free(tmpDevicename);
         plist_free(manifest);
         free(fname);
