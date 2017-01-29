@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d iPhone6,2 -l -o -s --apnonce 603be133ff0bdfa0f83f21e74191cf6770ea43bb"
+            argument = " -s -e 0xA5988106B003A -d iPhone7,2 -i 10.2 --apnonce f6b800232b328529aa508cbc61104a6f2657ceda"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

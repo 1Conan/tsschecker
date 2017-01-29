@@ -287,7 +287,7 @@ int main(int argc, const char * argv[]) {
         if ((devVals.apnonce = parseNonce(apnonce,&devVals.parsedApnonceLen)) ){
             info("[TSSC] manually specified apnonce to use, parsed \"%s\" to hex:",apnonce);
             unsigned char *tmp = (unsigned char*)devVals.apnonce;
-            while (*tmp) info("%02x",*tmp++);
+            for (int i=0; i< devVals.parsedApnonceLen; i++) info("%02x",*tmp++);
             info("\n");
         }else{
             reterror(-7, "[TSSC] manually specified apnonce=%s, but parsing failed\n",apnonce);
@@ -297,7 +297,7 @@ int main(int argc, const char * argv[]) {
         if ((devVals.sepnonce = parseNonce(sepnonce,&devVals.parsedSepnonceLen)) ){
             info("[TSSC] manually specified sepnonce to use, parsed \"%s\" to hex:",sepnonce);
             unsigned char *tmp = (unsigned char*)devVals.sepnonce;
-            while (*tmp) info("%02x",*tmp++);
+            for (int i=0; i< devVals.parsedSepnonceLen; i++) info("%02x",*tmp++);
             info("\n");
         }else{
             reterror(-7, "[TSSC] manually specified sepnonce=%s, but parsing failed\n",sepnonce);
