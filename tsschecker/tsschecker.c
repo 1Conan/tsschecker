@@ -456,7 +456,7 @@ int downloadPartialzip(const char *url, const char *file, const char *dst){
     }
     int ret = fragmentzip_download_file(info, file, dst, fragmentzip_callback);
     if (ret){
-        error("[LFZP] failed to download file\n");
+        error("[LFZP] failed to download file (%d)\n",ret);
     }
     fragmentzip_close(info);
     return ret;
