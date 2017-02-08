@@ -304,20 +304,23 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-reparse:
-    firmwareJson = (versVals.isOta) ? getOtaJson() : getFirmwareJson();
-    devVals.isUpgradeInstall = (versVals.isOta); //there are no erase installs over OTA
-    if (!firmwareJson) reterror(-6,"[TSSC] could not get firmware.json\n");
-    
-    int cnt = parseTokens(firmwareJson, &firmwareTokens);
-    if (cnt < 1){
-        if (!nocache){
-            warning("[TSSC] error parsing cached %s.json. Trying to redownload\n",(versVals.isOta) ? "ota" : "firmware");
-            nocache = 1;
-            goto reparse; //in case cached json is corrupt, try to redownload and reparse one more time.
+    if (!buildmanifest) { //no need to get firmares/ota json if specifying buildmanifest manually
+    reparse:
+        firmwareJson = (versVals.isOta) ? getOtaJson() : getFirmwareJson();
+        devVals.isUpgradeInstall = (versVals.isOta); //there are no erase installs over OTA
+        if (!firmwareJson) reterror(-6,"[TSSC] could not get firmware.json\n");
+        
+        int cnt = parseTokens(firmwareJson, &firmwareTokens);
+        if (cnt < 1){
+            if (!nocache){
+                warning("[TSSC] error parsing cached %s.json. Trying to redownload\n",(versVals.isOta) ? "ota" : "firmware");
+                nocache = 1;
+                goto reparse; //in case cached json is corrupt, try to redownload and reparse one more time.
+            }
+            reterror(-2,"[TSSC] parsing %s.json failed\n",(versVals.isOta) ? "ota" : "firmware");
         }
-        reterror(-2,"[TSSC] parsing %s.json failed\n",(versVals.isOta) ? "ota" : "firmware");
     }
+
     
     
     if (flags & FLAG_LATEST_IOS && !versVals.version){
@@ -347,9 +350,6 @@ reparse:
     }else{
         //request ticket
         if (buildmanifest) {
-            if (devVals.deviceModel && !getFirmwaresForDevice(devVals.deviceModel, firmwareJson, firmwareTokens, versVals.isOta))
-                reterror(-4,"[TSSC] device %s could not be found in devicelist\n",devVals.deviceModel);
-            
             isSigned = isManifestSignedForDevice(buildmanifest, &devVals, &versVals);
 
         }else{
