@@ -31,18 +31,31 @@ struct bbdevice{
 };
 
 typedef struct bbdevice* t_bbdevice;
+    
+typedef enum{
+    kInstallTypeDefault = 0, //default is always erase install
+    kInstallTypeUpdate = 1,
+    kInstallTypeErase = 1<<1
+} t_installType;
 
 typedef struct{
     char *deviceModel; //either model, or boardconfig
     char *deviceBoard;
+    char *apnonce;
+    char *sepnonce;
     uint64_t ecid;
     uint64_t bbgcid;
-    char *apnonce;
     size_t parsedApnonceLen;
-    char *sepnonce;
     size_t parsedSepnonceLen;
     char generator[19];
-    int isUpgradeInstall : 1;
+    union{
+        t_installType installType : 2;
+        union{
+            int ___pading : 1;
+            int isUpdateInstall : 1; //take only last bit of installType into account
+        };
+    };
+    
 }t_devicevals;
 
 typedef enum{

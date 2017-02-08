@@ -684,7 +684,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
 
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode){
-#define reterror(a) {error(a); error = -1; goto error;}
+#define reterror(a...) {error(a); error = -1; goto error;}
     int error = 0;
     plist_t manifest = NULL;
     plist_t tssparameter = plist_new_dict();
@@ -694,12 +694,18 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, 
     
     
     plist_t id0 = (devVals->deviceBoard)
-                ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, devVals->isUpgradeInstall)
-                : getBuildidentity(manifest, devVals->deviceModel, devVals->isUpgradeInstall);
-    
+                ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, devVals->isUpdateInstall)
+                : getBuildidentity(manifest, devVals->deviceModel, devVals->isUpdateInstall);
+    if (!id0 && !devVals->installType){
+        warning("[TSSC] could not get id0 for installType=%s. Using fallback installType=%s since user did not specify installType manually\n"
+                ,devVals->isUpdateInstall ? "Update" : "Erase",!devVals->isUpdateInstall ? "Update" : "Erase");
+        id0 = (devVals->deviceBoard)
+        ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, !devVals->isUpdateInstall)
+        : getBuildidentity(manifest, devVals->deviceModel, !devVals->isUpdateInstall);
+    }
     
     if (!id0 || plist_get_node_type(id0) != PLIST_DICT){
-        reterror("[TSSR] Error: could not get id0\n");
+        reterror("[TSSR] Error: could not get id0 for installType=%s\n",devVals->isUpdateInstall ? "Update" : "Erase");
     }
     plist_t manifestdict = plist_dict_get_item(id0, "Manifest");
     if (!manifestdict || plist_get_node_type(manifestdict) != PLIST_DICT){

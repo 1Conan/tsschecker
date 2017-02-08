@@ -44,6 +44,7 @@ static struct option longopts[] = {
     { "ota",                no_argument,       NULL, 'o' },
     { "save",               no_argument,       NULL, 's' },
     { "latest",             no_argument,       NULL, 'l' },
+    { "update-install",     optional_argument, NULL, 'u' },
     { "boardconfig",        required_argument, NULL, 'B' },
     { "buildid",            required_argument, NULL, 'Z' },
     { "debug",              no_argument,       NULL, '0' },
@@ -63,6 +64,7 @@ void cmd_help(){
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
     printf("  -m, --build-manifest\t\tmanually specify buildmanifest. (can be used with -d)\n");
     printf("  -s, --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
+    printf("  -u, --update-install\t\t\trequest update ticket instead of erase\n");
     printf("  -l, --latest\t\t\tuse latest public iOS version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
@@ -175,7 +177,7 @@ int main(int argc, const char * argv[]) {
         cmd_help();
         return -1;
     }
-    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hslbo", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hslbuo", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -199,6 +201,14 @@ int main(int argc, const char * argv[]) {
             case 'b': // long option: "no-baseband"; can be called as short option
                 if (optarg) versVals.basebandMode = atoi(optarg);
                 else versVals.basebandMode = kBasebandModeWithoutBaseband;
+                break;
+            case 'u': // long option: "update"; can be called as short option
+                if (optarg) {
+                    if ((devVals.installType = atoi(optarg)) > 2 || devVals.installType < 0){
+                        warning("unknown installType %d. Setting installType to default (%d)\n",devVals.installType,devVals.installType = kInstallTypeDefault);
+                    }
+                }else
+                    devVals.installType = kInstallTypeUpdate;
                 break;
             case 'l': // long option: "latest"; can be called as short option
                 flags |= FLAG_LATEST_IOS;
@@ -307,7 +317,8 @@ int main(int argc, const char * argv[]) {
     if (!buildmanifest) { //no need to get firmares/ota json if specifying buildmanifest manually
     reparse:
         firmwareJson = (versVals.isOta) ? getOtaJson() : getFirmwareJson();
-        devVals.isUpgradeInstall = (versVals.isOta); //there are no erase installs over OTA
+        if (!devVals.installType) //only set this if installType wasn't set manually
+            devVals.isUpdateInstall = (versVals.isOta); //there are no erase installs over OTA
         if (!firmwareJson) reterror(-6,"[TSSC] could not get firmware.json\n");
         
         int cnt = parseTokens(firmwareJson, &firmwareTokens);
