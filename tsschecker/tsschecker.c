@@ -640,7 +640,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             memcpy(nonce, devVals->apnonce, nonceLen+1);
         else
             return error("[TSSR] parsed APNoncelen != requiredAPNoncelen (%u != %u)\n",(unsigned int)devVals->parsedApnonceLen,(unsigned int)nonceLen),-1;
-    }else {
+    }else if (!*devVals->generator) {
         if (nonceLen == 20) {
             //this is a pre iPhone7 device
             //nonce is derived from generator with SHA1
@@ -685,25 +685,24 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
 
 
 
-int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode){
+int tssrequest(plist_t *tssreqret, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode){
 #define reterror(a...) {error(a); error = -1; goto error;}
     int error = 0;
     plist_t manifest = NULL;
     plist_t tssparameter = plist_new_dict();
     plist_t tssreq = tss_request_new(NULL);
-    
+    plist_t id0 = NULL;
     plist_from_xml(buildManifest, (unsigned)strlen(buildManifest), &manifest);
     
-    
-    plist_t id0 = (devVals->deviceBoard)
+getID0:
+    id0 = (devVals->deviceBoard)
                 ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, devVals->isUpdateInstall)
                 : getBuildidentity(manifest, devVals->deviceModel, devVals->isUpdateInstall);
     if (!id0 && !devVals->installType){
-        warning("[TSSC] could not get id0 for installType=%s. Using fallback installType=%s since user did not specify installType manually\n"
-                ,devVals->isUpdateInstall ? "Update" : "Erase",!devVals->isUpdateInstall ? "Update" : "Erase");
-        id0 = (devVals->deviceBoard)
-        ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, !devVals->isUpdateInstall)
-        : getBuildidentity(manifest, devVals->deviceModel, !devVals->isUpdateInstall);
+        warning("[TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually\n");
+
+        devVals->installType = kInstallTypeUpdate;
+        goto getID0;
     }
     
     if (!id0 || plist_get_node_type(id0) != PLIST_DICT){
@@ -770,11 +769,11 @@ int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, 
         info("[TSSR] User specified not to request a Baseband ticket.\n");
     }
     
-    *tssrequest = tssreq;
+    *tssreqret = tssreq;
 error:
     if (manifest) plist_free(manifest);
     if (tssparameter) plist_free(tssparameter);
-    if (error) plist_free(tssreq), *tssrequest = NULL;
+    if (error) plist_free(tssreq), *tssreqret = NULL;
     return error;
 #undef reterror
 }
@@ -783,6 +782,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
     int isSigned = 0;
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
+    plist_t apticket2 = NULL;
     
     if (tssrequest(&tssreq, buildManifestBuffer, devVals, basebandMode)){
         error("[TSSR] faild to build tssrequest\n");
@@ -793,6 +793,19 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
     
     if (print_tss_response) debug_plist(apticket);
     if (isSigned && save_shshblobs){
+        if (!devVals->installType){
+            plist_t tssreq2 = NULL;
+            info("also requesting APTicket for installType=Update\n");
+            devVals->installType = kInstallTypeUpdate;
+            if (tssrequest(&tssreq2, buildManifestBuffer, devVals, basebandMode)){
+                warning("[TSSR] faild to build tssrequest for alternative installType\n");
+            }else{
+                apticket2 = tss_request_send(tssreq2, NULL);
+            }
+            if (tssreq2) plist_free(tssreq2);
+            devVals->installType = kInstallTypeDefault;
+        }
+            
         plist_t manifest = 0;
         plist_from_xml(buildManifestBuffer, (unsigned)strlen(buildManifestBuffer), &manifest);
         plist_t build = plist_dict_get_item(manifest, "ProductBuildVersion");
@@ -811,6 +824,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         char* data = NULL;
         if (*devVals->generator)
             plist_dict_set_item(apticket, "generator", plist_new_string(devVals->generator));
+        if (apticket2)
+            plist_dict_set_item(apticket, "updateInstall", apticket2);
         plist_to_xml(apticket, &data, &size);
         
         
@@ -841,7 +856,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
         
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, (*devVals->generator) ? "2" : "");
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, (*devVals->generator || apticket2) ? "2" : "");
         
         
         FILE *shshfile = fopen(fname, "w");
