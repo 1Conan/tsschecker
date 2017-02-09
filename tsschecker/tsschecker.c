@@ -660,20 +660,15 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     if (strncasecmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0)
         nonceLen = 32;
     
-    
-    char *nonce = (char*)malloc(nonceLen+1);
-    char sep_nonce[NONCELEN_SEP+1];
-    
     int n=0;
     srand((unsigned int)time(NULL));
     if (!devVals->ecid) for (int i=0; i<16; i++) devVals->ecid += (rand() % 10) * pow(10, n++);
 
     if (devVals->apnonce){
-        if (devVals->parsedApnonceLen == nonceLen)
-            memcpy(nonce, devVals->apnonce, nonceLen+1);
-        else
+        if (devVals->parsedApnonceLen != nonceLen)
             return error("[TSSR] parsed APNoncelen != requiredAPNoncelen (%u != %u)\n",(unsigned int)devVals->parsedApnonceLen,(unsigned int)nonceLen),-1;
     }else{
+        devVals->apnonce = (char*)malloc((devVals->parsedApnonceLen = nonceLen)+1);
         if (nonceLen == 20) {
             //this is a pre iPhone7 device
             //nonce is derived from generator with SHA1
@@ -692,7 +687,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             }
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha1:
-            SHA1(zz, 8, (unsigned char*)nonce);
+            SHA1(zz, 8, (unsigned char*)devVals->apnonce);
         }else if (nonceLen == 32){
             unsigned char zz[8] = {0};
             unsigned char genHash[48]; //SHA384 digest length
@@ -713,29 +708,28 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha384:
             SHA384(zz, 8, genHash);
-            memcpy(nonce, genHash, 32);
+            memcpy(devVals->apnonce, genHash, 32);
         }else{
             return error("[TSSR] Automatic generator->nonce calculation failed. Unknown device with noncelen=%u\n",(unsigned int)nonceLen),-1;
         }
     }
     
     if (devVals->sepnonce){
-        if (devVals->parsedSepnonceLen == NONCELEN_SEP)
-            memcpy(sep_nonce, devVals->sepnonce, NONCELEN_SEP+1);
-        else
+        if (devVals->parsedSepnonceLen != NONCELEN_SEP)
             return error("[TSSR] parsed SEPNoncelen != requiredSEPNoncelen (%u != %u)",(unsigned int)devVals->parsedSepnonceLen,(unsigned int)NONCELEN_SEP),-1;
-    }else
-        getRandNum(sep_nonce, NONCELEN_SEP, 256);
+    }else{
+        devVals->sepnonce = (char*)malloc((devVals->parsedSepnonceLen = NONCELEN_SEP) +1);
+        getRandNum(devVals->sepnonce, devVals->parsedSepnonceLen, 256);
+    }
     
-    nonce[nonceLen] = '\0';
-    sep_nonce[NONCELEN_SEP] = '\0';
+    devVals->apnonce[nonceLen] = '\0';
+    devVals->sepnonce[NONCELEN_SEP] = '\0';
     
     debug("[TSSR] ecid=%llu\n",devVals->ecid);
-    debug("[TSSR] nonce=%s\n",nonce);
-    debug("[TSSR] sepnonce=%s\n",sep_nonce);
+    debug("[TSSR] nonce=%s\n",devVals->apnonce);
+    debug("[TSSR] sepnonce=%s\n",devVals->sepnonce);
     
-    int rt = tss_populate_devicevals(tssreq, devVals->ecid, nonce, nonceLen, sep_nonce, NONCELEN_SEP, is64bit);
-    free(nonce);
+    int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, is64bit);
     return rt;
 }
 
