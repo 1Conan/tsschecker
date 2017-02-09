@@ -35,6 +35,7 @@
 #define NONCELEN_BASEBAND 20 
 #define NONCELEN_SEP      20
 
+#define swapchar(a,b) ((a) ^= (b),(b) ^= (a),(a) ^= (b)) //swaps a and b, unless they are the same variable
 
 
 #ifdef WIN32
@@ -619,6 +620,38 @@ error:
     return ret;
 }
 
+int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
+    size_t nonceLen = strlen(nonce);
+    nonceLen = nonceLen/2 + nonceLen%2; //one byte more if len is odd
+    
+    if (retSize) *retSize = (nonceLen+1)*sizeof(char);
+    if (!ret) return 0;
+    
+    memset(ret, 0, nonceLen+1);
+    unsigned int nlen = 0;
+    
+    int next = strlen(nonce)%2 == 0;
+    char tmp = 0;
+    while (*nonce) {
+        char c = *(nonce++);
+        
+        tmp *=16;
+        if (c >= '0' && c<='9') {
+            tmp += c - '0';
+        }else if (c >= 'a' && c <= 'f'){
+            tmp += 10 + c - 'a';
+        }else if (c >= 'A' && c <= 'F'){
+            tmp += 10 + c - 'A';
+        }else{
+            return -1; //ERROR parsing failed
+        }
+        if ((next =! next) && nlen < nonceLen) ret[nlen++] = tmp,tmp=0;
+    }
+    
+    if (parsedLen) *parsedLen = nlen;
+    return 0;
+}
+
 int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     size_t nonceLen = 20; //valid for all devices up to iPhone7
     if (!devVals->deviceModel)
@@ -640,22 +673,45 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             memcpy(nonce, devVals->apnonce, nonceLen+1);
         else
             return error("[TSSR] parsed APNoncelen != requiredAPNoncelen (%u != %u)\n",(unsigned int)devVals->parsedApnonceLen,(unsigned int)nonceLen),-1;
-    }else if (!*devVals->generator) {
+    }else{
         if (nonceLen == 20) {
             //this is a pre iPhone7 device
             //nonce is derived from generator with SHA1
-            unsigned char zz[8];
+            unsigned char zz[8] = {0};
             getRandNum((char*)zz, 8, 256);
-            
+
+            for (int i=0; i<8; i++) {
+                if (devVals->generator[i]){
+                    parseHex(devVals->generator+2, NULL, (char*)zz, NULL);
+                    swapchar(zz[0], zz[7]);
+                    swapchar(zz[1], zz[6]);
+                    swapchar(zz[2], zz[5]);
+                    swapchar(zz[3], zz[4]);
+                    goto makesha1;
+                }
+            }
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
+        makesha1:
             SHA1(zz, 8, (unsigned char*)nonce);
         }else if (nonceLen == 32){
-            unsigned char zz[8];
+            unsigned char zz[8] = {0};
+            unsigned char genHash[48]; //SHA384 digest length
+            
+            for (int i=0; i<8; i++) {
+                if (devVals->generator[i]){
+                    parseHex(devVals->generator+2, NULL, (char*)zz, NULL);
+                    swapchar(zz[0], zz[7]);
+                    swapchar(zz[1], zz[6]);
+                    swapchar(zz[2], zz[5]);
+                    swapchar(zz[3], zz[4]);
+                    goto makesha384;
+                }
+            }
+            
             getRandNum((char*)zz, 8, 256);
             
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
-            unsigned char genHash[48]; //SHA384 digest length
-            
+        makesha384:
             SHA384(zz, 8, genHash);
             memcpy(nonce, genHash, 32);
         }else{

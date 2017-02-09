@@ -78,7 +78,9 @@ typedef struct{
     char *buildID;
 }t_versionURL;
 
-inline t_bbdevice bbdevices_get_all();
+int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize);
+
+inline t_bbdevice bbdevices_get_all();   
 char *getFirmwareJson();
 char *getOtaJson();
 int parseTokens(const char *json, jsmntok_t **tokens);
