@@ -29,7 +29,6 @@
 
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
-#define BBGCID_JSON_URL "http://api.tihmstar.net/bbgcid?condensed=1"
 
 #warning TODO verify these values are actually correct for all devices (iPhone7)
 #define NONCELEN_BASEBAND 20 
@@ -46,14 +45,12 @@ static const char *win_paths[4];
 
 enum paths{
     kWINPathTSSCHECKER,
-    kWINPathBBGCID,
     kWINPathOTA,
     kWINPathFIRMWARE
 };
 
 static const char *win_pathvars[]={
     "\\tsschecker",
-    "\\bbgcid.json",
     "\\ota.json",
     "\\firmware.json"
 };
@@ -79,7 +76,6 @@ static const char *win_path_get(enum paths path){
 }
 
 #define MANIFEST_SAVE_PATH win_path_get(kWINPathTSSCHECKER)
-#define BBGCID_JSON_PATH win_path_get(kWINPathBBGCID)
 #define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
 #define DIRECTORY_DELIMITER_STR "\\"
@@ -88,7 +84,6 @@ static const char *win_path_get(enum paths path){
 #else
 
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
-#define BBGCID_JSON_PATH "/tmp/bbgcid.json"
 #define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
 #define FIRMWARE_JSON_PATH "/tmp/firmware.json"
 #define DIRECTORY_DELIMITER_STR "/"
