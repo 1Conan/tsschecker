@@ -147,6 +147,7 @@ static struct bbdevice bbdevices[] = {
     {"iPad5,3", 0},
     {"iPad5,4", 3840149528},
     {"iPad6,3", 0},
+    {"iPad6,4", 3840149528},
     {"iPad6,7", 0},
     {"iPad6,8", 3840149528},
     
@@ -529,7 +530,7 @@ int64_t getBBGCIDForDevice(const char *deviceModel){
         bbdevs++;
     
     if (!bbdevs->deviceModel) {
-        error("[TSSC] ERROR: device \"%s\" is not in bbgcid.json, which means it's BasebandGoldCertID isn't documented yet.\nIf you own such a device please consider contacting @tihmstar to get instructions how to contribute to this project.\n",deviceModel);
+        error("[TSSC] ERROR: device \"%s\" is not in bbgcid list, which means it's BasebandGoldCertID isn't documented yet.\nIf you own such a device please consider contacting @tihmstar to get instructions how to contribute to this project.\n",deviceModel);
         return -1;
     }else if (!bbdevs->bbgcid) {
         warning("[TSSC] A BasebandGoldCertID is not required for %s\n",deviceModel);
