@@ -191,6 +191,8 @@ int main(int argc, const char * argv[]) {
                     }
                 }else
                     devVals.installType = kInstallTypeUpdate;
+                if (devVals.installType)
+                    prinf("[TSSC] manually setting install type = %s\n",devVals.installType == kInstallTypeUpdate ? "Update" : "Erase");
                 break;
             case 'l': // long option: "latest"; can be called as short option
                 flags |= FLAG_LATEST_IOS;
