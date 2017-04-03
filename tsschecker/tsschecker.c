@@ -664,7 +664,9 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     if (!devVals->ecid) for (int i=0; i<16; i++) devVals->ecid += (rand() % 10) * pow(10, n++);
 
     if (devVals->apnonce){
-        if (devVals->parsedApnonceLen != nonceLen)
+        if (!devVals->parsedApnonceLen)
+            devVals->apnonce = NULL;
+        else if (devVals->parsedApnonceLen != nonceLen)
             return error("[TSSR] parsed APNoncelen != requiredAPNoncelen (%u != %u)\n",(unsigned int)devVals->parsedApnonceLen,(unsigned int)nonceLen),-1;
     }else{
         devVals->apnonce = (char*)malloc((devVals->parsedApnonceLen = nonceLen)+1);
@@ -721,7 +723,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         getRandNum(devVals->sepnonce, devVals->parsedSepnonceLen, 256);
     }
     
-    devVals->apnonce[nonceLen] = '\0';
+    if (devVals->apnonce) devVals->apnonce[nonceLen] = '\0';
     devVals->sepnonce[NONCELEN_SEP] = '\0';
     
     debug("[TSSR] ecid=%llu\n",devVals->ecid);
@@ -832,6 +834,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     plist_t apticket2 = NULL;
+    plist_t apticket3 = NULL;
     
     if (tssrequest(&tssreq, buildManifestBuffer, devVals, basebandMode)){
         error("[TSSR] faild to build tssrequest\n");
@@ -854,6 +857,21 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             if (tssreq2) plist_free(tssreq2);
             devVals->installType = kInstallTypeDefault;
         }
+        {
+            plist_t tssreq2 = NULL;
+            char *apnonce = devVals->apnonce;
+            size_t apnonceLen = devVals->parsedApnonceLen;
+            t_installType installType = devVals->installType;
+            devVals->parsedApnonceLen = 0;
+            devVals->apnonce = (char *)0x1337;
+            devVals->installType = kInstallTypeErase;
+            if (!tssrequest(&tssreq2, buildManifestBuffer, devVals, basebandMode)){
+                apticket3 = tss_request_send(tssreq2, NULL);
+            }
+            devVals->parsedApnonceLen = apnonceLen;
+            devVals->apnonce = apnonce;
+            devVals->installType = installType;
+        }
             
         plist_t manifest = 0;
         plist_from_xml(buildManifestBuffer, (unsigned)strlen(buildManifestBuffer), &manifest);
@@ -875,6 +893,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             plist_dict_set_item(apticket, "generator", plist_new_string(devVals->generator));
         if (apticket2)
             plist_dict_set_item(apticket, "updateInstall", apticket2);
+        if (apticket3)
+            plist_dict_set_item(apticket, "noNonce", apticket3);
         plist_to_xml(apticket, &data, &size);
         
         
