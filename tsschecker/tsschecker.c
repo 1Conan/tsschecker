@@ -673,19 +673,20 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         if (nonceLen == 20) {
             //this is a pre iPhone7 device
             //nonce is derived from generator with SHA1
-            unsigned char zz[8] = {0};
-            getRandNum((char*)zz, 8, 256);
-
-            for (int i=0; i<8; i++) {
-                if (devVals->generator[i]){
-                    parseHex(devVals->generator+2, NULL, (char*)zz, NULL);
-                    swapchar(zz[0], zz[7]);
-                    swapchar(zz[1], zz[6]);
-                    swapchar(zz[2], zz[5]);
-                    swapchar(zz[3], zz[4]);
-                    goto makesha1;
-                }
+            unsigned char zz[9] = {0};
+            
+            for (int i=0; i<sizeof(devVals->generator)-1; i++) {
+                if (!devVals->generator[i]) goto makegen;
             }
+            devVals->generator[sizeof(devVals->generator)-1] = 0;
+            parseHex(devVals->generator+2, NULL, (char*)zz, NULL);
+            swapchar(zz[0], zz[7]);
+            swapchar(zz[1], zz[6]);
+            swapchar(zz[2], zz[5]);
+            swapchar(zz[3], zz[4]);
+            goto makesha1;
+        makegen:
+            getRandNum((char*)zz, 8, 256);
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha1:
             SHA1(zz, 8, (unsigned char*)devVals->apnonce);
@@ -693,19 +694,18 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             unsigned char zz[8] = {0};
             unsigned char genHash[48]; //SHA384 digest length
             
-            for (int i=0; i<8; i++) {
-                if (devVals->generator[i]){
-                    parseHex(devVals->generator+2, NULL, (char*)zz, NULL);
-                    swapchar(zz[0], zz[7]);
-                    swapchar(zz[1], zz[6]);
-                    swapchar(zz[2], zz[5]);
-                    swapchar(zz[3], zz[4]);
-                    goto makesha384;
-                }
+            for (int i=0; i<sizeof(devVals->generator)-1; i++) {
+                if (!devVals->generator[i]) goto makegen2;
             }
-            
+            devVals->generator[sizeof(devVals->generator)-1] = 0;
+            parseHex(devVals->generator+2, NULL, (char*)zz, NULL);
+            swapchar(zz[0], zz[7]);
+            swapchar(zz[1], zz[6]);
+            swapchar(zz[2], zz[5]);
+            swapchar(zz[3], zz[4]);
+            goto makesha384;
+        makegen2:
             getRandNum((char*)zz, 8, 256);
-            
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha384:
             SHA384(zz, 8, genHash);

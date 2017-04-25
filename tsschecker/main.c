@@ -48,6 +48,7 @@ static struct option longopts[] = {
     { "boardconfig",        required_argument, NULL, 'B' },
     { "buildid",            required_argument, NULL, 'Z' },
     { "debug",              no_argument,       NULL, '0' },
+    { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -72,6 +73,7 @@ void cmd_help(){
     printf("      --apnonce NONCE\t\tmanually specify APNONCE instead of using random one (not required for saving blobs)\n");
     printf("      --sepnonce NONCE\t\tmanually specify SEPNONCE instead of using random one (not required for saving blobs)\n");
     printf("      --save-path PATH\t\tspecify path for saving blobs\n");
+    printf("      --generator GEN\t\tmanually specify generator in format 0x%%16llx\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("      --beta\t\t\trequest ticket for beta instead of normal relase (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
@@ -159,7 +161,7 @@ int main(int argc, const char * argv[]) {
         cmd_help();
         return -1;
     }
-    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hslbuo", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hg:slbuo", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -179,6 +181,22 @@ int main(int argc, const char * argv[]) {
                 break;
             case 'e': // long option: "ecid"; can be called as short option
                 ecid = optarg;
+                break;
+            case 'g': // long option: "ecid"; can be called as short option
+                if (optarg[0] != '0' && optarg[1] != 'x')
+                    goto failparse;
+                devVals.generator[0] = '0';
+                devVals.generator[1] = 'x';
+                devVals.generator[sizeof(devVals.generator)-1] = '\0';
+                devVals.generator[0+2] = tolower(optarg[0+2]);
+                for (int i=0;i<16; i++){
+                    devVals.generator[i+2] = tolower(optarg[i+2]);
+                    if (!isdigit(optarg[i+2]) && ((int)devVals.generator[i+2] < 'a' || devVals.generator[i+2] > 'f'))
+                        failparse:
+                        reterror(-10, "[TSSC] parsing generator \"%s\" failed\n",optarg);
+
+                }
+                info("[TSSC] manually specified generator \"%s\"\n",devVals.generator);
                 break;
             case 'b': // long option: "no-baseband"; can be called as short option
                 if (optarg) versVals.basebandMode = atoi(optarg);
