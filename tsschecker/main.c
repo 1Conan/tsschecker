@@ -156,6 +156,9 @@ int main(int argc, const char * argv[]) {
     char *sepnonce = 0;
     t_devicevals devVals = {0};
     t_iosVersion versVals = {0};
+    char *firmwareJson = NULL;
+    jsmntok_t *firmwareTokens = NULL;
+    
     
     if (argc == 1){
         cmd_help();
@@ -261,8 +264,6 @@ int main(int argc, const char * argv[]) {
                 return -1;
         }
     }
-    char *firmwareJson = NULL;
-    jsmntok_t *firmwareTokens = NULL;
     
     if (devVals.deviceBoard)
         for (int i=0; i<strlen(devVals.deviceBoard); i++)
