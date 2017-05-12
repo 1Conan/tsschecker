@@ -1011,7 +1011,7 @@ error:
 
 int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals){
 #define reterror(a ... ) {error(a); goto error;}
-    if (atoi(versVals->version) <= 3) {
+    if (versVals->version && atoi(versVals->version) <= 3) {
         info("[TSSC] version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals->version);
         return 1;
     }

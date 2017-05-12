@@ -59,7 +59,7 @@ void cmd_help(){
     printf("  -d, --device MODEL\t\tspecific device by its MODEL (eg. iPhone4,1)\n");
     printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
     printf("      --buildid BUILDID\t\tspecific buildid instead of iOS version (eg. 13C75)\n");
-    printf("      --boardconfig BOARD\tspecific boardconfig instead of iPhone model (eg. n61ap)\n");
+    printf("  -B, --boardconfig BOARD\tspecific boardconfig instead of iPhone model (eg. n61ap)\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
@@ -369,7 +369,7 @@ int main(int argc, const char * argv[]) {
 
         }else{
             if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
-            if (!versVals.version) reterror(-5,"[TSSC] please specify an iOS version or buildID for this option\n\tuse -h for more help\n");
+            if (!versVals.version && !versVals.buildID) reterror(-5,"[TSSC] please specify an iOS version or buildID for this option\n\tuse -h for more help\n");
             
             isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, &versVals, &devVals);
         }
