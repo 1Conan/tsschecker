@@ -834,16 +834,16 @@ error:
 }
 
 int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVals, t_basebandMode basebandMode){
+#define reterror(a ...) {error(a); isSigned = -1; goto error;}
     int isSigned = 0;
     plist_t tssreq = NULL;
     plist_t apticket = NULL;
     plist_t apticket2 = NULL;
     plist_t apticket3 = NULL;
     
-    if (tssrequest(&tssreq, buildManifestBuffer, devVals, basebandMode)){
-        error("[TSSR] faild to build tssrequest\n");
-        goto error;
-    }
+    if (tssrequest(&tssreq, buildManifestBuffer, devVals, basebandMode))
+        reterror("[TSSR] faild to build tssrequest\n");
+
     isSigned = ((apticket = tss_request_send(tssreq, NULL)) > 0);
 
     
@@ -955,6 +955,7 @@ error:
     if (tssreq) plist_free(tssreq);
     if (apticket) plist_free(apticket);
     return isSigned;
+#undef reterror
 }
 
 int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_iosVersion *versVals){
@@ -1019,7 +1020,7 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
         return 1;
     }
     
-    int isSigned = 0;
+    int isSigned = -1;
     int isSignedOne = 0;
     char *buildManifest = NULL;
     
@@ -1033,7 +1034,10 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
             continue;
         }
         
-        isSigned |= isSignedOne  = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode);
+        if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode)) < 0)
+            continue;
+        
+        isSigned = (isSignedOne > 0 || isSigned > 0);
         if (buildManifest) free(buildManifest), buildManifest = NULL;
         info("iOS %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
         free(u->url),u->url = NULL;
