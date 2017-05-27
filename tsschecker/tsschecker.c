@@ -870,7 +870,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->parsedApnonceLen = 0;
             devVals->apnonce = (char *)0x1337;
             devVals->installType = kInstallTypeErase;
-            if (!tssrequest(&tssreq2, buildManifestBuffer, devVals, basebandMode)){
+            if (!tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
                 apticket3 = tss_request_send(tssreq2, NULL);
                 if (print_tss_response) debug_plist(apticket3);
             }
