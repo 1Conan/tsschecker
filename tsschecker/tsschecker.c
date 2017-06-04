@@ -814,6 +814,8 @@ getID0:
             size_t bbsnumSize = 4;
             if (strncasecmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0)
                 bbsnumSize = 12;
+            else if (strncasecmp(devVals->deviceModel, "iPhone3,", strlen("iPhone3,")) == 0)
+                bbsnumSize = 12;
             
             tss_populate_basebandvals(tssreq,tssparameter,BbGoldCertId,bbsnumSize);
             tss_request_add_baseband_tags(tssreq, tssparameter, NULL);
