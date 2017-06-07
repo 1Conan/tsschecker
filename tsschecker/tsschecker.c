@@ -13,7 +13,6 @@
 #include <time.h>
 #include <stdio.h>
 #include "tsschecker.h"
-#include "jsmn.h"
 #include "download.h"
 #include <libfragmentzip/libfragmentzip.h>
 #include <libirecovery.h>
@@ -35,7 +34,7 @@
 #define NONCELEN_SEP      20
 
 #define swapchar(a,b) ((a) ^= (b),(b) ^= (a),(a) ^= (b)) //swaps a and b, unless they are the same variable
-
+#define printJString(str) printf("%.*s",(int)str->size,str->value)
 
 #ifdef WIN32
 #include <windows.h>
@@ -311,49 +310,25 @@ error:
 
 #pragma mark json functions
 
-void printJString(jsmntok_t *str, char * firmwarejson){
-    for (int j=0; j<str->end-str->start; j++) {
-        putchar(*(firmwarejson+str->start + j));
-    }
-    putchar('\n');
-}
-
-jsmntok_t *objectForKey(jsmntok_t *tokens, const char *firmwareJson, const char*key){
-    
-    jsmntok_t *dictElements = tokens->value;
-    for (jsmntok_t *tmp = dictElements; ; tmp = tmp->next) {
-        
-        if (strncmp(key, firmwareJson + tmp->start, strlen(key)) == 0) return tmp;
-        
-        if (tmp->next == dictElements) break;
-    }
-    
-    return NULL;
-}
-
-int parseTokens(const char *json, jsmntok_t **tokens){
-    jsmn_parser parser;
-    jsmn_init(&parser);
+long parseTokens(const char *json, jssytok_t **tokens){
     
     log("[JSON] counting elements\n");
-    unsigned int tokensCnt = jsmn_parse(&parser, json, strlen(json), NULL, 0);
+    long tokensCnt = jssy_parse(json, strlen(json), NULL, NULL);
+    *tokens = (jssytok_t*)malloc(sizeof(jssytok_t) * tokensCnt);
     
-    *tokens = (jsmntok_t*)malloc(sizeof(jsmntok_t) * tokensCnt);
-    jsmn_init(&parser);
     log("[JSON] parsing elements\n");
-    return jsmn_parse(&parser, json, strlen(json), *tokens, tokensCnt);
+    return jssy_parse(json, strlen(json), *tokens, sizeof(jssytok_t) * tokensCnt);
 }
 
 #pragma mark get functions
 
 //returns NULL terminated array of t_versionURL objects
-t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
-#define jstrSize(j) (j->end - j->start)
+t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
     t_versionURL *rets = NULL;
     const t_versionURL *rets_base = NULL;
     unsigned retcounter = 0;
     
-    jsmntok_t *firmwares = getFirmwaresForDevice(deviceModel, firmwarejson, tokens, versVals->isOta);
+    jssytok_t *firmwares = getFirmwaresForDevice(deviceModel, tokens, versVals->isOta);
     const char *versstring = (versVals->buildID) ? versVals->buildID : versVals->version;
     
     if (!firmwares)
@@ -364,24 +339,27 @@ malloc_rets:
         memset(rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
     rets_base = rets;
     
-    for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
-        jsmntok_t *ios = objectForKey(tmp, firmwarejson, (versVals->buildID) ? "buildid" : "version");
-        if (ios->value->end - ios->value->start == strlen(versstring) && strncmp(versstring, firmwarejson + ios->value->start, strlen(versstring)) == 0) {
+
+    jssytok_t *tmp = firmwares->subval;
+    for (size_t i=0; i<firmwares->size; tmp=tmp->next, i++) {
+        jssytok_t *ios = jssy_dictGetValueForKey(tmp, (versVals->buildID) ? "buildid" : "version");
+        
+        if (ios->size == strlen(versstring) && strncmp(versstring, ios->value, ios->size) == 0) {
             
             if (versVals->isOta) {
-                jsmntok_t *releaseType = NULL;
-                if (versVals->useBeta && !(releaseType = objectForKey(tmp, firmwarejson, "releasetype"))) continue;
+                jssytok_t *releaseType = NULL;
+                if (versVals->useBeta && !(releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) continue;
                 else if (!versVals->useBeta);
-                else if (strncmp(firmwarejson + releaseType->value->start, "Beta", releaseType->value->end - releaseType->value->start) != 0) continue;
+                else if (strncmp(releaseType->value, "Beta", releaseType->size) != 0) continue;
             }
             
-            jsmntok_t *url = objectForKey(tmp, firmwarejson, "url")->value;
-            jsmntok_t *i_vers = objectForKey(tmp, firmwarejson, "version")->value;
-            jsmntok_t *i_build = objectForKey(tmp, firmwarejson, "buildid")->value;
+            jssytok_t *url = jssy_dictGetValueForKey(tmp, "url");
+            jssytok_t *i_vers = jssy_dictGetValueForKey(tmp, "version");
+            jssytok_t *i_build = jssy_dictGetValueForKey(tmp, "buildid");
             
             if (!versVals->version){
                 versVals->version = (char*)malloc(i_vers->size+1);
-                memcpy(versVals->version, firmwarejson+i_vers->start, i_vers->size);
+                memcpy(versVals->version, i_vers->value, i_vers->size);
                 versVals->version[i_vers->size] = '\0';
             }
             
@@ -390,7 +368,7 @@ malloc_rets:
             else{
                 int skip = 0;
                 for (int i=0; rets_base[i].buildID; i++) {
-                    if (strncmp(rets_base[i].buildID, firmwarejson + i_build->start, jstrSize(i_build)) == 0){
+                    if (strncmp(rets_base[i].buildID, i_build->value, i_build->size) == 0){
                         info("[TSSC] skipping duplicated buildid %s\n",rets_base[i].buildID);
                         skip = 1;
                         break;
@@ -398,49 +376,29 @@ malloc_rets:
                 }
                 if (skip) continue;
                 
-                info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",i_vers->end - i_vers->start,firmwarejson + i_vers->start,i_build->end - i_build->start,firmwarejson + i_build->start);
-                rets->version = (char*)malloc(jstrSize(i_vers)+1);
-                memcpy(rets->version, firmwarejson+i_vers->start, jstrSize(i_vers));
-                rets->version[jstrSize(i_vers)] = '\0';
+                info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",(int)i_vers->size, i_vers->value,i_build->size, i_build->value);
+                rets->version = (char*)malloc(i_vers->size+1);
+                memcpy(rets->version, i_vers->value, i_vers->size);
+                rets->version[i_vers->size] = '\0';
                 
-                rets->buildID = (char*)malloc(jstrSize(i_build)+1);
-                memcpy(rets->buildID, firmwarejson+i_build->start, jstrSize(i_build));
-                rets->buildID[jstrSize(i_build)] = '\0';
+                rets->buildID = (char*)malloc(i_build->size+1);
+                memcpy(rets->buildID, i_build->value, i_build->size);
+                rets->buildID[i_build->size] = '\0';
                 
-                rets->url = (char*)malloc(jstrSize(url)+1);
-                memcpy(rets->url, firmwarejson+url->start, jstrSize(url));
-                rets->url[jstrSize(url)] = '\0';
+                rets->url = (char*)malloc(url->size+1);
+                memcpy(rets->url, url->value, url->size);
+                rets->url[url->size] = '\0';
                 rets++;
             }
         }
     }
+    
+    
     if (!retcounter) return NULL;
     else if (!rets) goto malloc_rets;
     
     
     return (t_versionURL*)rets_base;
-#undef jstrSize
-}
-
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens){
-    warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
-    t_versionURL *versions, *v;
-    versions = v = getFirmwareUrls(deviceModel, versVals, firmwarejson, tokens);
-    
-    if (!versions)
-        return NULL;
-    char *ret = versions->url;
-    free(versions->buildID);
-    free(versions->version);
-    
-    while ((++versions)->url) {
-        free(versions->buildID);
-        free(versions->version);
-        free(versions->url);
-    }
-    
-    free(v);
-    return ret;
 }
 
 static void printline(int percent){
@@ -1015,7 +973,7 @@ error:
 #undef reterror
 }
 
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals){
+int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals){
 #define reterror(a ... ) {error(a); goto error;}
     if (versVals->version && atoi(versVals->version) <= 3) {
         info("[TSSC] version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals->version);
@@ -1026,8 +984,8 @@ int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_io
     int isSignedOne = 0;
     char *buildManifest = NULL;
     
-    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareJson, firmwareTokens);
-    if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,versVals->version);
+    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens);
+    if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     for (t_versionURL *u = urls; u->url; u++) {
         buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
@@ -1059,38 +1017,37 @@ error:
 #pragma mark print functions
 
 #warning print devices function doesn't actually check if devices are sorted. it assues they are sorted in json
-int printListOfDevices(char *firmwarejson, jsmntok_t *tokens){
+int printListOfDevices(jssytok_t *tokens){
 #define MAX_PER_LINE 10
     log("[JSON] printing device list\n");
-    int curr = 0;
-    int currLen = 0;
+    char *curr = NULL;
+    size_t currLen = 0;
     int rspn = 0;
     putchar('\n');
-    jsmntok_t *ctok = objectForKey(tokens, firmwarejson, "devices");
-    for (jsmntok_t *tmp = ctok->value; ; tmp = tmp->next) {
+    jssytok_t *ctok = jssy_dictGetValueForKey(tokens, "devices");
+    
+    jssytok_t *tmp = ctok->subval;
+    for (size_t i=0; i<ctok->size; tmp = tmp->next,i++) {
         if (!curr){
-            curr = tmp->start;
-            currLen = tmp->end - tmp->start;
+            curr = tmp->value;
+            currLen = tmp->size;
         }else{
             for (int i = 0; i<currLen; i++) {
-                char c = *(firmwarejson+curr+i);
+                char c = curr[i];
                 if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))) break;
-                if (c != *(firmwarejson+tmp->start+i)) {
+                if (c != tmp->value[i]) {
                     putchar('\n');
                     putchar('\n');
-                    curr = tmp->start;
-                    currLen = tmp->end - tmp->start;
+                    curr = tmp->value;
+                    currLen = tmp->size;
                     rspn = 0;
                     break;
                 }
             }
         }
-        for (int j=0; j<tmp->end-tmp->start; j++) {
-            putchar(*(firmwarejson+tmp->start + j));
-        }
+        printJString(tmp);
         if (++rspn>= MAX_PER_LINE) putchar('\n'), rspn = 0; else putchar(' ');
         
-        if (tmp->next == ctok->value) break;
     }
     putchar('\n');
     putchar('\n');
@@ -1122,45 +1079,44 @@ int cmpfunc(const void * a, const void * b){
     }
 }
 
-char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *device, int isOTA, int *versionCntt){
+char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
-    jsmntok_t *firmwares = getFirmwaresForDevice(device, firmwarejson, tokens, isOTA);
+    jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
     
     if (!firmwares)
         return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
     
-    int versionsCnt = firmwares->size;
+    int versionsCnt = (int)firmwares->size;
     char **versions = (char**)malloc(versionsCnt * sizeof(char *));
     
-    
-    for (jsmntok_t *tmp = firmwares->value; tmp != NULL; tmp = tmp->next) {
+    jssytok_t *tmp = firmwares->subval;
+    for (int i=0; i<firmwares->size; tmp = tmp->next,i++) {
         
-        jsmntok_t *ios = objectForKey(tmp, firmwarejson, "version");
+        jssytok_t *ios = jssy_dictGetValueForKey(tmp, "version");
         
-        int verslen= ios->value->end-ios->value->start;
         int isBeta = 0;
-        jsmntok_t *releaseType = NULL;
-        if ((releaseType = objectForKey(tmp, firmwarejson, "releasetype"))) {
-            isBeta = (strncmp(firmwarejson + releaseType->value->start, "Beta", releaseType->value->end - releaseType->value->start) == 0);
+        jssytok_t *releaseType = NULL;
+        if ((releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) {
+            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0);
         }
         
-        versions[--versionsCnt] = (char*)malloc((verslen+1 + isBeta * strlen("[B]")) * sizeof(char));
-        strncpy(versions[versionsCnt], firmwarejson + ios->value->start, verslen);
-        if (isBeta) strncpy(&versions[versionsCnt][verslen], "[B]", strlen("[B]"));
-        versions[versionsCnt][verslen + isBeta * strlen("[B]")] = '\0';
+        versions[--versionsCnt] = (char*)malloc((ios->size+1 + isBeta * strlen("[B]")) * sizeof(char));
+        strncpy(versions[versionsCnt], ios->value, ios->size);
+        if (isBeta) strncpy(&versions[versionsCnt][ios->size], "[B]", strlen("[B]"));
+        versions[versionsCnt][ios->size + isBeta * strlen("[B]")] = '\0';
     }
-    versionsCnt = firmwares->size;
+    versionsCnt = (int)firmwares->size;
     qsort(versions, versionsCnt, sizeof(char *), &cmpfunc);
     if (versionCntt) *versionCntt = versionsCnt;
     return versions;
 }
 
 
-int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA){
+int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 #define MAX_PER_LINE 10
     
     int versionsCnt;
-    char **versions = getListOfiOSForDevice(firmwarejson, tokens, device, isOTA, &versionsCnt);
+    char **versions = getListOfiOSForDevice(tokens, device, isOTA, &versionsCnt);
     
     int rspn = 0,
         currVer = 0,
@@ -1193,31 +1149,30 @@ int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device,
 
 #pragma mark check functions
 
-jsmntok_t *getFirmwaresForDevice(const char *device, const char *firmwareJson, jsmntok_t *tokens, int isOta){
-    jsmntok_t *ctok = (isOta) ? tokens : objectForKey(tokens, firmwareJson, "devices");
-    for (jsmntok_t *tmp = ctok->value; ; tmp = tmp->next) {
-        
-        if (strncasecmp(device, firmwareJson+tmp->start, tmp->end - tmp->start) == 0)
-            return objectForKey(tmp, firmwareJson, "firmwares");
-        
-        if (tmp->next == ctok->value) break;
-    }
+jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta){
+    jssytok_t *ctok = (isOta) ? tokens : jssy_dictGetValueForKey(tokens, "devices");
+    
+    jssytok_t *tmp = ctok->subval;
+    for (int i=0; i<ctok->size; tmp = tmp->next,i++)
+        if (strncasecmp(device, tmp->value, tmp->size) == 0)
+            return jssy_dictGetValueForKey(tmp->subval, "firmwares");
     
     return NULL;
 }
 
-int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, char *firmwareJson, jsmntok_t *tokens){
+int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, jssytok_t *tokens){
     
-    jsmntok_t *firmwares = getFirmwaresForDevice(devVals->deviceModel, firmwareJson, tokens, versVals->isOta);
+    jssytok_t *firmwares = getFirmwaresForDevice(devVals->deviceModel, tokens, versVals->isOta);
     if (!firmwares)
         return 0;
     
     const char *versstr = (versVals->buildID) ? versVals->buildID : versVals->version;
-    for (jsmntok_t *tt = firmwares->value; tt ;tt = tt->next) {
+    jssytok_t *tt = firmwares->subval;
+    for (int i=0; i<firmwares->size;tt = tt->next,i++) {
         
-        jsmntok_t *versiont = objectForKey(tt, firmwareJson, (versVals->buildID) ? "buildid" : "version");
-        size_t len = versiont->value->end - versiont->value->start;
-        if (len == strlen(versstr) && strncmp(versstr, firmwareJson + versiont->value->start, len) == 0) return 1;
+        jssytok_t *versiont = jssy_dictGetValueForKey(tt, (versVals->buildID) ? "buildid" : "version");
+        if (versiont->size == strlen(versstr) && strncmp(versstr, versiont->value, versiont->size) == 0)
+            return 1;
     }
     
     return 0;

@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = " -s -e 0xA5988106B003A -d iPhone7,2 -i 10.2 --apnonce f6b800232b328529aa508cbc61104a6f2657ceda"
+            argument = "--buildid 14B100 -d iPhone4,1"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		87B93E861EE709A800709583 /* jssy.c in Sources */ = {isa = PBXBuildFile; fileRef = 87B93E841EE709A800709583 /* jssy.c */; };
 		87CD9A3D1E0F35FE00E566B7 /* libfragmentzip.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */; };
 		87CEC4C91C576BD9006E75FC /* tss.c in Sources */ = {isa = PBXBuildFile; fileRef = 87CEC4C81C576BD9006E75FC /* tss.c */; };
 		87EB90A31C2940CD002CEE70 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 87EB90A21C2940CD002CEE70 /* main.c */; };
@@ -15,7 +16,6 @@
 		87F1F6791E168ABE00301726 /* libirecovery.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87F1F6781E168ABE00301726 /* libirecovery.2.dylib */; };
 		87F927AC1C3E44CE00343510 /* tsschecker.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927AA1C3E44CE00343510 /* tsschecker.c */; };
 		87F927AF1C3E455200343510 /* download.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927AD1C3E455200343510 /* download.c */; };
-		87F927B21C3E490F00343510 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927B01C3E490F00343510 /* jsmn.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,6 +33,8 @@
 /* Begin PBXFileReference section */
 		8747AC521D83006100349BB9 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
 		87AD68BB1D8ACE7F0094A99F /* all_tsschecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = all_tsschecker.h; sourceTree = "<group>"; };
+		87B93E841EE709A800709583 /* jssy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jssy.c; path = external/jssy/jssy/jssy.c; sourceTree = SOURCE_ROOT; };
+		87B93E851EE709A800709583 /* jssy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jssy.h; path = external/jssy/jssy/jssy.h; sourceTree = SOURCE_ROOT; };
 		87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfragmentzip.0.dylib; path = ../../../../usr/local/lib/libfragmentzip.0.dylib; sourceTree = "<group>"; };
 		87CEC4C81C576BD9006E75FC /* tss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tss.c; sourceTree = "<group>"; };
 		87CEC4CA1C576BE0006E75FC /* tss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tss.h; sourceTree = "<group>"; };
@@ -45,8 +47,6 @@
 		87F927AB1C3E44CE00343510 /* tsschecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tsschecker.h; sourceTree = "<group>"; };
 		87F927AD1C3E455200343510 /* download.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = download.c; sourceTree = "<group>"; };
 		87F927AE1C3E455200343510 /* download.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = download.h; sourceTree = "<group>"; };
-		87F927B01C3E490F00343510 /* jsmn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jsmn.c; sourceTree = "<group>"; };
-		87F927B11C3E490F00343510 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmn.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +64,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		87B93E821EE7098900709583 /* external */ = {
+			isa = PBXGroup;
+			children = (
+				87B93E831EE7099A00709583 /* jssy */,
+			);
+			name = external;
+			sourceTree = "<group>";
+		};
+		87B93E831EE7099A00709583 /* jssy */ = {
+			isa = PBXGroup;
+			children = (
+				87B93E851EE709A800709583 /* jssy.h */,
+				87B93E841EE709A800709583 /* jssy.c */,
+			);
+			name = jssy;
+			sourceTree = "<group>";
+		};
 		87CD9A3B1E0F35FE00E566B7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -106,11 +123,10 @@
 			isa = PBXGroup;
 			children = (
 				87AD68BB1D8ACE7F0094A99F /* all_tsschecker.h */,
+				87B93E821EE7098900709583 /* external */,
 				87CEC4CB1C576BE8006E75FC /* libs */,
 				87F927AE1C3E455200343510 /* download.h */,
 				87F927AD1C3E455200343510 /* download.c */,
-				87F927B11C3E490F00343510 /* jsmn.h */,
-				87F927B01C3E490F00343510 /* jsmn.c */,
 				87F927AB1C3E44CE00343510 /* tsschecker.h */,
 				87F927AA1C3E44CE00343510 /* tsschecker.c */,
 				87EB90A21C2940CD002CEE70 /* main.c */,
@@ -178,7 +194,7 @@
 				87CEC4C91C576BD9006E75FC /* tss.c in Sources */,
 				87F927AF1C3E455200343510 /* download.c in Sources */,
 				87EB90A31C2940CD002CEE70 /* main.c in Sources */,
-				87F927B21C3E490F00343510 /* jsmn.c in Sources */,
+				87B93E861EE709A800709583 /* jssy.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,6 +290,7 @@
 					/opt/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				OTHER_CFLAGS = "-std=c11";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -288,6 +305,7 @@
 					/opt/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				OTHER_CFLAGS = "-std=c11";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

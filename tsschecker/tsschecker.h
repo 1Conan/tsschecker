@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 #include <stdio.h>
-#include "jsmn.h"
+#include "jssy.h"
 #include <plist/plist.h>
 #include "tss.h"
 #include "all_tsschecker.h"
@@ -83,25 +83,25 @@ int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize);
 inline t_bbdevice bbdevices_get_all();   
 char *getFirmwareJson();
 char *getOtaJson();
-int parseTokens(const char *json, jsmntok_t **tokens);
-char **getListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, const char *device, int isOTA, int *versionCntt);
-int printListOfDevices(char *firmwarejson, jsmntok_t *tokens);
-int printListOfiOSForDevice(char *firmwarejson, jsmntok_t *tokens, char *device, int isOTA);
+long parseTokens(const char *json, jssytok_t **tokens);
+char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt);
+int printListOfDevices(jssytok_t *tokens);
+int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA);
     
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, const char *firmwarejson, jsmntok_t *tokens);
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens);
 char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta);
 int64_t getBBGCIDForDevice(const char *deviceModel);
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode);
 int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_iosVersion *versVals);
 int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVals, t_basebandMode basebandMode);
-int isVersionSignedForDevice(char *firmwareJson, jsmntok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals);
+int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals);
 
 
-jsmntok_t *getFirmwaresForDevice(const char *device, const char *firmwareJson, jsmntok_t *tokens, int isOta);
+jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta);
 
     
-int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, char *firmwareJson, jsmntok_t *tokens);
+int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, jssytok_t *tokens);
 
 int downloadPartialzip(const char *url, const char *file, const char *dst);
 

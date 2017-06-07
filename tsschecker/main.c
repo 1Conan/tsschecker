@@ -157,7 +157,7 @@ int main(int argc, const char * argv[]) {
     t_devicevals devVals = {0};
     t_iosVersion versVals = {0};
     char *firmwareJson = NULL;
-    jsmntok_t *firmwareTokens = NULL;
+    jssytok_t *firmwareTokens = NULL;
     
     
     if (argc == 1){
@@ -342,7 +342,7 @@ int main(int argc, const char * argv[]) {
         int versionCnt = 0;
         int i = 0;
             
-        char **versions = getListOfiOSForDevice(firmwareJson, firmwareTokens, devVals.deviceModel, versVals.isOta, &versionCnt);
+        char **versions = getListOfiOSForDevice(firmwareTokens, devVals.deviceModel, versVals.isOta, &versionCnt);
         if (!versionCnt) reterror(-8, "[TSSC] failed finding latest iOS. If you using --boardconfig please also specify devicemodel with -d ota=%d\n",versVals.isOta);
         char *bpos = NULL;
         while((bpos = strstr(versVals.version = strdup(versions[i++]),"[B]")) != 0){
@@ -356,12 +356,12 @@ int main(int argc, const char * argv[]) {
     }
     
     if (flags & FLAG_LIST_DEVICES) {
-        printListOfDevices(firmwareJson, firmwareTokens);
+        printListOfDevices(firmwareTokens);
     }else if (flags & FLAG_LIST_IOS){
         if (!devVals.deviceModel)
             reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
 
-        printListOfiOSForDevice(firmwareJson, firmwareTokens, devVals.deviceModel, versVals.isOta);
+        printListOfiOSForDevice(firmwareTokens, devVals.deviceModel, versVals.isOta);
     }else{
         //request ticket
         if (buildmanifest) {
@@ -371,7 +371,7 @@ int main(int argc, const char * argv[]) {
             if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
             if (!versVals.version && !versVals.buildID) reterror(-5,"[TSSC] please specify an iOS version or buildID for this option\n\tuse -h for more help\n");
             
-            isSigned = isVersionSignedForDevice(firmwareJson, firmwareTokens, &versVals, &devVals);
+            isSigned = isVersionSignedForDevice(firmwareTokens, &versVals, &devVals);
         }
         
         if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.buildID) ? "Build" : "iOS" ,(versVals.buildID ? versVals.buildID : versVals.version),devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");
