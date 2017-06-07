@@ -13,15 +13,19 @@ http://api.tihmstar.net/builds/tsschecker/tsschecker-latest.zip
 tsschecker is not only meant to be used to check signing status, but also to explore Apple's tss servers.
 By using all of its customization possibilities, you might discover a combination of devices and iOS versions that is now getting signed but wasn't getting signed before.  
 
-## Dependencies  
-* [libcurl](https://curl.haxx.se/libcurl/)
-* [libplist](https://github.com/libimobiledevice/libplist)
-* [libfragmentzip](https://github.com/tihmstar/libfragmentzip)
+# Dependencies
+*  ## Bundled Libs
+  Those don't need to be installed manually
+  * [tss](https://github.com/libimobiledevice)
+* ## External Libs
+  Make sure these are installed
+  * [libcurl](https://curl.haxx.se/libcurl/)
+  * [libplist](https://github.com/libimobiledevice/libplist)
+  * [libfragmentzip](https://github.com/tihmstar/libfragmentzip)
+* ## Submodules
+  Make sure these projects compile on your system
+  * [jssy](https://github.com/tihmstar/jssy)
 
-## Bundled libraries  
-These libraries are already in the source so you don't need to install them.
-* [tss](https://github.com/libimobiledevice)
-* [jsmn](https://github.com/zserge/jsmn)
 
 ## tsschecker help  
 _(might become outdated):_
