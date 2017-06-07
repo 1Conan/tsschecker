@@ -1016,6 +1016,27 @@ error:
 
 #pragma mark print functions
 
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
+    warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
+    t_versionURL *versions, *v;
+    versions = v = getFirmwareUrls(deviceModel, versVals, tokens);
+
+    if (!versions)
+        return NULL;
+    char *ret = versions->url;
+    free(versions->buildID);
+    free(versions->version);
+    
+    while ((++versions)->url) {
+        free(versions->buildID);
+        free(versions->version);
+        free(versions->url);
+    }
+    
+    free(v);
+    return ret;
+}
+
 #warning print devices function doesn't actually check if devices are sorted. it assues they are sorted in json
 int printListOfDevices(jssytok_t *tokens){
 #define MAX_PER_LINE 10
