@@ -21,7 +21,7 @@ By using all of its customization possibilities, you might discover a combinatio
 ## Bundled libraries  
 These libraries are already in the source so you don't need to install them.
 * [tss](https://github.com/libimobiledevice)
-* [jsmn](https://github.com/zserge/jsmn)
+* [jssy](https://github.com/tihmstar/jssy)
 
 ## tsschecker help  
 _(might become outdated):_
