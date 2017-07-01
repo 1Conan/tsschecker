@@ -50,11 +50,7 @@
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 
-
-#ifdef error
-#undef error
-#endif
-#define error(a ...) if (idevicerestore_debug) printf(a)
+#define tsserror(a ...) if (idevicerestore_debug) printf(a)
 
 typedef struct {
 	int length;
@@ -99,7 +95,7 @@ char* ecid_to_string(uint64_t ecid) {
 	char* ecid_string = malloc(ECID_STRSIZE);
 	memset(ecid_string, '\0', ECID_STRSIZE);
 	if (ecid == 0) {
-		error("ERROR: Invalid ECID passed.\n");
+		tsserror("ERROR: Invalid ECID passed.\n");
 		return NULL;
 	}
 	snprintf(ecid_string, ECID_STRSIZE, FMT_qu, (long long unsigned int)ecid);
@@ -142,7 +138,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	/* UniqueBuildID */
 	node = plist_dict_get_item(build_identity, "UniqueBuildID");
 	if (!node || plist_get_node_type(node) != PLIST_DATA) {
-		error("ERROR: Unable to find UniqueBuildID node\n");
+		tsserror("ERROR: Unable to find UniqueBuildID node\n");
 		return -1;
 	}
     
@@ -153,7 +149,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	int chip_id = 0;
 	node = plist_dict_get_item(build_identity, "ApChipID");
 	if (!node || plist_get_node_type(node) != PLIST_STRING) {
-		error("ERROR: Unable to find ApChipID node\n");
+		tsserror("ERROR: Unable to find ApChipID node\n");
 		return -1;
 	}
 	plist_get_string_val(node, &string);
@@ -167,7 +163,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	int board_id = 0;
 	node = plist_dict_get_item(build_identity, "ApBoardID");
 	if (!node || plist_get_node_type(node) != PLIST_STRING) {
-		error("ERROR: Unable to find ApBoardID node\n");
+		tsserror("ERROR: Unable to find ApBoardID node\n");
 		return -1;
 	}
 	plist_get_string_val(node, &string);
@@ -181,7 +177,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	int security_domain = 0;
 	node = plist_dict_get_item(build_identity, "ApSecurityDomain");
 	if (!node || plist_get_node_type(node) != PLIST_STRING) {
-		error("ERROR: Unable to find ApSecurityDomain node\n");
+		tsserror("ERROR: Unable to find ApSecurityDomain node\n");
 		return -1;
 	}
 	plist_get_string_val(node, &string);
@@ -200,7 +196,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 		sscanf(bb_chip_id_string, "%x", &bb_chip_id);
 		plist_dict_set_item(parameters, "BbChipID", plist_new_uint(bb_chip_id));
 	} else {
-		error("WARNING: Unable to find BbChipID node\n");
+		tsserror("WARNING: Unable to find BbChipID node\n");
 	}
 	node = NULL;
 
@@ -253,14 +249,14 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	if (node && plist_get_node_type(node) == PLIST_DATA) {
 		plist_dict_set_item(parameters, "BbSkeyId", plist_copy(node));
 	} else {
-		error("WARNING: Unable to find BbSkeyId node\n");
+		tsserror("WARNING: Unable to find BbSkeyId node\n");
 	}
 	node = NULL;
 
 	/* add build identity manifest dictionary */
 	node = plist_dict_get_item(build_identity, "Manifest");
 	if (!node || plist_get_node_type(node) != PLIST_DICT) {
-		error("ERROR: Unable to find Manifest node\n");
+		tsserror("ERROR: Unable to find Manifest node\n");
 		return -1;
 	}
 	plist_dict_set_item(parameters, "Manifest", plist_copy(node));
@@ -272,7 +268,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 	plist_t node = NULL;
 
 	if (!parameters) {
-		error("ERROR: Missing required AP parameters\n");
+		tsserror("ERROR: Missing required AP parameters\n");
 		return -1;
 	}
 
@@ -280,7 +276,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 	node = plist_dict_get_item(parameters, "ApNonce");
     if (node) {
         if (plist_get_node_type(node) != PLIST_DATA) {
-            error("ERROR: Unable to find required ApNonce in parameters\n");
+            tsserror("ERROR: Unable to find required ApNonce in parameters\n");
             return -1;
         }
         plist_dict_set_item(request, "ApNonce", plist_copy(node));
@@ -296,7 +292,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 		/* copy from parameters if available */
 		node = plist_dict_get_item(parameters, "ApSecurityMode");
 		if (!node || plist_get_node_type(node) != PLIST_BOOLEAN) {
-			error("ERROR: Unable to find required ApSecurityMode in parameters\n");
+			tsserror("ERROR: Unable to find required ApSecurityMode in parameters\n");
 			return -1;
 		}
 		plist_dict_set_item(request, "ApSecurityMode", plist_copy(node));
@@ -308,7 +304,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 		/* ApProductionMode */
 		node = plist_dict_get_item(parameters, "ApProductionMode");
 		if (!node || plist_get_node_type(node) != PLIST_BOOLEAN) {
-			error("ERROR: Unable to find required ApProductionMode in parameters\n");
+			tsserror("ERROR: Unable to find required ApProductionMode in parameters\n");
 			return -1;
 		}
 		plist_dict_set_item(request, "ApProductionMode", plist_copy(node));
@@ -318,7 +314,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 	/* ApSepNonce */
 	node = plist_dict_get_item(parameters, "ApSepNonce");
 	if (!node || plist_get_node_type(node) != PLIST_DATA) {
-		error("ERROR: Unable to find required ApSepNonce in parameters\n");
+		tsserror("ERROR: Unable to find required ApSepNonce in parameters\n");
 		return -1;
 	}
 
@@ -332,7 +328,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters) {
 	plist_t node = NULL;
 
 	if (!parameters) {
-		error("ERROR: Missing required AP parameters\n");
+		tsserror("ERROR: Missing required AP parameters\n");
 		return -1;
 	}
 
@@ -340,7 +336,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters) {
 	node = plist_dict_get_item(parameters, "ApNonce");
 	if (node) {
 		if (plist_get_node_type(node) != PLIST_DATA) {
-			error("ERROR: Unable to find required ApNonce in parameters\n");
+			tsserror("ERROR: Unable to find required ApNonce in parameters\n");
 			return -1;
 		}
 		plist_dict_set_item(request, "ApNonce", plist_copy(node));
@@ -353,7 +349,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters) {
 	/* ApBoardID */
 	node = plist_dict_get_item(request, "ApBoardID");
 	if (!node || plist_get_node_type(node) != PLIST_UINT) {
-		error("ERROR: Unable to find required ApBoardID in request\n");
+		tsserror("ERROR: Unable to find required ApBoardID in request\n");
 		return -1;
 	}
 	node = NULL;
@@ -361,7 +357,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters) {
 	/* ApChipID */
 	node = plist_dict_get_item(request, "ApChipID");
 	if (!node || plist_get_node_type(node) != PLIST_UINT) {
-		error("ERROR: Unable to find required ApChipID in request\n");
+		tsserror("ERROR: Unable to find required ApChipID in request\n");
 		return -1;
 	}
 	node = NULL;
@@ -369,7 +365,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters) {
 	/* ApSecurityDomain */
 	node = plist_dict_get_item(request, "ApSecurityDomain");
 	if (!node || plist_get_node_type(node) != PLIST_UINT) {
-		error("ERROR: Unable to find required ApSecurityDomain in request\n");
+		tsserror("ERROR: Unable to find required ApSecurityDomain in request\n");
 		return -1;
 	}
 	node = NULL;
@@ -377,7 +373,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters) {
 	/* ApProductionMode */
 	node = plist_dict_get_item(parameters, "ApProductionMode");
 	if (!node || plist_get_node_type(node) != PLIST_BOOLEAN) {
-		error("ERROR: Unable to find required ApProductionMode in parameters\n");
+		tsserror("ERROR: Unable to find required ApProductionMode in parameters\n");
 		return -1;
 	}
 	plist_dict_set_item(request, "ApProductionMode", plist_copy(node));
@@ -392,7 +388,7 @@ int tss_request_add_common_tags(plist_t request, plist_t parameters, plist_t ove
 	/* ApECID */
 	node = plist_dict_get_item(parameters, "ApECID");
 	if (!node || plist_get_node_type(node) != PLIST_UINT) {
-		error("ERROR: Unable to find required ApECID in parameters\n");
+		tsserror("ERROR: Unable to find required ApECID in parameters\n");
 		return -1;
 	}
     plist_dict_set_item(request, "ApECID", plist_copy(node));
@@ -474,7 +470,7 @@ static void tss_entry_apply_restore_request_rules(plist_t tss_entry, plist_t par
 			} else if (!strcmp(key, "ApInRomDFU")) {
 				value2 = plist_dict_get_item(parameters, "ApInRomDFU");
 			} else {
-				error("WARNING: Unhandled condition '%s' while parsing RestoreRequestRules\n", key);
+				tsserror("WARNING: Unhandled condition '%s' while parsing RestoreRequestRules\n", key);
 				value2 = NULL;
 			}
 			if (value2) {
@@ -516,7 +512,7 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 	/* loop over components from build manifest */
 	plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
 	if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
-		error("ERROR: Unable to find restore manifest\n");
+		tsserror("ERROR: Unable to find restore manifest\n");
 		return -1;
 	}
 
@@ -530,7 +526,7 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 		if (key == NULL)
 			break;
 		if (!manifest_entry || plist_get_node_type(manifest_entry) != PLIST_DICT) {
-			error("ERROR: Unable to fetch BuildManifest entry\n");
+			tsserror("ERROR: Unable to fetch BuildManifest entry\n");
 			return -1;
 		}
 
@@ -649,7 +645,7 @@ int tss_request_add_baseband_tags(plist_t request, plist_t parameters, plist_t o
 	/* BbGoldCertId */
 	node = plist_dict_get_item(parameters, "BbGoldCertId");
 	if (!node || plist_get_node_type(node) != PLIST_UINT) {
-		error("ERROR: Unable to find required BbGoldCertId in parameters\n");
+		tsserror("ERROR: Unable to find required BbGoldCertId in parameters\n");
 		return -1;
 	}
 	node = plist_copy(node);
@@ -662,7 +658,7 @@ int tss_request_add_baseband_tags(plist_t request, plist_t parameters, plist_t o
 	/* BbSNUM */
 	node = plist_dict_get_item(parameters, "BbSNUM");
 	if (!node || plist_get_node_type(node) != PLIST_DATA) {
-		error("ERROR: Unable to find required BbSNUM in parameters\n");
+		tsserror("ERROR: Unable to find required BbSNUM in parameters\n");
 		return -1;
 	}
 	plist_dict_set_item(request, "BbSNUM", plist_copy(node));
@@ -671,7 +667,7 @@ int tss_request_add_baseband_tags(plist_t request, plist_t parameters, plist_t o
 	/* BasebandFirmware */
 	node = plist_access_path(parameters, 2, "Manifest", "BasebandFirmware");
 	if (!node || plist_get_node_type(node) != PLIST_DICT) {
-		error("ERROR: Unable to get BasebandFirmware node\n");
+		tsserror("ERROR: Unable to get BasebandFirmware node\n");
 		return -1;
 	}
 	plist_t bbfwdict = plist_copy(node);
@@ -695,7 +691,7 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 
 	plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
 	if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
-		error("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
+		tsserror("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
 		return -1;
 	}
 
@@ -706,7 +702,7 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 	/* add SE,ChipID */
 	node = plist_dict_get_item(parameters, "SE,ChipID");
 	if (!node) {
-		error("ERROR: %s: Unable to find required SE,ChipID in parameters\n", __func__);
+		tsserror("ERROR: %s: Unable to find required SE,ChipID in parameters\n", __func__);
 		return -1;
 	}
 	plist_dict_set_item(request, "SE,ChipID", plist_copy(node));
@@ -715,7 +711,7 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 	/* add SE,ID */
 	node = plist_dict_get_item(parameters, "SE,ID");
 	if (!node) {
-		error("ERROR: %s: Unable to find required SE,ID in parameters\n", __func__);
+		tsserror("ERROR: %s: Unable to find required SE,ID in parameters\n", __func__);
 		return -1;
 	}
 	plist_dict_set_item(request, "SE,ID", plist_copy(node));
@@ -724,7 +720,7 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 	/* add SE,Nonce */
 	node = plist_dict_get_item(parameters, "SE,Nonce");
 	if (!node) {
-		error("ERROR: %s: Unable to find required SE,Nonce in parameters\n", __func__);
+		tsserror("ERROR: %s: Unable to find required SE,Nonce in parameters\n", __func__);
 		return -1;
 	}
 	plist_dict_set_item(request, "SE,Nonce", plist_copy(node));
@@ -733,7 +729,7 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 	/* add SE,RootKeyIdentifier */
 	node = plist_dict_get_item(parameters, "SE,RootKeyIdentifier");
 	if (!node) {
-		error("ERROR: %s: Unable to find required SE,RootKeyIdentifier in parameters\n", __func__);
+		tsserror("ERROR: %s: Unable to find required SE,RootKeyIdentifier in parameters\n", __func__);
 		return -1;
 	}
 	plist_dict_set_item(request, "SE,RootKeyIdentifier", plist_copy(node));
@@ -760,7 +756,7 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 			break;
 		if (!manifest_entry || plist_get_node_type(manifest_entry) != PLIST_DICT) {
 			free(key);
-			error("ERROR: Unable to fetch BuildManifest entry\n");
+			tsserror("ERROR: Unable to fetch BuildManifest entry\n");
 			return -1;
 		}
 
@@ -807,157 +803,164 @@ static size_t tss_write_callback(char* data, size_t size, size_t nmemb, tss_resp
 	return total;
 }
 
-plist_t tss_request_send(plist_t tss_request, const char* server_url_string) {
-
-	if (print_tss_request) {
-		debug_plist(tss_request);
-	}
-
-	char* request = NULL;
-	int status_code = -1;
-	int retry = 0;
-	int max_retries = 15;
-	unsigned int size = 0;
-	char curl_error_message[CURL_ERROR_SIZE];
-
-	const char* urls[6] = {
-		"https://gs.apple.com/TSS/controller?action=2",
-		"https://17.111.103.65/TSS/controller?action=2",
-		"https://17.111.103.15/TSS/controller?action=2",
-		"http://gs.apple.com/TSS/controller?action=2",
-		"http://17.111.103.65/TSS/controller?action=2",
-		"http://17.111.103.15/TSS/controller?action=2"
-	};
+char* tss_request_send_raw(char* request, const char* server_url_string, int* response_lenth) {
+    int status_code = -1;
+    int retry = 0;
+    int max_retries = 15;
+    char *resp = NULL;
+    char curl_error_message[CURL_ERROR_SIZE];
     
-	plist_to_xml(tss_request, &request, &size);
-
-	tss_response* response = NULL;
-	memset(curl_error_message, '\0', CURL_ERROR_SIZE);
-
-	while (retry++ < max_retries) {
-		response = NULL;
-		CURL* handle = curl_easy_init();
-		if (handle == NULL) {
-			break;
-		}
-		struct curl_slist* header = NULL;
-		header = curl_slist_append(header, "Cache-Control: no-cache");
+    const char* urls[6] = {
+        "https://gs.apple.com/TSS/controller?action=2",
+        "https://17.111.103.65/TSS/controller?action=2",
+        "https://17.111.103.15/TSS/controller?action=2",
+        "http://gs.apple.com/TSS/controller?action=2",
+        "http://17.111.103.65/TSS/controller?action=2",
+        "http://17.111.103.15/TSS/controller?action=2"
+    };
+    
+    tss_response* response = NULL;
+    memset(curl_error_message, '\0', CURL_ERROR_SIZE);
+    
+    while (retry++ < max_retries) {
+        response = NULL;
+        CURL* handle = curl_easy_init();
+        if (handle == NULL) {
+            break;
+        }
+        struct curl_slist* header = NULL;
+        header = curl_slist_append(header, "Cache-Control: no-cache");
         header = curl_slist_append(header, "Content-type: text/xml; charset=\"utf-8\"");
         header = curl_slist_append(header, "Expect:");
         
-		response = malloc(sizeof(tss_response));
-		if (response == NULL) {
-			fprintf(stderr, "Unable to allocate sufficent memory\n");
-			return NULL;
-		}
-
-		response->length = 0;
-		response->content = malloc(1);
-		response->content[0] = '\0';
-
-		/* disable SSL verification to allow download from untrusted https locations */
-		curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0);
-
-		curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, curl_error_message);
-		curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, (curl_write_callback)&tss_write_callback);
-		curl_easy_setopt(handle, CURLOPT_WRITEDATA, response);
-		curl_easy_setopt(handle, CURLOPT_HTTPHEADER, header);
-		curl_easy_setopt(handle, CURLOPT_POSTFIELDS, request);
-		curl_easy_setopt(handle, CURLOPT_USERAGENT, "InetURL/1.0");
-		curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, strlen(request));
-		if (server_url_string) {
-			curl_easy_setopt(handle, CURLOPT_URL, server_url_string);
-		} else {
-			int url_index = (retry - 1) % 6;
-			curl_easy_setopt(handle, CURLOPT_URL, urls[url_index]);
-			info("[TSSR] Request URL set to %s\n", urls[url_index]);
-		}
-
-		info("[TSSR] Sending TSS request attempt %d... ", retry);
-
-		curl_easy_perform(handle);
-		curl_slist_free_all(header);
-		curl_easy_cleanup(handle);
-	
-		if (strstr(response->content, "MESSAGE=SUCCESS")) {
-			status_code = 0;
-			info("success\n");
-			break;
-		}
+        response = malloc(sizeof(tss_response));
+        if (response == NULL) {
+            fprintf(stderr, "Unable to allocate sufficent memory\n");
+            return NULL;
+        }
+        
+        response->length = 0;
+        response->content = malloc(1);
+        response->content[0] = '\0';
+        
+        /* disable SSL verification to allow download from untrusted https locations */
+        curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0);
+        
+        curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, curl_error_message);
+        curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, (curl_write_callback)&tss_write_callback);
+        curl_easy_setopt(handle, CURLOPT_WRITEDATA, response);
+        curl_easy_setopt(handle, CURLOPT_HTTPHEADER, header);
+        curl_easy_setopt(handle, CURLOPT_POSTFIELDS, request);
+        curl_easy_setopt(handle, CURLOPT_USERAGENT, "InetURL/1.0");
+        curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, strlen(request));
+        if (server_url_string) {
+            curl_easy_setopt(handle, CURLOPT_URL, server_url_string);
+        } else {
+            int url_index = (retry - 1) % 6;
+            curl_easy_setopt(handle, CURLOPT_URL, urls[url_index]);
+            info("[TSSR] Request URL set to %s\n", urls[url_index]);
+        }
+        
+        info("[TSSR] Sending TSS request attempt %d... ", retry);
+        
+        curl_easy_perform(handle);
+        curl_slist_free_all(header);
+        curl_easy_cleanup(handle);
+        
+        if (strstr(response->content, "MESSAGE=SUCCESS")) {
+            status_code = 0;
+            info("success\n");
+            break;
+        }
         else {
             info("failure\n");
         }
+        
+        if (response->length > 0) {
+            tsserror("TSS server returned: %s\n", response->content);
+        }
+        
+        char* status = strstr(response->content, "STATUS=");
+        if (status) {
+            sscanf(status+7, "%d&%*s", &status_code);
+        }
+        if (status_code == -1) {
+            error("%s\n", curl_error_message);
+            // no status code in response. retry
+            free(response->content);
+            free(response);
+            sleep(2);
+            continue;
+        } else if (status_code == 8) {
+            // server error (invalid bb request?)
+            break;
+        } else if (status_code == 49) {
+            // server error (invalid bb data, e.g. BbSNUM?)
+            break;
+        } else if (status_code == 69 || status_code == 94) {
+            // This device isn't eligible for the requested build.
+            break;
+        } else if (status_code == 100) {
+            // server error, most likely the request was malformed
+            break;
+        } else if (status_code == 126) {
+            // An internal error occured, most likely the request was malformed
+            break;
+        } else {
+            error("ERROR: tss_send_request: Unhandled status code %d\n", status_code);
+        }
+    }
+    
+    if (status_code != 0) {
+        if (strstr(response->content, "MESSAGE=") != NULL) {
+            char* message = strstr(response->content, "MESSAGE=") + strlen("MESSAGE=");
+            error("ERROR: TSS request failed (status=%d, message=%s)\n", status_code, message);
+        } else {
+            error("ERROR: TSS request failed: %s (status=%d)\n", curl_error_message, status_code);
+        }
+        free(request);
+        free(response->content);
+        free(response);
+        return NULL;
+    }
+    
+    resp = response->content;
+    
+    free(response);
+    free(request);
+    return resp;
+}
 
-		if (response->length > 0) {
-			error("TSS server returned: %s\n", response->content);
-		}
-
-		char* status = strstr(response->content, "STATUS=");
-		if (status) {
-			sscanf(status+7, "%d&%*s", &status_code);
-		}
-		if (status_code == -1) {
-			error("%s\n", curl_error_message);
-			// no status code in response. retry
-			free(response->content);
-			free(response);
-			sleep(2);
-			continue;
-		} else if (status_code == 8) {
-			// server error (invalid bb request?)
-			break;
-		} else if (status_code == 49) {
-			// server error (invalid bb data, e.g. BbSNUM?)
-			break;
-		} else if (status_code == 69 || status_code == 94) {
-			// This device isn't eligible for the requested build.
-			break;
-		} else if (status_code == 100) {
-			// server error, most likely the request was malformed
-			break;
-		} else if (status_code == 126) {
-			// An internal error occured, most likely the request was malformed
-			break;
-		} else {
-			error("ERROR: tss_send_request: Unhandled status code %d\n", status_code);
-		}
+plist_t tss_request_send(plist_t tss_request, const char* server_url_string) {
+	if (print_tss_request) {
+		debug_plist(tss_request);
 	}
+    plist_t tss_response = NULL;
+	char* request = NULL;
+    int responseLength = 0;
+    uint32_t size = 0;
+    
+    plist_to_xml(tss_request, &request, &size);
 
-	if (status_code != 0) {
-		if (strstr(response->content, "MESSAGE=") != NULL) {
-			char* message = strstr(response->content, "MESSAGE=") + strlen("MESSAGE=");
-			error("ERROR: TSS request failed (status=%d, message=%s)\n", status_code, message);
-		} else {
-			error("ERROR: TSS request failed: %s (status=%d)\n", curl_error_message, status_code);
-		}
-		free(request);
-		free(response->content);
-		free(response);
-		return NULL;
-	}
-
-	char* tss_data = strstr(response->content, "<?xml");
-	if (tss_data == NULL) {
-		error("ERROR: Incorrectly formatted TSS response\n");
-		free(request);
-		free(response->content);
-		free(response);
-		return NULL;
-	}
-
-	uint32_t tss_size = 0;
-	plist_t tss_response = NULL;
-	tss_size = (uint32_t)(response->length - (tss_data - response->content));
-	plist_from_xml(tss_data, tss_size, &tss_response);
-	free(response->content);
-	free(response);
-
-	if (idevicerestore_debug) {
-		debug_plist(tss_response);
-	}
-
-	free(request);
-
+    char *rsp = tss_request_send_raw(request, server_url_string, &responseLength);
+    if (rsp){
+        char* tss_data = strstr(rsp, "<?xml");
+        if (tss_data == NULL) {
+            error("ERROR: Incorrectly formatted TSS response\n");
+            free(request);
+            free(rsp);
+            return NULL;
+        }
+        
+        uint32_t tss_size = 0;
+        tss_size = (uint32_t)(responseLength - (tss_data - rsp));
+        plist_from_xml(tss_data, tss_size, &tss_response);
+        free(rsp);
+        
+        if (idevicerestore_debug) {
+            debug_plist(tss_response);
+        }
+    }
 	return tss_response;
 }
 
@@ -977,7 +980,7 @@ static int tss_response_get_data_by_key(plist_t response, const char* name, unsi
 		*buffer = (unsigned char*)data;
 		return 0;
 	} else {
-		error("ERROR: Unable to get %s data from TSS response\n", name);
+		tsserror("ERROR: Unable to get %s data from TSS response\n", name);
 		return -1;
 	}
 }
@@ -1045,7 +1048,7 @@ int tss_response_get_blob_by_path(plist_t tss, const char* path, unsigned char**
 
 		path_node = plist_dict_get_item(tss_entry, "Path");
 		if (!path_node || plist_get_node_type(path_node) != PLIST_STRING) {
-			error("ERROR: Unable to find TSS path node in entry %s\n", entry_key);
+			tsserror("ERROR: Unable to find TSS path node in entry %s\n", entry_key);
 			free(iter);
 			return -1;
 		}
@@ -1054,7 +1057,7 @@ int tss_response_get_blob_by_path(plist_t tss, const char* path, unsigned char**
 		if (strcmp(path, entry_path) == 0) {
 			blob_node = plist_dict_get_item(tss_entry, "Blob");
 			if (!blob_node || plist_get_node_type(blob_node) != PLIST_DATA) {
-				error("ERROR: Unable to find TSS blob node in entry %s\n", entry_key);
+				tsserror("ERROR: Unable to find TSS blob node in entry %s\n", entry_key);
 				free(iter);
 				return -1;
 			}
@@ -1090,7 +1093,7 @@ int tss_response_get_blob_by_entry(plist_t response, const char* entry, unsigned
 
 	blob_node = plist_dict_get_item(tss_entry, "Blob");
 	if (!blob_node || plist_get_node_type(blob_node) != PLIST_DATA) {
-		error("ERROR: Unable to find blob in %s entry\n", entry);
+		tsserror("ERROR: Unable to find blob in %s entry\n", entry);
 		return -1;
 	}
 	plist_get_data_val(blob_node, &blob_data, &blob_size);

@@ -26,16 +26,7 @@ int idevicerestore_debug;
 
 
 static struct option longopts[] = {
-    { "list-devices",       no_argument,       NULL, '1' },
-    { "list-ios",           no_argument,       NULL, '2' },
     { "build-manifest",     required_argument, NULL, 'm' },
-    { "save-path",          required_argument, NULL, '3' },
-    { "print-tss-request",  no_argument,       NULL, '4' },
-    { "print-tss-response", no_argument,       NULL, '5' },
-    { "beta",               no_argument,       NULL, '6' },
-    { "nocache",            no_argument,       NULL, '7' },
-    { "apnonce",            required_argument, NULL, '8' },
-    { "sepnonce",           required_argument, NULL, '9' },
     { "device",             required_argument, NULL, 'd' },
     { "ios",                required_argument, NULL, 'i' },
     { "ecid",               required_argument, NULL, 'e' },
@@ -47,7 +38,17 @@ static struct option longopts[] = {
     { "update-install",     optional_argument, NULL, 'u' },
     { "boardconfig",        required_argument, NULL, 'B' },
     { "buildid",            required_argument, NULL, 'Z' },
-    { "debug",              no_argument,       NULL, '0' },
+    { "debug",              no_argument,       NULL, 0 },
+    { "list-devices",       no_argument,       NULL, 1 },
+    { "list-ios",           no_argument,       NULL, 2 },
+    { "save-path",          required_argument, NULL, 3 },
+    { "print-tss-request",  no_argument,       NULL, 4 },
+    { "print-tss-response", no_argument,       NULL, 5 },
+    { "beta",               no_argument,       NULL, 6 },
+    { "nocache",            no_argument,       NULL, 7 },
+    { "apnonce",            required_argument, NULL, 8 },
+    { "sepnonce",           required_argument, NULL, 9 },
+    { "raw",                required_argument, NULL, 10 },
     { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
@@ -81,6 +82,7 @@ void cmd_help(){
     printf("      --nocache \t\tignore caches and redownload required files\n");
     printf("      --print-tss-request\n");
     printf("      --print-tss-response\n");
+    printf("      --raw\t\t\tsend raw file to Apple's tss server (useful for debugging)\n");
     printf("\n");
 }
 
@@ -159,6 +161,7 @@ int main(int argc, const char * argv[]) {
     char *firmwareJson = NULL;
     jssytok_t *firmwareTokens = NULL;
     
+    const char *rawFilePath = NULL;
     
     if (argc == 1){
         cmd_help();
@@ -224,39 +227,43 @@ int main(int argc, const char * argv[]) {
             case 'o': // long option: "ota"; can be called as short option
                 versVals.isOta = 1;
                 break;
-            case '0': // only long option: "debug"
-                idevicerestore_debug = 1;
-                break;
-            case '1': // only long option: "list-devices"
-                flags |= FLAG_LIST_DEVICES;
-                break;
-            case '2': // only long option: "list-ios"
-                flags |= FLAG_LIST_IOS;
-                break;
             case 'm': // long option: "build-manifest"; can be called as short option
                 flags |= FLAG_BUILDMANIFEST;
                 buildmanifest = optarg;
                 break;
-            case '3': // only long option: "save-path"
+            case 0: // only long option: "debug"
+                idevicerestore_debug = 1;
+                break;
+            case 1: // only long option: "list-devices"
+                flags |= FLAG_LIST_DEVICES;
+                break;
+            case 2: // only long option: "list-ios"
+                flags |= FLAG_LIST_IOS;
+                break;
+            case 3: // only long option: "save-path"
                 shshSavePath = optarg;
                 break;
-            case '4': // only long option: "print-tss-request"
+            case 4: // only long option: "print-tss-request"
                 print_tss_request = 1;
                 break;
-            case '5': // only long option: "print-tss-response"
+            case 5: // only long option: "print-tss-response"
                 print_tss_response = 1;
                 break;
-            case '6': // only long option: "beta"
+            case 6: // only long option: "beta"
                 versVals.useBeta = 1;
                 break;
-            case '7': // only long option: "nocache"
+            case 7: // only long option: "nocache"
                 nocache = 1;
                 break;
-            case '8': // only long option: "apnonce"
+            case 8: // only long option: "apnonce"
                 apnonce = optarg;
                 break;
-            case '9': // only long option: "sepnonce"
+            case 9: // only long option: "sepnonce"
                 sepnonce = optarg;
+                break;
+            case 10: // only long option: "raw"
+                rawFilePath = optarg;
+                idevicerestore_debug = 1;
                 break;
                 
             default:
@@ -264,6 +271,28 @@ int main(int argc, const char * argv[]) {
                 return -1;
         }
     }
+    
+    if (rawFilePath) {
+        char *buf = NULL;
+        size_t bufSize = 0;
+        FILE *f = fopen(rawFilePath, "rb");
+        if (!f)
+            reterror(-100, "[TSSC] failed to read rawfile at \"%s\"\n",rawFilePath);
+        fseek(f, 0, SEEK_END);
+        bufSize = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        buf = (char*)malloc(bufSize+1);
+        fread(buf, 1, bufSize, f);
+        fclose(f);
+        
+        printf("Sending TSS Request:\n%s",buf);
+        
+        char *rsp = tss_request_send_raw(buf, NULL, (int*)&bufSize);
+        printf("TSS Server Returned:\n%s\n",rsp);
+        free(rsp);
+        return 0;
+    }
+
     
     if (devVals.deviceBoard)
         for (int i=0; i<strlen(devVals.deviceBoard); i++)
@@ -325,7 +354,7 @@ int main(int argc, const char * argv[]) {
             devVals.isUpdateInstall = (versVals.isOta); //there are no erase installs over OTA
         if (!firmwareJson) reterror(-6,"[TSSC] could not get firmware.json\n");
         
-        int cnt = parseTokens(firmwareJson, &firmwareTokens);
+        long cnt = parseTokens(firmwareJson, &firmwareTokens);
         if (cnt < 1){
             if (!nocache){
                 warning("[TSSC] error parsing cached %s.json. Trying to redownload\n",(versVals.isOta) ? "ota" : "firmware");

@@ -51,6 +51,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters);
 
 /* i/o */
 plist_t tss_request_send(plist_t request, const char* server_url_string);
+char* tss_request_send_raw(char* request, const char* server_url_string, int* response_lenth);
 
 /* response */
 int tss_response_get_ap_img4_ticket(plist_t response, unsigned char** ticket, unsigned int* length);

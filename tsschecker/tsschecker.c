@@ -313,7 +313,7 @@ error:
 long parseTokens(const char *json, jssytok_t **tokens){
     
     log("[JSON] counting elements\n");
-    long tokensCnt = jssy_parse(json, strlen(json), NULL, NULL);
+    long tokensCnt = jssy_parse(json, strlen(json), NULL, 0);
     *tokens = (jssytok_t*)malloc(sizeof(jssytok_t) * tokensCnt);
     
     log("[JSON] parsing elements\n");
@@ -376,7 +376,7 @@ malloc_rets:
                 }
                 if (skip) continue;
                 
-                info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",(int)i_vers->size, i_vers->value,i_build->size, i_build->value);
+                info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",(int)i_vers->size, i_vers->value,(int)i_build->size, i_build->value);
                 rets->version = (char*)malloc(i_vers->size+1);
                 memcpy(rets->version, i_vers->value, i_vers->size);
                 rets->version[i_vers->size] = '\0';
