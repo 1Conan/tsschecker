@@ -1,3 +1,4 @@
 /tsschecker/*.o
 /tsschecker_tool
 .DS_Store
+tsschecker/all_tsschecker.h
