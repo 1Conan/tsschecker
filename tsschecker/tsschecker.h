@@ -76,6 +76,7 @@ typedef struct{
     char *url;
     char *version;
     char *buildID;
+    int isDupulicate;
 }t_versionURL;
 
 int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize);

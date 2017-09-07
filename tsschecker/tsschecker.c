@@ -366,15 +366,13 @@ malloc_rets:
             
             if (!rets) retcounter++;
             else{
-                int skip = 0;
                 for (int i=0; rets_base[i].buildID; i++) {
                     if (strncmp(rets_base[i].buildID, i_build->value, i_build->size) == 0){
-                        info("[TSSC] skipping duplicated buildid %s\n",rets_base[i].buildID);
-                        skip = 1;
+                        info("[TSSC] Marking duplicated buildid %s\n",rets_base[i].buildID);
+                        rets->isDupulicate = 1;
                         break;
                     }
                 }
-                if (skip) continue;
                 
                 info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",(int)i_vers->size, i_vers->value,(int)i_build->size, i_build->value);
                 rets->version = (char*)malloc(i_vers->size+1);
@@ -975,6 +973,7 @@ error:
 
 int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals){
 #define reterror(a ... ) {error(a); goto error;}
+    int nocacheorig = nocache;
     if (versVals->version && atoi(versVals->version) <= 3) {
         info("[TSSC] version to check \"%s\" seems to be iOS 3 or lower, which did not require SHSH or APTicket.\n\tSkipping checks and returning true.\n",versVals->version);
         return 1;
@@ -987,19 +986,26 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens);
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
+    int cursigned = 0;
     for (t_versionURL *u = urls; u->url; u++) {
         buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
         if (!buildManifest) {
             error("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",u->url);
             continue;
         }
+
+        if (cursigned && !u->isDupulicate) cursigned = 0;
         
-        if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode)) < 0)
-            continue;
-        
-        isSigned = (isSignedOne > 0 || isSigned > 0);
-        if (buildManifest) free(buildManifest), buildManifest = NULL;
-        info("iOS %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+        if (cursigned) {
+            info("[TSSC] skipping duplicated build\n");
+            
+        }else if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode)) >= 0){
+            cursigned |= isSigned;
+            
+            isSigned = (isSignedOne > 0 || isSigned > 0);
+            if (buildManifest) free(buildManifest), buildManifest = NULL;
+            info("iOS %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+        }
         free(u->url),u->url = NULL;
         free(u->buildID),u->buildID = NULL;
         free(u->version),u->version = NULL;
@@ -1009,6 +1015,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     
     
 error:
+    nocache = nocacheorig;
     if (buildManifest) free(buildManifest);
     return isSigned;
 #undef reterror

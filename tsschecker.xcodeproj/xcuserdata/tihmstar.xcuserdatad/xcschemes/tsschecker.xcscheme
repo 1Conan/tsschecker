@@ -63,7 +63,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--buildid 14B100 -d iPhone4,1"
+            argument = "--buildid 14B100 -d iPhone6,2"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-d iPad6,11 -B j71sap -i 10.3.3 -o"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
