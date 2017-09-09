@@ -266,11 +266,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466949.740737"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1033"
-            endingLineNumber = "1033"
+            startingLineNumber = "1034"
+            endingLineNumber = "1034"
             landmarkName = "getFirmwareUrl()"
             landmarkType = "9">
          </BreakpointContent>
@@ -888,11 +888,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466949.740737"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1167"
-            endingLineNumber = "1167"
+            startingLineNumber = "1168"
+            endingLineNumber = "1168"
             landmarkName = "printListOfiOSForDevice()"
             landmarkType = "9">
          </BreakpointContent>
@@ -904,11 +904,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466949.740737"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1161"
-            endingLineNumber = "1161"
+            startingLineNumber = "1162"
+            endingLineNumber = "1162"
             landmarkName = "printListOfiOSForDevice()"
             landmarkType = "9">
          </BreakpointContent>
@@ -920,11 +920,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466949.740737"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1164"
-            endingLineNumber = "1164"
+            startingLineNumber = "1165"
+            endingLineNumber = "1165"
             landmarkName = "printListOfiOSForDevice()"
             landmarkType = "9">
          </BreakpointContent>
@@ -952,11 +952,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466949.740737"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1059"
-            endingLineNumber = "1059"
+            startingLineNumber = "1060"
+            endingLineNumber = "1060"
             landmarkName = "printListOfDevices()"
             landmarkType = "9">
          </BreakpointContent>
@@ -1128,7 +1128,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466568.479294"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "989"
@@ -1176,11 +1176,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466568.479294"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "992"
-            endingLineNumber = "992"
+            startingLineNumber = "993"
+            endingLineNumber = "993"
             landmarkName = "isVersionSignedForDevice()"
             landmarkType = "9">
          </BreakpointContent>
@@ -1192,11 +1192,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466949.740737"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1003"
-            endingLineNumber = "1003"
+            startingLineNumber = "1004"
+            endingLineNumber = "1004"
             landmarkName = "isVersionSignedForDevice()"
             landmarkType = "9">
          </BreakpointContent>
@@ -1208,11 +1208,27 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "tsschecker/tsschecker.c"
-            timestampString = "526466949.740737"
+            timestampString = "526650852.690606"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1009"
-            endingLineNumber = "1009"
+            startingLineNumber = "1010"
+            endingLineNumber = "1010"
+            landmarkName = "isVersionSignedForDevice()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "tsschecker/tsschecker.c"
+            timestampString = "526650852.690606"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1001"
+            endingLineNumber = "1001"
             landmarkName = "isVersionSignedForDevice()"
             landmarkType = "9">
          </BreakpointContent>

@@ -987,6 +987,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     int cursigned = 0;
+    nocache = 1;
     for (t_versionURL *u = urls; u->url; u++) {
         buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
         if (!buildManifest) {
@@ -1000,7 +1001,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
             info("[TSSC] skipping duplicated build\n");
             
         }else if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode)) >= 0){
-            cursigned |= isSigned;
+            cursigned |= (isSigned > 0);
             
             isSigned = (isSignedOne > 0 || isSigned > 0);
             if (buildManifest) free(buildManifest), buildManifest = NULL;
