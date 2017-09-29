@@ -809,6 +809,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
     int max_retries = 15;
     char *resp = NULL;
     char curl_error_message[CURL_ERROR_SIZE];
+    if (response_lenth) *response_lenth = 0;
     
     const char* urls[6] = {
         "https://gs.apple.com/TSS/controller?action=2",
@@ -925,6 +926,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
     }
     
     resp = response->content;
+    if (response_lenth) *response_lenth = response->length;
     
     free(response);
     free(request);
