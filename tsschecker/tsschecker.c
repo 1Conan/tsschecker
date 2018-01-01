@@ -617,9 +617,11 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
 
     if (strncasecmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0 ||
-            strncasecmp(devVals->deviceModel, "iPhone10,", strlen("iPhone10,")) == 0)
+            strncasecmp(devVals->deviceModel, "iPhone10,", strlen("iPhone10,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPad7,", strlen("iPad7,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "AppleTV6,", strlen("AppleTV6,")) == 0)
         nonceLen = 32;
-    
+
     int n=0;
     srand((unsigned int)time(NULL));
     if (!devVals->ecid) for (int i=0; i<16; i++) devVals->ecid += (rand() % 10) * pow(10, n++);
