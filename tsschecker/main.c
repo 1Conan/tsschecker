@@ -404,7 +404,10 @@ int main(int argc, const char * argv[]) {
         }
         
         if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.buildID) ? "Build" : "iOS" ,(versVals.buildID ? versVals.buildID : versVals.version),devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");
-        else putchar('\n'),error("[TSSC] checking tss status failed!\n");
+        else{
+            putchar('\n');
+            reterror(-69, "[TSSC] checking tss status failed!\n");
+        }
     }
     
     
