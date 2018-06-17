@@ -1,9 +1,12 @@
+
 # tsschecker  
 _tsschecker is a powerful tool to check tss signing status of various devices and iOS versions._
 
 Latest compiled version can be found here:  
-(MacOS + Linux + Windows)  
+(MacOS + Linux + ~~Windows~~)  
 http://api.tihmstar.net/builds/tsschecker/tsschecker-latest.zip
+
+Windows support has stopped. Use the latest [v184](https://github.com/tihmstar/tsschecker/issues/68#issuecomment-292102334) from @leuldereje
 
 ## Features  
 * Allows you to get lists of all devices and all iOS/OTA versions for a specific device.
@@ -47,7 +50,7 @@ Usage: `tsschecker [OPTIONS]`
 |      			     | `--apnonce NONCE`   		   | manually specify APNONCE instead of using random one (not required for saving blobs)|
 |      			     | `--sepnonce NONCE`        | manually specify SEPNONCE instead of using random one (not required for saving blobs) 		                                                                                                                                  |
 |      			     | `--save-path PATH`        | specify path for saving blobs 		 														 |
-|  `-e`          | `--ecid ECID`	         | manually specify an ECID to be used for fetching blobs, instead of using random ones. <br>ECID must be either dec or hex eg. `5482657301265` or `ab46efcbf71`                                                          |
+|  `-e`          | `--ecid ECID`	         | manually specify an ECID to be used for fetching blobs, instead of using random ones. <br>ECID must be either dec or hex eg. `5482657301265` or `ab46efcbf71`                                                          |
 |                |  `--beta`	             | request ticket for beta instead of normal release (use with `-o`)                |
 |                | `--list-devices`          | list all known devices                                                            |
 |                |`--list-ios`	             | list all known iOS versions                                                       |
