@@ -6,7 +6,7 @@ Latest compiled version can be found here:
 (MacOS + Linux + ~~Windows~~)  
 http://api.tihmstar.net/builds/tsschecker/tsschecker-latest.zip
 
-Windows support has stopped. Use the latest [v184](https://github.com/tihmstar/tsschecker/issues/68#issuecomment-292102334) from @leuldereje
+Windows support has stopped. 
 
 ## Features  
 * Allows you to get lists of all devices and all iOS/OTA versions for a specific device.
