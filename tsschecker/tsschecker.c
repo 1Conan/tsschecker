@@ -130,6 +130,7 @@ static struct bbdevice bbdevices[] = {
     
 //    {"iPhone9,3", 1421084145},
 //    {"iPhone9,4", 1421084145},
+    {"iPhone10,1", 2315222105},
     
     {"iPad1,1", 0},
     {"iPad2,1", 0},
@@ -493,7 +494,7 @@ int64_t getBBGCIDForDevice(const char *deviceModel){
         bbdevs++;
     
     if (!bbdevs->deviceModel) {
-        error("[TSSC] ERROR: device \"%s\" is not in bbgcid list, which means it's BasebandGoldCertID isn't documented yet.\nIf you own such a device please consider contacting @tihmstar to get instructions how to contribute to this project.\n",deviceModel);
+        error("[TSSC] ERROR: device \"%s\" is not in bbgcid list, which means it's BasebandGoldCertID isn't documented yet.\n",deviceModel);
         return -1;
     }else if (!bbdevs->bbgcid) {
         warning("[TSSC] A BasebandGoldCertID is not required for %s\n",deviceModel);
