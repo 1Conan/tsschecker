@@ -615,17 +615,34 @@ int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
 }
 
 int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
-    size_t nonceLen = 20; //valid for all devices up to iPhone7
+    size_t nonceLen = 32; //valid for all devices after iPhone7
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
 
-    if (strncasecmp(devVals->deviceModel, "iPhone9,", strlen("iPhone9,")) == 0 ||
-            strncasecmp(devVals->deviceModel, "iPhone10,", strlen("iPhone10,")) == 0 ||
-            strncasecmp(devVals->deviceModel, "iPhone11,", strlen("iPhone11,")) == 0 ||
-            strncasecmp(devVals->deviceModel, "iPad7,", strlen("iPad7,")) == 0 ||
-            strncasecmp(devVals->deviceModel, "iPad8,", strlen("iPad8,")) == 0 ||
-            strncasecmp(devVals->deviceModel, "AppleTV6,", strlen("AppleTV6,")) == 0)
-        nonceLen = 32;
+    if (strncasecmp(devVals->deviceModel, "AppleTV2,", strlen("AppleTV2,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "AppleTV3,", strlen("AppleTV3,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "AppleTV5,", strlen("AppleTV5,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPad1,", strlen("iPad1,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPad2,", strlen("iPad2,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPad3,", strlen("iPad3,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPad4,", strlen("iPad4,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPad5,", strlen("iPad5,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPad6,", strlen("iPad6,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone1,", strlen("iPhone1,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone2,", strlen("iPhone2,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone3,", strlen("iPhone3,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone4,", strlen("iPhone4,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone5,", strlen("iPhone5,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone6,", strlen("iPhone6,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone7,", strlen("iPhone7,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPhone8,", strlen("iPhone8,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPod1,", strlen("iPod1,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPod2,", strlen("iPod2,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPod3,", strlen("iPod3,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPod4,", strlen("iPod4,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPod5,", strlen("iPod5,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "iPod7,", strlen("iPod7,")) == 0 )
+        nonceLen = 20; //valid for devices up to iPhone7
 
     int n=0;
     srand((unsigned int)time(NULL));
