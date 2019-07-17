@@ -1,5 +1,5 @@
 //
-//  ipswme.c
+//  tsschecker.c
 //  tsschecker
 //
 //  Created by tihmstar on 07.01.16.
@@ -105,70 +105,72 @@ const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
 
 static struct bbdevice bbdevices[] = {
-    {"iPod1,1", 0},
-    {"iPod2,1", 0},
-    {"iPod3,1", 0},
-    {"iPod4,1", 0},
-    {"iPod5,1", 0},
-    {"iPod7,1", 0},
+    // iPod touches
+    {"iPod1,1", 0, 0},
+    {"iPod2,1", 0, 0},
+    {"iPod3,1", 0, 0},
+    {"iPod4,1", 0, 0},
+    {"iPod5,1", 0, 0},
+    {"iPod7,1", 0, 0},
     
-    {"iPhone2,1", 0},
-    {"iPhone3,1", 257},
-    {"iPhone3,3", 2},
-    {"iPhone4,1", 2},
-    {"iPhone5,1", 3255536192},
-    {"iPhone5,2", 3255536192},
-    {"iPhone5,3", 3554301762},
-    {"iPhone5,4", 3554301762},
-    {"iPhone6,1", 3554301762},
-    {"iPhone6,2", 3554301762},
-    {"iPhone7,1", 3840149528},
-    {"iPhone7,2", 3840149528},
-    {"iPhone8,1", 3840149528},
-    {"iPhone8,2", 3840149528},
-    {"iPhone8,4", 3840149528},
+    // iPhones
+    {"iPhone2,1", 0, 0},
+    {"iPhone3,1", 257, 12},
+    {"iPhone3,3", 2, 4},
+    {"iPhone4,1", 2, 4},
+    {"iPhone5,1", 3255536192, 4},
+    {"iPhone5,2", 3255536192, 4},
+    {"iPhone5,3", 3554301762, 4},
+    {"iPhone5,4", 3554301762, 4},
+    {"iPhone6,1", 3554301762, 4},
+    {"iPhone6,2", 3554301762, 4},
+    {"iPhone7,1", 3840149528, 4},
+    {"iPhone7,2", 3840149528, 4},
+    {"iPhone8,1", 3840149528, 4},
+    {"iPhone8,2", 3840149528, 4},
+    {"iPhone8,4", 3840149528, 4},
+    {"iPhone9,1", 2315222105, 4},
+    {"iPhone9,2", 2315222105, 4},
+//    {"iPhone9,3", 1421084145, 12},
+//    {"iPhone9,4", 1421084145, 12},
+    {"iPhone10,1", 2315222105, 4},
     
-    {"iPhone9,1", 2315222105},
-    {"iPhone9,2", 2315222105},
-//    {"iPhone9,3", 1421084145},
-//    {"iPhone9,4", 1421084145},
-    {"iPhone10,1", 2315222105},
+    // iPads
+    {"iPad1,1", 0, 0},
+    {"iPad2,1", 0, 0},
+    {"iPad2,2", 257, 12},
+    {"iPad2,4", 0, 0},
+    {"iPad2,5", 0, 0},
+    {"iPad3,1", 0, 0},
+    {"iPad3,2", 4, 4},
+    {"iPad3,3", 4, 4},
+    {"iPad3,4", 0, 0},
+    {"iPad3,6", 3255536192, 4},
+    {"iPad4,1", 0, 0},
+    {"iPad4,2", 3554301762, 4},
+    {"iPad4,4", 0, 0},
+    {"iPad4,5", 3554301762, 4},
+    {"iPad4,7", 0, 0},
+    {"iPad4,8", 3554301762, 4},
+    {"iPad5,1", 0, 0},
+    {"iPad5,2", 3840149528, 4},
+    {"iPad5,3", 0, 0},
+    {"iPad5,4", 3840149528, 4},
+    {"iPad6,3", 0, 0},
+    {"iPad6,4", 3840149528, 4},
+    {"iPad6,7", 0, 0},
+    {"iPad6,8", 3840149528, 4},
+    {"iPad6,11", 0, 0},
     
-    {"iPad1,1", 0},
-    {"iPad2,1", 0},
-    {"iPad2,2", 257},
-    {"iPad2,4", 0},
-    {"iPad2,5", 0},
-    {"iPad3,1", 0},
-    {"iPad3,2", 4},
-    {"iPad3,3", 4},
-    {"iPad3,4", 0},
-    {"iPad3,6", 3255536192},
-    {"iPad4,1", 0},
-    {"iPad4,2", 3554301762},
-    {"iPad4,4", 0},
-    {"iPad4,5", 3554301762},
-    {"iPad4,7", 0},
-    {"iPad4,8", 3554301762},
-    {"iPad5,1", 0},
-    {"iPad5,2", 3840149528},
-    {"iPad5,3", 0},
-    {"iPad5,4", 3840149528},
-    {"iPad6,3", 0},
-    {"iPad6,4", 3840149528},
-    {"iPad6,7", 0},
-    {"iPad6,8", 3840149528},
-    {"iPad6,11", 0},
-    
-    {"AppleTV1,1", 0},
-    {"AppleTV2,1", 0},
-    {"AppleTV3,1", 0},
-    {"AppleTV3,2", 0},
-    {"AppleTV5,3", 0},
+    {"AppleTV1,1", 0, 0},
+    {"AppleTV2,1", 0, 0},
+    {"AppleTV3,1", 0, 0},
+    {"AppleTV3,2", 0, 0},
+    {"AppleTV5,3", 0, 0},
     {NULL,0}
 };
 
-t_bbdevice bbdevices_get_all() {
+inline static t_bbdevice bbdevices_get_all() {
     return bbdevices;
 }
 
@@ -488,21 +490,13 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     return buildmanifest;
 }
 
-int64_t getBBGCIDForDevice(const char *deviceModel){
-    
+t_bbdevice getBBDeviceInfo(const char *deviceModel){
     t_bbdevice bbdevs = bbdevices_get_all();
     
     while (bbdevs->deviceModel && strcasecmp(bbdevs->deviceModel, deviceModel) != 0)
         bbdevs++;
-    
-    if (!bbdevs->deviceModel) {
-        error("[TSSC] ERROR: device \"%s\" is not in bbgcid list, which means it's BasebandGoldCertID isn't documented yet.\n",deviceModel);
-        return -1;
-    }else if (!bbdevs->bbgcid) {
-        warning("[TSSC] A BasebandGoldCertID is not required for %s\n",deviceModel);
-    }
-    
-    return bbdevs->bbgcid;
+
+    return bbdevs;
 }
 
 void debug_plist(plist_t plist);
@@ -719,8 +713,6 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     return rt;
 }
 
-
-
 int tssrequest(plist_t *tssreqret, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode){
 #define reterror(a...) {error(a); error = -1; goto error;}
     int error = 0;
@@ -777,27 +769,26 @@ getID0:
             plist_dict_set_item(tssreq, "@ApImg4Ticket", plist_new_bool(0));
         if (plist_dict_get_item(tssreq, "@APTicket"))
             plist_dict_set_item(tssreq, "@APTicket", plist_new_bool(0));
-        //TODO don't use .shsh2 ending and don't save generator when saving only baseband
+        //TODO: don't use .shsh2 ending and don't save generator when saving only baseband
         info("[TSSR] User specified to request only a Baseband ticket.\n");
     }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
         //TODO: verify that this being int64_t instead of uint64_t doesn't actually break something
+        t_bbdevice bbinfo = getBBDeviceInfo(devVals->deviceModel);
+        int64_t BbGoldCertId = devVals->bbgcid ? devVals->bbgcid : bbinfo->bbgcid;
+        size_t bbsnumSize = devVals->bbsnumSize ? devVals->bbsnumSize : bbinfo->bbsnumSize;
+        if (BbGoldCertId != bbinfo->bbgcid || bbsnumSize != bbinfo->bbsnumSize) {
+            info("\n[TSSR] Found undocumented baseband\n\n",
+                 devVals->deviceBoard, devVals->deviceModel, BbGoldCertId, bbsnumSize);
+        }
         
-        int64_t BbGoldCertId = (devVals->bbgcid) ? devVals->bbgcid : getBBGCIDForDevice(devVals->deviceModel);
         if (BbGoldCertId == -1) {
             if (basebandMode == kBasebandModeOnlyBaseband){
                 reterror("[TSSR] failed to get BasebandGoldCertID, but requested to get only baseband ticket. Aborting here!\n");
             }
             warning("[TSSR] there was an error getting BasebandGoldCertID, continuing without requesting Baseband ticket\n");
         }else if (BbGoldCertId) {
-            
-            size_t bbsnumSize = 4;
-            if (strcasecmp(devVals->deviceModel, "iPhone9,") == 0)
-                bbsnumSize = 12;
-            else if (strcasecmp(devVals->deviceModel, "iPhone3,") == 0)
-                bbsnumSize = 12;
-            
             tss_populate_basebandvals(tssreq,tssparameter,BbGoldCertId,bbsnumSize);
             tss_request_add_baseband_tags(tssreq, tssparameter, NULL);
         }else{

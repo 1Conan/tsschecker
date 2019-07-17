@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <string.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include "download.h"
 #include "tsschecker.h"
 #include "all_tsschecker.h"
-
 
 #define FLAG_LIST_IOS       1 << 0
 #define FLAG_LIST_DEVICES   1 << 1
@@ -23,7 +23,6 @@
 
 int idevicerestore_debug;
 #define reterror(code,a ...) {error(a); err = code; goto error;}
-
 
 static struct option longopts[] = {
     { "build-manifest",     required_argument, NULL, 'm' },

@@ -1,13 +1,13 @@
 //
-//  ipswme.h
+//  tsschecker.h
 //  tsschecker
 //
 //  Created by tihmstar on 07.01.16.
 //  Copyright © 2016 tihmstar. All rights reserved.
 //
 
-#ifndef tsscheker_h
-#define tsscheker_h
+#ifndef tsschecker_h
+#define tsschecker_h
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +28,7 @@ extern const char *shshSavePath;
 struct bbdevice{
     const char *deviceModel;
     uint64_t bbgcid;
+    size_t bbsnumSize;
 };
 
 typedef struct bbdevice* t_bbdevice;
@@ -47,6 +48,7 @@ typedef struct{
     uint64_t bbgcid;
     size_t parsedApnonceLen;
     size_t parsedSepnonceLen;
+    size_t bbsnumSize;
     char generator[19];
     union{
         t_installType installType : 2;
@@ -81,7 +83,6 @@ typedef struct{
 
 int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize);
 
-inline t_bbdevice bbdevices_get_all();   
 char *getFirmwareJson();
 char *getOtaJson();
 long parseTokens(const char *json, jssytok_t **tokens);
@@ -91,17 +92,15 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA);
     
 char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens);
 char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta);
-int64_t getBBGCIDForDevice(const char *deviceModel);
+t_bbdevice getBBDeviceInfo(const char *deviceModel);
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode);
 int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_iosVersion *versVals);
 int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVals, t_basebandMode basebandMode);
 int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals);
 
-
 jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta);
 
-    
 int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, jssytok_t *tokens);
 
 int downloadPartialzip(const char *url, const char *file, const char *dst);
@@ -112,7 +111,6 @@ plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateI
 plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *boardconfig, int isUpdateInstall);
 
 
-    
 #ifdef __cplusplus
 }
 #endif
