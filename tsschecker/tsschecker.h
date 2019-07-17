@@ -48,6 +48,7 @@ typedef struct{
     uint64_t bbgcid;
     size_t parsedApnonceLen;
     size_t parsedSepnonceLen;
+    uint8_t *bbsnum;
     size_t bbsnumSize;
     char generator[19];
     union{

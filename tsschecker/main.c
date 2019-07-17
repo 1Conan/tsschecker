@@ -37,17 +37,18 @@ static struct option longopts[] = {
     { "update-install",     optional_argument, NULL, 'u' },
     { "boardconfig",        required_argument, NULL, 'B' },
     { "buildid",            required_argument, NULL, 'Z' },
-    { "debug",              no_argument,       NULL, 0 },
-    { "list-devices",       no_argument,       NULL, 1 },
-    { "list-ios",           no_argument,       NULL, 2 },
-    { "save-path",          required_argument, NULL, 3 },
-    { "print-tss-request",  no_argument,       NULL, 4 },
-    { "print-tss-response", no_argument,       NULL, 5 },
-    { "beta",               no_argument,       NULL, 6 },
-    { "nocache",            no_argument,       NULL, 7 },
-    { "apnonce",            required_argument, NULL, 8 },
-    { "sepnonce",           required_argument, NULL, 9 },
-    { "raw",                required_argument, NULL, 10 },
+    { "debug",              no_argument,       NULL,  0  },
+    { "list-devices",       no_argument,       NULL,  1  },
+    { "list-ios",           no_argument,       NULL,  2  },
+    { "save-path",          required_argument, NULL,  3  },
+    { "print-tss-request",  no_argument,       NULL,  4  },
+    { "print-tss-response", no_argument,       NULL,  5  },
+    { "beta",               no_argument,       NULL,  6  },
+    { "nocache",            no_argument,       NULL,  7  },
+    { "apnonce",            required_argument, NULL,  8  },
+    { "sepnonce",           required_argument, NULL,  9  },
+    { "raw",                required_argument, NULL, 10  },
+    { "bbsnum",             required_argument, NULL, 11  },
     { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
@@ -55,7 +56,6 @@ static struct option longopts[] = {
 void cmd_help(){
     printf("Usage: tsschecker [OPTIONS]\n");
     printf("Checks (real) signing status of device/firmware\n\n");
-    
     printf("  -d, --device MODEL\t\tspecific device by its MODEL (eg. iPhone4,1)\n");
     printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
     printf("      --buildid BUILDID\t\tspecific buildid instead of iOS version (eg. 13C75)\n");
@@ -63,7 +63,7 @@ void cmd_help(){
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
-    printf("  -m, --build-manifest\t\tmanually specify buildmanifest. (can be used with -d)\n");
+    printf("  -m, --build-manifest\t\tmanually specify buildmanifest (can be used with -d)\n");
     printf("  -s, --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
     printf("  -u, --update-install\t\t\trequest update ticket instead of erase\n");
     printf("  -l, --latest\t\t\tuse latest public iOS version instead of manually specifying one\n");
@@ -72,17 +72,17 @@ void cmd_help(){
     printf("                 \t\tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
     printf("      --apnonce NONCE\t\tmanually specify APNONCE instead of using random one (not required for saving blobs)\n");
     printf("      --sepnonce NONCE\t\tmanually specify SEPNONCE instead of using random one (not required for saving blobs)\n");
-    printf("      --save-path PATH\t\tspecify path for saving blobs\n");
+    printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX for saving valid BBTicket\n");
     printf("      --generator GEN\t\tmanually specify generator in format 0x%%16llx\n");
+    printf("      --save-path PATH\t\tspecify path for saving blobs\n");
     printf("  -h, --help\t\t\tprints usage information\n");
-    printf("      --beta\t\t\trequest ticket for beta instead of normal relase (use with -o)\n");
+    printf("      --beta\t\t\trequest ticket for beta instead of normal release (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
-    printf("      --list-ios\t\tlist all known ios versions\n");
+    printf("      --list-ios\t\tlist all known iOS versions\n");
     printf("      --nocache \t\tignore caches and redownload required files\n");
-    printf("      --print-tss-request\n");
-    printf("      --print-tss-response\n");
-    printf("      --raw\t\t\tsend raw file to Apple's tss server (useful for debugging)\n");
-    printf("\n");
+    printf("      --print-tss-request\t\tprint TSS request that will be sent to Apple\n");
+    printf("      --print-tss-response\t\tprint TSS response that come from Apple\n");
+    printf("      --raw\t\t\tsend raw file to Apple's TSS server (useful for debugging)\n\n");
 }
 
 int64_t parseECID(const char *ecid){
@@ -155,6 +155,7 @@ int main(int argc, const char * argv[]) {
     
     char *apnonce = 0;
     char *sepnonce = 0;
+    char *bbsnum = 0;
     t_devicevals devVals = {0};
     t_iosVersion versVals = {0};
     char *firmwareJson = NULL;
@@ -187,7 +188,7 @@ int main(int argc, const char * argv[]) {
             case 'e': // long option: "ecid"; can be called as short option
                 ecid = optarg;
                 break;
-            case 'g': // long option: "ecid"; can be called as short option
+            case 'g': // long option: "generator"; can be called as short option
                 if (optarg[0] != '0' && optarg[1] != 'x')
                     goto failparse;
                 devVals.generator[0] = '0';
@@ -264,7 +265,9 @@ int main(int argc, const char * argv[]) {
                 rawFilePath = optarg;
                 idevicerestore_debug = 1;
                 break;
-                
+            case 11: // only long option "bbsnum"
+                bbsnum = optarg;
+                break;
             default:
                 cmd_help();
                 return -1;
@@ -284,19 +287,17 @@ int main(int argc, const char * argv[]) {
         fread(buf, 1, bufSize, f);
         fclose(f);
         
-        printf("Sending TSS Request:\n%s",buf);
+        printf("Sending TSS request:\n%s",buf);
         
         char *rsp = tss_request_send_raw(buf, NULL, (int*)&bufSize);
-        printf("TSS Server Returned:\n%s\n",rsp);
+        printf("TSS server returned:\n%s\n",rsp);
         free(rsp);
         return 0;
     }
 
-    
     if (devVals.deviceBoard)
         for (int i=0; i<strlen(devVals.deviceBoard); i++)
             devVals.deviceBoard[i] = tolower(devVals.deviceBoard[i]);
-    
     
     if (!devVals.deviceModel){
         if (devVals.deviceBoard){
@@ -325,6 +326,7 @@ int main(int argc, const char * argv[]) {
             info("[TSSC] manually specified ecid to use, parsed \"%s\" to dec:%lld hex:%llx\n",ecid,devVals.ecid,devVals.ecid);
         }
     }
+    
     if (apnonce) {
         if ((devVals.apnonce = parseNonce(apnonce,&devVals.parsedApnonceLen)) ){
             info("[TSSC] manually specified apnonce to use, parsed \"%s\" to hex:",apnonce);
@@ -335,6 +337,7 @@ int main(int argc, const char * argv[]) {
             reterror(-7, "[TSSC] manually specified apnonce=%s, but parsing failed\n",apnonce);
         }
     }
+    
     if (sepnonce) {
         if ((devVals.sepnonce = parseNonce(sepnonce,&devVals.parsedSepnonceLen)) ){
             info("[TSSC] manually specified sepnonce to use, parsed \"%s\" to hex:",sepnonce);
@@ -346,7 +349,28 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    if (!buildmanifest) { //no need to get firmares/ota json if specifying buildmanifest manually
+    if (bbsnum) {
+        t_bbdevice bbinfo = getBBDeviceInfo(devVals.deviceModel);
+        if (bbinfo->bbsnumSize == 0) {
+            reterror(-8, "[TSSC] this device has no baseband, so it does not make sense to provide BbSNUM.\n");
+        }
+        
+        if ((devVals.bbsnum = (uint8_t *)parseNonce(bbsnum, &devVals.bbsnumSize))) {
+            info("[TSSC] manually specified BbSNUM to use, parsed \"%s\" to hex:", bbsnum);
+            unsigned char *tmp = devVals.bbsnum;
+            for (int i=0; i< devVals.bbsnumSize; i++) info("%02x", *tmp++);
+            info("\n");
+            
+            if (bbinfo->bbsnumSize != devVals.bbsnumSize) {
+                reterror(-8, "[TSSC] BbSNUM length for this device should be %d, but you gave one of length %d\n", (int)bbinfo->bbsnumSize,
+                         (int)devVals.bbsnumSize);
+            }
+        } else {
+            reterror(-7, "[TSSC] manually specified bbsnum=%s, but parsing failed\n", bbsnum);
+        }
+    }
+    
+    if (!buildmanifest) { //no need to get firmwares/ota json if specifying buildmanifest manually
     reparse:
         firmwareJson = (versVals.isOta) ? getOtaJson() : getFirmwareJson();
         if (!devVals.installType) //only set this if installType wasn't set manually
@@ -409,13 +433,12 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    
-    
 error:
     if (devVals.deviceBoard) free(devVals.deviceBoard);
     if (devVals.deviceModel) free(devVals.deviceModel);
     if (devVals.apnonce) free(devVals.apnonce);
     if (devVals.sepnonce) free(devVals.sepnonce);
+    if (devVals.bbsnum) free(devVals.bbsnum);
     if (firmwareJson) free(firmwareJson);
     if (firmwareTokens) free(firmwareTokens);
     return err ? err : !isSigned;

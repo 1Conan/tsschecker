@@ -29,8 +29,8 @@
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
 
-#warning TODO verify these values are actually correct for all devices (iPhone7)
-#define NONCELEN_BASEBAND 20 
+/* for KTRR devices this value - 32 */
+#define NONCELEN_BASEBAND 20
 #define NONCELEN_SEP      20
 
 #define swapchar(a,b) ((a) ^= (b),(b) ^= (a),(a) ^= (b)) //swaps a and b, unless they are the same variable
@@ -511,9 +511,7 @@ void getRandNum(char *dst, size_t size, int base){
 }
 
 #pragma mark tss functions
-
 int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t nonce_size, char *sep_nonce, size_t sep_nonce_size, int image4supported){
-    
     plist_dict_set_item(tssreq, "ApECID", plist_new_uint(ecid)); //0000000000000000
     if (nonce) {
         plist_dict_set_item(tssreq, "ApNonce", plist_new_data(nonce, nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
@@ -535,45 +533,42 @@ int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t n
     return 0;
 }
 
-int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbGoldCertId, size_t bbsnumSize){
+int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbGoldCertId, uint8_t *BbSNUM, size_t bbsnumSize){
+#define reterror(a...) {error(a); ret = -1; goto error;}
     int ret = 0;
-    plist_t parameters = plist_new_dict();
+    plist_t parameters = plist_copy(tssparameters);
     char bbnonce[NONCELEN_BASEBAND+1];
-    char *bbsnum = (char*)malloc(bbsnumSize);
+    
+    int did_malloc_bbsnum = 0;
+    if (!BbSNUM) {
+        BbSNUM = (uint8_t *)malloc(bbsnumSize);
+        getRandNum((char *)BbSNUM, bbsnumSize, 256);
+        did_malloc_bbsnum = 1;
+    }
+    
     int64_t BbChipID = 0;
     
-    
-    getRandNum(bbsnum, bbsnumSize, 256);
     getRandNum(bbnonce, NONCELEN_BASEBAND, 256);
     srand((unsigned int)time(NULL));
     int n=0; for (int i=1; i<7; i++) BbChipID += (rand() % 10) * pow(10, ++n);
     
-    
     /* BasebandNonce not required */
-//    plist_dict_set_item(parameters, "BbNonce", plist_new_data(bbnonce, noncelen));
-    plist_dict_set_item(parameters, "BbChipID", plist_new_uint(BbChipID));
+//  plist_dict_set_item(parameters, "BbNonce", plist_new_data(bbnonce, noncelen));
+//  plist_dict_set_item(parameters, "BbChipID", plist_new_uint(BbChipID));
     plist_dict_set_item(parameters, "BbGoldCertId", plist_new_uint(BbGoldCertId));
-    plist_dict_set_item(parameters, "BbSNUM", plist_new_data(bbsnum, bbsnumSize));
+    plist_dict_set_item(parameters, "BbSNUM", plist_new_data((char *)BbSNUM, bbsnumSize));
     
     /* BasebandFirmware */
-    plist_t BasebandFirmware = plist_access_path(tssparameters, 2, "Manifest", "BasebandFirmware");
-    if (!BasebandFirmware || plist_get_node_type(BasebandFirmware) != PLIST_DICT) {
-        error("ERROR: Unable to get BasebandFirmware node\n");
-        ret = -1;
-        goto error;
+    if (tss_request_add_baseband_tags(tssreq, parameters, NULL) < 0) {
+        reterror("[TSSR] failed to add baseband tags to TSS request\n");
     }
-    plist_t bbfwdict = plist_copy(BasebandFirmware);
-    BasebandFirmware = NULL;
-    if (plist_dict_get_item(bbfwdict, "Info")) {
-        plist_dict_remove_item(bbfwdict, "Info");
-    }
-    plist_dict_set_item(tssreq, "BasebandFirmware", bbfwdict);
-    
-    tss_request_add_baseband_tags(tssreq, parameters, NULL);
     
 error:
-    free(bbsnum);
+    if (did_malloc_bbsnum) {
+        free(BbSNUM);
+    }
     return ret;
+#undef reterror
 }
 
 int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
@@ -706,8 +701,8 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     devVals->sepnonce[NONCELEN_SEP] = '\0';
     
     debug("[TSSR] ecid=%llu\n",devVals->ecid);
-    debug("[TSSR] nonce=%s\n",devVals->apnonce);
-    debug("[TSSR] sepnonce=%s\n",devVals->sepnonce);
+    debug("[TSSR] ApNonce=%s\n",devVals->apnonce);
+    debug("[TSSR] SepNonce=%s\n",devVals->sepnonce);
     
     int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, is64bit);
     return rt;
@@ -789,13 +784,14 @@ getID0:
             }
             warning("[TSSR] there was an error getting BasebandGoldCertID, continuing without requesting Baseband ticket\n");
         }else if (BbGoldCertId) {
-            tss_populate_basebandvals(tssreq,tssparameter,BbGoldCertId,bbsnumSize);
-            tss_request_add_baseband_tags(tssreq, tssparameter, NULL);
+            if (tss_populate_basebandvals(tssreq, tssparameter, BbGoldCertId, devVals->bbsnum, bbsnumSize) < 0) {
+                reterror("[TSSR] failed to populate baseband values\n");
+            }
         }else{
             log("[TSSR] LOG: device %s doesn't need a Baseband ticket, continuing without requesting a Baseband ticket\n",devVals->deviceModel);
         }
     }else{
-        info("[TSSR] User specified not to request a Baseband ticket.\n");
+        info("[TSSR] User specified doesn't to request a Baseband ticket.\n");
     }
     
     *tssreqret = tssreq;
@@ -866,7 +862,6 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         plist_get_uint_val(pecid, &devVals->ecid);
         char *cecid = ecid_to_string(devVals->ecid);
         
-        
         uint32_t size = 0;
         char* data = NULL;
         if (*devVals->generator)
@@ -876,7 +871,6 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         if (apticket3)
             plist_dict_set_item(apticket, "noNonce", apticket3);
         plist_to_xml(apticket, &data, &size);
-        
         
         char *apnonce = "";
         size_t apnonceLen = 0;
