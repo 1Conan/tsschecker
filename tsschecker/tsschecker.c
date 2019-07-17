@@ -615,7 +615,7 @@ int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
 }
 
 int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
-    size_t nonceLen = 32; //valid for all devices after iPhone7
+    size_t nonceLen = 32; //valid for all devices with KTRR
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
 
@@ -642,7 +642,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             strncasecmp(devVals->deviceModel, "iPod4,", strlen("iPod4,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPod5,", strlen("iPod5,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPod7,", strlen("iPod7,")) == 0 )
-        nonceLen = 20; //valid for devices up to iPhone7
+        nonceLen = 20; //valid for devices without KTRR
 
     int n=0;
     srand((unsigned int)time(NULL));
@@ -656,7 +656,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     }else{
         devVals->apnonce = (char*)malloc((devVals->parsedApnonceLen = nonceLen)+1);
         if (nonceLen == 20) {
-            //this is a pre iPhone7 device
+            //this is a pre-KTRR device
             //nonce is derived from generator with SHA1
             unsigned char zz[9] = {0};
             
@@ -1012,7 +1012,6 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     int cursigned = 0;
-    nocache = 1;
     for (t_versionURL *u = urls; u->url; u++) {
         buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
         if (!buildManifest) {
@@ -1021,6 +1020,8 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
         }
 
         if (cursigned && !u->isDupulicate) cursigned = 0;
+        
+        nocache = 1;
         
         if (cursigned) {
             info("[TSSC] skipping duplicated build\n");
