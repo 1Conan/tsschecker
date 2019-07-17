@@ -7,12 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5641335A22DFB62C00D04476 /* cmain.c in Sources */ = {isa = PBXBuildFile; fileRef = 5641335822DFB62C00D04476 /* cmain.c */; };
+		5641335B22DFB62C00D04476 /* cppmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5641335922DFB62C00D04476 /* cppmain.cpp */; };
+		5641335D22DFB63300D04476 /* jssy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5641335C22DFB63300D04476 /* jssy.cpp */; };
+		5641336322DFB66400D04476 /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5641336222DFB66400D04476 /* libcurl.tbd */; };
+		5641336722DFB68E00D04476 /* libplist.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5641336622DFB68E00D04476 /* libplist.3.dylib */; };
+		5641336822DFB6B600D04476 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5641336122DFB65200D04476 /* libcrypto.dylib */; };
 		87B93E861EE709A800709583 /* jssy.c in Sources */ = {isa = PBXBuildFile; fileRef = 87B93E841EE709A800709583 /* jssy.c */; };
 		87CD9A3D1E0F35FE00E566B7 /* libfragmentzip.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */; };
 		87CEC4C91C576BD9006E75FC /* tss.c in Sources */ = {isa = PBXBuildFile; fileRef = 87CEC4C81C576BD9006E75FC /* tss.c */; };
 		87EB90A31C2940CD002CEE70 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 87EB90A21C2940CD002CEE70 /* main.c */; };
-		87EB90AC1C2940FB002CEE70 /* libplist.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */; };
-		87EB90AE1C294108002CEE70 /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EB90AD1C294108002CEE70 /* libcurl.tbd */; };
 		87F1F6791E168ABE00301726 /* libirecovery.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 87F1F6781E168ABE00301726 /* libirecovery.2.dylib */; };
 		87F927AC1C3E44CE00343510 /* tsschecker.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927AA1C3E44CE00343510 /* tsschecker.c */; };
 		87F927AF1C3E455200343510 /* download.c in Sources */ = {isa = PBXBuildFile; fileRef = 87F927AD1C3E455200343510 /* download.c */; };
@@ -31,8 +35,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8747AC521D83006100349BB9 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
-		87AD68BB1D8ACE7F0094A99F /* all_tsschecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = all_tsschecker.h; sourceTree = "<group>"; };
+		5641335622DFB61200D04476 /* all.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = all.h; sourceTree = "<group>"; };
+		5641335722DFB62C00D04476 /* helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = helper.h; path = external/jssy/jssy/helper.h; sourceTree = SOURCE_ROOT; };
+		5641335822DFB62C00D04476 /* cmain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = cmain.c; path = external/jssy/jssy/cmain.c; sourceTree = SOURCE_ROOT; };
+		5641335922DFB62C00D04476 /* cppmain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cppmain.cpp; path = external/jssy/jssy/cppmain.cpp; sourceTree = SOURCE_ROOT; };
+		5641335C22DFB63300D04476 /* jssy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jssy.cpp; path = external/jssy/jssy/jssy.cpp; sourceTree = SOURCE_ROOT; };
+		5641335F22DFB63C00D04476 /* jssy.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = jssy.hpp; path = external/jssy/jssy/jssy.hpp; sourceTree = SOURCE_ROOT; };
+		5641336022DFB63C00D04476 /* ptr_smart.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = ptr_smart.hpp; path = external/jssy/jssy/ptr_smart.hpp; sourceTree = SOURCE_ROOT; };
+		5641336122DFB65200D04476 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
+		5641336222DFB66400D04476 /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
+		5641336622DFB68E00D04476 /* libplist.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libplist.3.dylib; path = ../../../../../usr/local/lib/libplist.3.dylib; sourceTree = "<group>"; };
 		87B93E841EE709A800709583 /* jssy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jssy.c; path = external/jssy/jssy/jssy.c; sourceTree = SOURCE_ROOT; };
 		87B93E851EE709A800709583 /* jssy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jssy.h; path = external/jssy/jssy/jssy.h; sourceTree = SOURCE_ROOT; };
 		87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfragmentzip.0.dylib; path = ../../../../usr/local/lib/libfragmentzip.0.dylib; sourceTree = "<group>"; };
@@ -40,8 +52,6 @@
 		87CEC4CA1C576BE0006E75FC /* tss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tss.h; sourceTree = "<group>"; };
 		87EB909F1C2940CD002CEE70 /* tsschecker */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tsschecker; sourceTree = BUILT_PRODUCTS_DIR; };
 		87EB90A21C2940CD002CEE70 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libplist.3.dylib; path = ../../../../../usr/local/lib/libplist.3.dylib; sourceTree = "<group>"; };
-		87EB90AD1C294108002CEE70 /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
 		87F1F6781E168ABE00301726 /* libirecovery.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libirecovery.2.dylib; path = ../../../../usr/local/lib/libirecovery.2.dylib; sourceTree = "<group>"; };
 		87F927AA1C3E44CE00343510 /* tsschecker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tsschecker.c; sourceTree = "<group>"; };
 		87F927AB1C3E44CE00343510 /* tsschecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tsschecker.h; sourceTree = "<group>"; };
@@ -54,10 +64,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5641336822DFB6B600D04476 /* libcrypto.dylib in Frameworks */,
+				5641336322DFB66400D04476 /* libcurl.tbd in Frameworks */,
 				87F1F6791E168ABE00301726 /* libirecovery.2.dylib in Frameworks */,
+				5641336722DFB68E00D04476 /* libplist.3.dylib in Frameworks */,
 				87CD9A3D1E0F35FE00E566B7 /* libfragmentzip.0.dylib in Frameworks */,
-				87EB90AE1C294108002CEE70 /* libcurl.tbd in Frameworks */,
-				87EB90AC1C2940FB002CEE70 /* libplist.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,7 +86,13 @@
 		87B93E831EE7099A00709583 /* jssy */ = {
 			isa = PBXGroup;
 			children = (
+				5641335F22DFB63C00D04476 /* jssy.hpp */,
+				5641336022DFB63C00D04476 /* ptr_smart.hpp */,
+				5641335822DFB62C00D04476 /* cmain.c */,
+				5641335922DFB62C00D04476 /* cppmain.cpp */,
+				5641335722DFB62C00D04476 /* helper.h */,
 				87B93E851EE709A800709583 /* jssy.h */,
+				5641335C22DFB63300D04476 /* jssy.cpp */,
 				87B93E841EE709A800709583 /* jssy.c */,
 			);
 			name = jssy;
@@ -84,6 +101,9 @@
 		87CD9A3B1E0F35FE00E566B7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5641336622DFB68E00D04476 /* libplist.3.dylib */,
+				5641336222DFB66400D04476 /* libcurl.tbd */,
+				5641336122DFB65200D04476 /* libcrypto.dylib */,
 				87F1F6781E168ABE00301726 /* libirecovery.2.dylib */,
 				87CD9A3C1E0F35FE00E566B7 /* libfragmentzip.0.dylib */,
 			);
@@ -102,9 +122,6 @@
 		87EB90961C2940CD002CEE70 = {
 			isa = PBXGroup;
 			children = (
-				8747AC521D83006100349BB9 /* libcrypto.dylib */,
-				87EB90AD1C294108002CEE70 /* libcurl.tbd */,
-				87EB90AB1C2940FB002CEE70 /* libplist.3.dylib */,
 				87EB90A11C2940CD002CEE70 /* tsschecker */,
 				87EB90A01C2940CD002CEE70 /* Products */,
 				87CD9A3B1E0F35FE00E566B7 /* Frameworks */,
@@ -122,7 +139,7 @@
 		87EB90A11C2940CD002CEE70 /* tsschecker */ = {
 			isa = PBXGroup;
 			children = (
-				87AD68BB1D8ACE7F0094A99F /* all_tsschecker.h */,
+				5641335622DFB61200D04476 /* all.h */,
 				87B93E821EE7098900709583 /* external */,
 				87CEC4CB1C576BE8006E75FC /* libs */,
 				87F927AE1C3E455200343510 /* download.h */,
@@ -144,6 +161,7 @@
 				87EB909B1C2940CD002CEE70 /* Sources */,
 				87EB909C1C2940CD002CEE70 /* Frameworks */,
 				87EB909D1C2940CD002CEE70 /* CopyFiles */,
+				5641336922DFB6C400D04476 /* Versioning */,
 			);
 			buildRules = (
 			);
@@ -173,7 +191,6 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 			);
 			mainGroup = 87EB90961C2940CD002CEE70;
 			productRefGroup = 87EB90A01C2940CD002CEE70 /* Products */;
@@ -190,7 +207,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5641335A22DFB62C00D04476 /* cmain.c in Sources */,
 				87F927AC1C3E44CE00343510 /* tsschecker.c in Sources */,
+				5641335D22DFB63300D04476 /* jssy.cpp in Sources */,
+				5641335B22DFB62C00D04476 /* cppmain.cpp in Sources */,
 				87CEC4C91C576BD9006E75FC /* tss.c in Sources */,
 				87F927AF1C3E455200343510 /* download.c in Sources */,
 				87EB90A31C2940CD002CEE70 /* main.c in Sources */,
