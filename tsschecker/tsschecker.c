@@ -90,7 +90,6 @@ static const char *win_path_get(enum paths path){
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
-
 #include <sys/stat.h>
 #define __mkdir(path, mode) mkdir(path, mode)
 
@@ -105,71 +104,114 @@ int nocache = 0;
 int save_shshblobs = 0;
 const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
-
+// iPhone & iPod touch (1st generations) doesn't have signing technology.
 static struct bbdevice bbdevices[] = {
     // iPod touches
-    {"iPod1,1", 0, 0},
-    {"iPod2,1", 0, 0},
-    {"iPod3,1", 0, 0},
-    {"iPod4,1", 0, 0},
-    {"iPod5,1", 0, 0},
-    {"iPod7,1", 0, 0},
+    {"iPod2,1", 0, 0}, // 2nd gen
+    {"iPod3,1", 0, 0}, // 3rd gen
+    {"iPod4,1", 0, 0}, // 4th gen
+    {"iPod5,1", 0, 0}, // 5th gen
+    {"iPod7,1", 0, 0}, // 6th gen
+    {"iPod9,1", 0, 0}, // 7th gen
     
     // iPhones
-    {"iPhone2,1", 0, 0},
-    {"iPhone3,1", 257, 12},
-    {"iPhone3,3", 2, 4},
-    {"iPhone4,1", 2, 4},
-    {"iPhone5,1", 3255536192, 4},
-    {"iPhone5,2", 3255536192, 4},
-    {"iPhone5,3", 3554301762, 4},
-    {"iPhone5,4", 3554301762, 4},
-    {"iPhone6,1", 3554301762, 4},
-    {"iPhone6,2", 3554301762, 4},
-    {"iPhone7,1", 3840149528, 4},
-    {"iPhone7,2", 3840149528, 4},
-    {"iPhone8,1", 3840149528, 4},
-    {"iPhone8,2", 3840149528, 4},
-    {"iPhone8,4", 3840149528, 4},
-    {"iPhone9,1", 2315222105, 4},
-    {"iPhone9,2", 2315222105, 4},
-//    {"iPhone9,3", 1421084145, 12},
-//    {"iPhone9,4", 1421084145, 12},
-    {"iPhone10,1", 2315222105, 4},
+    {"iPhone3,1", 257, 12}, // iPhone 4 GSM
+    {"iPhone3,2", 257, 12}, // iPhone 4 GSM (2012, Rev A)
+    {"iPhone3,3", 2, 4}, // iPhone 4 CDMA
+    {"iPhone4,1", 2, 4}, // iPhone 4s
+    {"iPhone5,1", 3255536192, 4}, // iPhone 5 (GSM)
+    {"iPhone5,2", 3255536192, 4}, // iPhone 5 (Global)
+    {"iPhone5,3", 3554301762, 4}, // iPhone 5c (GSM)
+    {"iPhone5,4", 3554301762, 4}, // iPhone 5c (Global)
+    {"iPhone6,1", 3554301762, 4}, // iPhone 5s (GSM)
+    {"iPhone6,2", 3554301762, 4}, // iPhone 5s (Global)
+    {"iPhone7,1", 3840149528, 4}, // iPhone 6 Plus
+    {"iPhone7,2", 3840149528, 4}, // iPhone 6
+    {"iPhone8,1", 3840149528, 4}, // iPhone 6s
+    {"iPhone8,2", 3840149528, 4}, // iPhone 6s Plus
+    {"iPhone8,4", 3840149528, 4}, // iPhone SE
+    {"iPhone9,1", 2315222105, 4}, // iPhone 7 (Global)
+    {"iPhone9,2", 2315222105, 4}, // iPhone 7 Plus (Global)
+    {"iPhone9,3", 1421084145, 12}, // iPhone 7 GSM
+    {"iPhone9,4", 1421084145, 12}, // iPhone 7 Plus (GSM)
+    {"iPhone10,1", 2315222105, 4}, // iPhone 8 (Global)
+    {"iPhone10,2", 2315222105, 4}, // iPhone 8 Plus (Global)
+    {"iPhone10,3", 2315222105, 4}, // iPhone X (Global)
+    {"iPhone10,4", 524245983, 12}, // iPhone 8 (GSM)
+    {"iPhone10,5", 524245983, 12}, // iPhone 8 Plus (GSM)
+    {"iPhone10,6", 524245983, 12}, // iPhone X GSM
+    {"iPhone11,2", 165673526, 12}, // iPhone XS
+    {"iPhone11,4", 165673526, 12}, // iPhone XS Max (China)
+    {"iPhone11,6", 165673526, 12}, // iPhone XS Max (Global)
+    {"iPhone11,8", 165673526, 12}, // iPhone XR
     
     // iPads
-    {"iPad1,1", 0, 0},
-    {"iPad2,1", 0, 0},
-    {"iPad2,2", 257, 12},
-    {"iPad2,4", 0, 0},
-    {"iPad2,5", 0, 0},
-    {"iPad3,1", 0, 0},
-    {"iPad3,2", 4, 4},
-    {"iPad3,3", 4, 4},
-    {"iPad3,4", 0, 0},
-    {"iPad3,6", 3255536192, 4},
-    {"iPad4,1", 0, 0},
-    {"iPad4,2", 3554301762, 4},
-    {"iPad4,4", 0, 0},
-    {"iPad4,5", 3554301762, 4},
-    {"iPad4,7", 0, 0},
-    {"iPad4,8", 3554301762, 4},
-    {"iPad5,1", 0, 0},
-    {"iPad5,2", 3840149528, 4},
-    {"iPad5,3", 0, 0},
-    {"iPad5,4", 3840149528, 4},
-    {"iPad6,3", 0, 0},
-    {"iPad6,4", 3840149528, 4},
-    {"iPad6,7", 0, 0},
-    {"iPad6,8", 3840149528, 4},
-    {"iPad6,11", 0, 0},
+    {"iPad1,1", 0, 0}, // iPad (1st gen)
+    {"iPad2,1", 0, 0}, // iPad 2 Wi-Fi
+    {"iPad2,2", 257, 12}, // iPad 2 GSM
+    {"iPad2,3", 257, 12}, // iPad 2 CDMA
+    {"iPad2,4", 0, 0}, // iPad 2 Wi-Fi (2012, Rev A)
+    {"iPad3,1", 0, 0}, // the new iPad (3rd gen, Wi-Fi)
+    {"iPad3,2", 4, 4}, // the new iPad (3rd gen, CDMA)
+    {"iPad3,3", 4, 4}, // the new iPad (3rd gen, GSM)
+    {"iPad3,4", 0, 0}, // iPad with Retina display (4th gen, Wi-Fi)
+    {"iPad3,5", 3255536192, 4}, // iPad with Retina display (4th gen, CDMA)
+    {"iPad3,6", 3255536192, 4}, // iPad with Retina display (4th gen, GSM)
+    {"iPad6,11", 0, 0}, // iPad (5th gen, 2017, Wi-Fi)
+    {"iPad6,12", 3840149528, 4}, // iPad (5th gen, 2017, Cellular)
+    {"iPad7,5", 0, 0}, // iPad (6th gen, 2018, Wi-Fi)
+    {"iPad7,6", 3840149528, 4}, // iPad (6th gen, 2018, Cellular)
     
-    {"AppleTV1,1", 0, 0},
-    {"AppleTV2,1", 0, 0},
-    {"AppleTV3,1", 0, 0},
-    {"AppleTV3,2", 0, 0},
-    {"AppleTV5,3", 0, 0},
-    {NULL,0}
+    // iPad minis
+    {"iPad2,5", 0, 0}, // iPad mini (1st gen, Wi-Fi)
+    {"iPad2,6", 3255536192, 4}, // iPad mini (1st gen, CDMA)
+    {"iPad2,7", 3255536192, 4}, // iPad mini (1st gen, GSM)
+    {"iPad4,4", 0, 0}, // iPad mini 2 (Wi-Fi)
+    {"iPad4,5", 3554301762, 4}, // iPad mini 2 (Cellular)
+    {"iPad4,6", 3554301762, 4}, // iPad mini 2 (Cellular, China)
+    {"iPad4,7", 0, 0}, // iPad mini 3 (Wi-Fi)
+    {"iPad4,8", 3554301762, 4}, // iPad mini 3 (Cellular)
+    {"iPad4,9", 3554301762, 4}, // iPad mini 3 (Cellular, China)
+    {"iPad5,1", 0, 0}, // iPad mini 4 (Wi-Fi)
+    {"iPad5,2", 3840149528, 4}, // iPad mini 4 (Cellular)
+    {"iPad11,1", 0, 0}, // iPad mini (5th gen, Wi-Fi)
+    {"iPad11,2", 165673526, 12}, // iPad mini (5th gen, Cellular)
+    
+    // iPad Airs
+    {"iPad4,1", 0, 0}, // iPad Air (Wi-Fi)
+    {"iPad4,2", 3554301762, 4}, // iPad Air (Cellular)
+    {"iPad4,3", 3554301762, 4}, // iPad Air (Cellular, China)
+    {"iPad5,3", 0, 0}, // iPad Air 2 (Wi-Fi)
+    {"iPad5,4", 3840149528, 4}, // iPad Air 2 (Cellular)
+    {"iPad11,3", 0, 0}, // iPad Air (3rd gen, Wi-Fi)
+    {"iPad11,4", 165673526, 12}, // iPad Air (3rd gen, Cellular)
+    
+    // iPad Pros
+    {"iPad6,3", 0, 0}, // iPad Pro (9,7", Wi-Fi)
+    {"iPad6,4", 3840149528, 4}, // iPad Pro (9,7", Cellular)
+    {"iPad6,7", 0, 0}, // iPad Pro (12.9", 1st gen, Wi-Fi)
+    {"iPad6,8", 3840149528, 4}, // iPad Pro (12.9", 1st gen, Cellular)
+    {"iPad7,1", 0, 0}, // iPad Pro (12.9", 2nd gen, Wi-Fi)
+    {"iPad7,2", 2315222105, 4}, // iPad Pro (12.9", 1st gen, Cellular)
+    {"iPad7,3", 0, 0}, // iPad Pro (10,5", Wi-Fi)
+    {"iPad7,4", 2315222105, 4}, // iPad Pro (10,5", Cellular)
+    {"iPad8,1", 0, 0}, // iPad Pro (11", Wi-Fi)
+    {"iPad8,2", 0, 0}, // iPad Pro (11", 1 TB model, Wi-Fi)
+    {"iPad8,3", 165673526, 12}, // iPad Pro 11", Cellular)
+    {"iPad8,4", 165673526, 12}, // iPad Pro 11", 1 TB model, Cellular)
+    {"iPad8,5", 0, 0}, // iPad Pro (12,9", 3rd gen, Wi-Fi)
+    {"iPad8,6", 0, 0}, // iPad Pro (12,9", 3rd gen, 1 TB model, Wi-Fi)
+    {"iPad8,7", 165673526, 12}, // iPad Pro 12,9", 3rd gen, Cellular)
+    {"iPad8,8", 165673526, 12}, // iPad Pro 12,9", 3rd gen, 1 TB model, Cellular)
+    
+    // Apple TVs
+    {"AppleTV1,1", 0, 0}, // 1st gen
+    {"AppleTV2,1", 0, 0}, // 2nd gen
+    {"AppleTV3,1", 0, 0}, // 3rd gen
+    {"AppleTV3,2", 0, 0}, // 3rd gen (2013)
+    {"AppleTV5,3", 0, 0}, // 4th gen
+    {"AppleTV6,2", 0, 0}, // 4K
+    {NULL, 0, 0}
 };
 
 inline static t_bbdevice bbdevices_get_all() {
@@ -209,7 +251,6 @@ char *getOtaJson(){
 }
 
 #pragma mark more get functions
-
 const char *getBoardconfigFromModel(const char *model){
     const char *rt = NULL;
     irecv_device_t table = irecv_devices_get_all();
@@ -273,11 +314,11 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
         }
         char *string = NULL;
         plist_get_string_val(RestoreBehavior, &string);
-        //assuming there are only Erase and Update. If it's not Erase it must be Update
-        //also converting isUpdateInstall to bool (1 or 0)
+        /* assuming there are only Erase and Update. If it's not Erase it must be Update
+           also converting isUpdateInstall to bool (1 or 0) */
         if ((strncmp(string, "Erase", strlen(string)) != 0) == !isUpdateInstall){
-            //continue when Erase found but isUpdateInstall is true
-            //or Update found and isUpdateInstall is false
+            /* continue when Erase found but isUpdateInstall
+               is true or Update found and isUpdateInstall is false */
             rt = NULL;
             continue;
         }
@@ -291,7 +332,6 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
             rt = NULL;
         else
             break;
-        
     }
     
 error:
@@ -305,7 +345,7 @@ plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateI
     
     const char *boardconfig = getBoardconfigFromModel(model);
     if (!boardconfig)
-        reterror("[TSSR] cant find boardconfig for device=%s please manuall use --boardconfig\n",model);
+        reterror("[TSSR] can't find boardconfig for device=%s please manually use --boardconfig\n",model);
     
     rt = getBuildidentityWithBoardconfig(buildManifest, boardconfig, isUpdateInstall);
     
@@ -627,7 +667,6 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             strncasecmp(devVals->deviceModel, "iPhone6,", strlen("iPhone6,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPhone7,", strlen("iPhone7,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPhone8,", strlen("iPhone8,")) == 0 ||
-            strncasecmp(devVals->deviceModel, "iPod1,", strlen("iPod1,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPod2,", strlen("iPod2,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPod3,", strlen("iPod3,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPod4,", strlen("iPod4,")) == 0 ||
