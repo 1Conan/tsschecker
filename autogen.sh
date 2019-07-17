@@ -14,4 +14,3 @@ automake --add-missing
 if [ -z $NOCONFIGURE ]; then
   ./configure "$@"
 fi
-./setBuildVersion.sh

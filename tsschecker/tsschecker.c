@@ -12,11 +12,13 @@
 #include <math.h>
 #include <time.h>
 #include <stdio.h>
+
 #include "tsschecker.h"
+#include "debug.h"
 #include "download.h"
+#include "tss.h"
 #include <libfragmentzip/libfragmentzip.h>
 #include <libirecovery.h>
-#include "tss.h"
 
 #ifdef __APPLE__
 #   include <CommonCrypto/CommonDigest.h>

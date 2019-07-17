@@ -6,8 +6,8 @@
 //  Copyright © 2016 tihmstar. All rights reserved.
 //
 
-#include "download.h"
 #include <curl/curl.h>
+#include "download.h"
 
 size_t my_fwrite(void *buffer, size_t size, size_t nmemb, void *stream)
 {
@@ -24,7 +24,6 @@ int downloadFile(const char *url, const char *dstPath){
     curl_easy_setopt(mcurl, CURLOPT_TIMEOUT, 20L); //20 sec
     curl_easy_setopt(mcurl, CURLOPT_WRITEFUNCTION, my_fwrite);
     curl_easy_setopt(mcurl, CURLOPT_WRITEDATA, dfile);
-    
     
     CURLcode res = curl_easy_perform(mcurl);
     curl_easy_cleanup(mcurl);

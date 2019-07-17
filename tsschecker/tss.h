@@ -29,11 +29,11 @@ extern "C" {
 #endif
 
 #include <plist/plist.h>
-#include "all_tsschecker.h"
+
+#include "debug.h"
 
 extern int print_tss_request;
 
-    
 /* parameters */
 int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity);
 
