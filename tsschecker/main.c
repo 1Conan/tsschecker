@@ -81,8 +81,8 @@ void cmd_help(){
     printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known iOS versions\n");
     printf("      --nocache \t\tignore caches and redownload required files\n");
-    printf("      --print-tss-request\t\tprint TSS request that will be sent to Apple\n");
-    printf("      --print-tss-response\t\tprint TSS response that come from Apple\n");
+    printf("      --print-tss-request\tprint TSS request that will be sent to Apple\n");
+    printf("      --print-tss-response\tprint TSS response that come from Apple\n");
     printf("      --raw\t\t\tsend raw file to Apple's TSS server (useful for debugging)\n\n");
 }
 
