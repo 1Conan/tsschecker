@@ -65,8 +65,8 @@ static const char *win_path_get(enum paths path){
         size_t len = strlen(tmp) + strlen(win_pathvars[path]) + 1;
         win_paths[path] = (char *)malloc(len);
         memset((char*)win_paths[path], '\0', len);
-        strncat((char*)win_paths[path], tmp, strlen(tmp));
-        strncat((char*)win_paths[path], win_pathvars[path], strlen(win_pathvars[path]));
+        strcat((char*)win_paths[path], tmp);
+        strcat((char*)win_paths[path], win_pathvars[path]);
         return win_paths[path];
     }
     
@@ -481,17 +481,17 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     char *fileDir = malloc(len);
     memset(fileDir, 0, len);
     
-    strncat(fileDir, MANIFEST_SAVE_PATH, strlen(MANIFEST_SAVE_PATH));
-    strncat(fileDir, DIRECTORY_DELIMITER_STR, 1);
-    strncat(fileDir, device, strlen(device));
-    strncat(fileDir, "_", strlen("_"));
-    strncat(fileDir, version, strlen(version));
+    strcat(fileDir, MANIFEST_SAVE_PATH);
+    strcat(fileDir, DIRECTORY_DELIMITER_STR);
+    strcat(fileDir, device);
+    strcat(fileDir, "_");
+    strcat(fileDir, version);
     if (buildID){
-        strncat(fileDir, "_", strlen("_"));
-        strncat(fileDir, buildID, strlen(buildID));
+        strcat(fileDir, "_");
+        strcat(fileDir, buildID);
     }
     
-    if (isOta) strncat(fileDir, "ota", strlen("ota"));
+    if (isOta) strcat(fileDir, "ota");
     
     memset(&st, 0, sizeof(st));
     if (stat(MANIFEST_SAVE_PATH, &st) == -1) __mkdir(MANIFEST_SAVE_PATH, 0700);

@@ -3,7 +3,7 @@
 //  tsschecker
 //
 //  Created by s0uthwest on 08.01.19.
-//  Copyright © 2015 tihmstar. All rights reserved.
+//  Copyright © 2016 tihmstar. All rights reserved.
 //
 
 #ifndef debug_h
