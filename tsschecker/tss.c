@@ -872,8 +872,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
             status_code = 0;
             info("success\n");
             break;
-        }
-        else {
+        } else {
             info("failure\n");
         }
         
@@ -906,6 +905,9 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
             break;
         } else if (status_code == 126) {
             // An internal error occured, most likely the request was malformed
+            break;
+        } else if (status_code == 128) {
+            // Error that occurs when saving blobs on certain A8(X) devices and earlier
             break;
         } else {
             error("ERROR: tss_send_request: Unhandled status code %d\n", status_code);
@@ -967,7 +969,6 @@ plist_t tss_request_send(plist_t tss_request, const char* server_url_string) {
 }
 
 static int tss_response_get_data_by_key(plist_t response, const char* name, unsigned char** buffer, unsigned int* length) {
-
 	plist_t node = plist_dict_get_item(response, name);
 	if (!node || plist_get_node_type(node) != PLIST_DATA) {
 		debug("DEBUG: %s: No entry '%s' in TSS response\n", __func__, name);
