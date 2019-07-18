@@ -297,6 +297,52 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 		}
 	}
 	node = NULL;
+    
+    /* Yonkers,BoardID - Used for Yonkers firmware request */
+    node = plist_dict_get_item(build_identity, "Yonkers,BoardID");
+    if (node) {
+        if (plist_get_node_type(node) == PLIST_STRING) {
+            char *strval = NULL;
+            int intval = 0;
+            plist_get_string_val(node, &strval);
+            sscanf(strval, "%x", &intval);
+            plist_dict_set_item(parameters, "Yonkers,BoardID", plist_new_uint(intval));
+        } else {
+            plist_dict_set_item(parameters, "Yonkers,BoardID", plist_copy(node));
+        }
+    }
+    node = NULL;
+    
+    /* Yonkers,ChipID - Used for Yonkers firmware request */
+    node = plist_dict_get_item(build_identity, "Yonkers,ChipID");
+    if (node) {
+        if (plist_get_node_type(node) == PLIST_STRING) {
+            char *strval = NULL;
+            int intval = 0;
+            plist_get_string_val(node, &strval);
+            sscanf(strval, "%x", &intval);
+            plist_dict_set_item(parameters, "Yonkers,ChipID", plist_new_uint(intval));
+        } else {
+            plist_dict_set_item(parameters, "Yonkers,ChipID", plist_copy(node));
+        }
+    }
+    node = NULL;
+    
+    /* add Yonkers,PatchEpoch - Used for Yonkers firmware request */
+    node = plist_dict_get_item(build_identity, "Yonkers,PatchEpoch");
+    if (node) {
+        if (plist_get_node_type(node) == PLIST_STRING) {
+            char *strval = NULL;
+            int intval = 0;
+            plist_get_string_val(node, &strval);
+            sscanf(strval, "%x", &intval);
+            plist_dict_set_item(parameters, "Yonkers,PatchEpoch", plist_new_uint(intval));
+        } else {
+            plist_dict_set_item(parameters, "Yonkers,PatchEpoch", plist_copy(node));
+        }
+    }
+    node = NULL;
+
 	/* add build identity manifest dictionary */
 	node = plist_dict_get_item(build_identity, "Manifest");
 	if (!node || plist_get_node_type(node) != PLIST_DICT) {
@@ -574,7 +620,7 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 			return -1;
 		}
 
-		/* do not populate BaseBandFirmware, only in basebaseband request */
+		/* do not populate BaseBandFirmware, only in baseband request */
 		if ((strcmp(key, "BasebandFirmware") == 0)) {
 			free(key);
 			continue;
@@ -790,12 +836,10 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 	node = NULL;
 
 	/* 'IsDev' determines whether we have Production or Development */
-	const char *removing_cmac_key = "DevelopmentCMAC";
-	node = plist_dict_get_item(parameters, "SE,IsDev");
-	if (node && plist_get_node_type(node) == PLIST_BOOLEAN) {
-		uint8_t is_dev = 0;
-		plist_get_bool_val(node, &is_dev);
-		removing_cmac_key = (is_dev) ? "ProductionCMAC" : "DevelopmentCMAC";
+	uint8_t is_dev = 0;
+    plist_get_bool_val(node, &is_dev);
+    if (node && plist_get_node_type(node) == PLIST_BOOLEAN) {
+        plist_get_bool_val(node, &is_dev);
 	}
 
 	/* add SE,* components from build manifest to request */
@@ -826,8 +870,16 @@ int tss_request_add_se_tags(plist_t request, plist_t parameters, plist_t overrid
 		plist_dict_remove_item(tss_entry, "Info");
 
 		/* remove 'DevelopmentCMAC' (or 'ProductionCMAC') node */
-		if (plist_dict_get_item(tss_entry, removing_cmac_key)) {
-			plist_dict_remove_item(tss_entry, removing_cmac_key);
+        if (is_dev) {
+            if (plist_dict_get_item(tss_entry, "ProductionCMAC"))
+                plist_dict_remove_item(tss_entry, "ProductionCMAC");
+            if (plist_dict_get_item(tss_entry, "ProductionUpdatePayloadHash"))
+                plist_dict_remove_item(tss_entry, "ProductionUpdatePayloadHash");
+        } else {
+            if (plist_dict_get_item(tss_entry, "DevelopmentCMAC"))
+                plist_dict_remove_item(tss_entry, "DevelopmentCMAC");
+            if (plist_dict_get_item(tss_entry, "DevelopmentUpdatePayloadHash"))
+                plist_dict_remove_item(tss_entry, "DevelopmentUpdatePayloadHash");
 		}
 
 		/* add entry to request */
@@ -982,6 +1034,117 @@ int tss_request_add_savage_tags(plist_t request, plist_t parameters, plist_t ove
 
 	return 0;
 }
+
+int tss_request_add_yonkers_tags(plist_t request, plist_t parameters, plist_t overrides, char **component_name)
+{
+    plist_t node = NULL;
+    
+    plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
+    if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
+        error("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
+        return -1;
+    }
+    
+    /* add tags indicating we want to get the Savage,Ticket */
+    plist_dict_set_item(request, "@BBTicket", plist_new_bool(1));
+    plist_dict_set_item(request, "@Yonkers,Ticket", plist_new_bool(1));
+    
+    /* add SEP */
+    node = plist_access_path(manifest_node, 2, "SEP", "Digest");
+    if (!node) {
+        error("ERROR: Unable to get SEP digest from manifest\n");
+        return -1;
+    }
+    plist_t dict = plist_new_dict();
+    plist_dict_set_item(dict, "Digest", plist_copy(node));
+    plist_dict_set_item(request, "SEP", dict);
+    
+    {
+        static const char *keys[] = {"Yonkers,AllowOfflineBoot", "Yonkers,BoardID", "Yonkers,ChipID", "Yonkers,ECID", "Yonkers,Nonce", "Yonkers,PatchEpoch", "Yonkers,ProductionMode", "Yonkers,ReadECKey", "Yonkers,ReadFWKey", };
+        int i;
+        for (i = 0; i < (int)(sizeof(keys) / sizeof(keys[0])); ++i) {
+            node = plist_dict_get_item(parameters, keys[i]);
+            if (!node) {
+                error("ERROR: %s: Unable to find required %sin parameters\n", __func__, keys[i]);
+            }
+            plist_dict_set_item(request, keys[i], plist_copy(node));
+            node = NULL;
+        }
+    }
+    
+    char *comp_name = NULL;
+    plist_t comp_node = NULL;
+    uint8_t isprod = 1;
+    uint64_t fabrevision = (uint64_t)-1;
+    
+    node = plist_dict_get_item(parameters, "Yonkers,ProductionMode");
+    if (node && (plist_get_node_type(node) == PLIST_BOOLEAN)) {
+        plist_get_bool_val(node, &isprod);
+    }
+    
+    node = plist_dict_get_item(parameters, "Yonkers,FabRevision");
+    if (node && (plist_get_node_type(node) == PLIST_UINT)) {
+        plist_get_uint_val(node, &fabrevision);
+    }
+    
+    plist_dict_iter iter = NULL;
+    plist_dict_new_iter(manifest_node, &iter);
+    while (iter) {
+        node = NULL;
+        comp_name = NULL;
+        plist_dict_next_item(manifest_node, iter, &comp_name, &node);
+        if (comp_name == NULL) {
+            node = NULL;
+            break;
+        }
+        if (strncmp(comp_name, "Yonkers,", 8) == 0) {
+            int target_node = 1;
+            plist_t sub_node;
+            if ((sub_node = plist_dict_get_item(node, "EPRO")) != NULL && plist_get_node_type(sub_node) == PLIST_BOOLEAN) {
+                uint8_t b = 0;
+                plist_get_bool_val(sub_node, &b);
+                target_node &= ((isprod) ? b : !b);
+            }
+            if ((sub_node = plist_dict_get_item(node, "FabRevision")) != NULL && plist_get_node_type(sub_node) == PLIST_UINT) {
+                uint64_t v = 0;
+                plist_get_uint_val(sub_node, &v);
+                target_node &= (v == fabrevision);
+            }
+            if (target_node) {
+                comp_node = node;
+                break;
+            }
+        }
+        free(comp_name);
+    }
+    free(iter);
+    
+    if (comp_name == NULL) {
+        error("ERROR: No Yonkers node for %s/%lu\n", (isprod) ? "Production" : "Development", (unsigned long)fabrevision);
+        return -1;
+    }
+    
+    /* add Yonkers,SysTopPatch* */
+    if (comp_node != NULL) {
+        plist_t comp_dict = plist_copy(comp_node);
+        plist_dict_remove_item(comp_dict, "Info");
+        plist_dict_set_item(request, comp_name, comp_dict);
+    }
+    
+    if (component_name) {
+        *component_name = comp_name;
+    } else {
+        free(comp_name);
+    }
+    
+    /* apply overrides */
+    if (overrides) {
+        plist_dict_merge(&request, overrides);
+    }
+    
+    return 0;
+}
+
 static size_t tss_write_callback(char* data, size_t size, size_t nmemb, tss_response* response) {
 	size_t total = size * nmemb;
 	if (total != 0) {
