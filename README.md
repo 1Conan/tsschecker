@@ -12,8 +12,9 @@ Windows support has stopped.
 * Can check signing status for default iOS versions and beta ipsws (by specifying a `BuildManifest.plist`)
 * Works without specifying any device relevant values to check signing status, but can be used to save blobs when given an ECID and the option `--print-tss-response` (although there are better tools to do this).
 
-tsschecker is not only meant to be used to check signing status, but also to explore Apple's tss servers.
-By using all of its customization possibilities, you might discover a combination of devices and iOS versions that is now getting signed but wasn't getting signed before.  
+tsschecker is not only meant to be used to check signing status, but also to explore Apple's TSS servers.
+By using all of its customization possibilities, you might discover a combination of devices and iOS versions that is now getting signed but wasn't getting signed before. 
+You can use file 'nonces.txt' to save blobs with popular ApNonces.
 
 # Dependencies
 *  ## Bundled libs
@@ -29,7 +30,6 @@ By using all of its customization possibilities, you might discover a combinatio
 * ## Submodules
   Make sure these projects compile on your system
   * [jssy](https://github.com/tihmstar/jssy)
-
 
 ## tsschecker help  
 _(might become outdated):_
