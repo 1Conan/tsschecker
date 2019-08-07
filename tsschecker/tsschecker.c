@@ -13,12 +13,12 @@
 #include <time.h>
 #include <stdio.h>
 
+#include <libfragmentzip/libfragmentzip.h>
+#include <libirecovery.h>
 #include "tsschecker.h"
 #include "debug.h"
 #include "download.h"
 #include "tss.h"
-#include <libfragmentzip/libfragmentzip.h>
-#include <libirecovery.h>
 
 #ifdef __APPLE__
 #   include <CommonCrypto/CommonDigest.h>
@@ -685,9 +685,8 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             return error("[TSSR] parsed APNoncelen != requiredAPNoncelen (%u != %u)\n",(unsigned int)devVals->parsedApnonceLen,(unsigned int)nonceLen),-1;
     }else{
         devVals->apnonce = (char*)malloc((devVals->parsedApnonceLen = nonceLen)+1);
+        //nonce is derived from generator with SHA1
         if (nonceLen == 20) {
-            //this is a pre-KTRR device
-            //nonce is derived from generator with SHA1
             unsigned char zz[9] = {0};
             
             for (int i=0; i<sizeof(devVals->generator)-1; i++) {
@@ -706,7 +705,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         makesha1:
             SHA1(zz, 8, (unsigned char*)devVals->apnonce);
         }else if (nonceLen == 32){
-            unsigned char zz[8] = {0};
+            unsigned char zz[9] = {0};
             unsigned char genHash[48]; //SHA384 digest length
             
             for (int i=0; i<sizeof(devVals->generator)-1; i++) {
@@ -853,10 +852,9 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
     plist_t apticket3 = NULL;
     
     if (tssrequest(&tssreq, buildManifestBuffer, devVals, basebandMode))
-        reterror("[TSSR] faild to build tssrequest\n");
+        reterror("[TSSR] failed to build tss request\n");
 
     isSigned = ((apticket = tss_request_send(tssreq, NULL)) > 0);
-
     
     if (print_tss_response) debug_plist(apticket);
     if (isSigned && save_shshblobs){
@@ -865,7 +863,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             info("also requesting APTicket for installType=Update\n");
             devVals->installType = kInstallTypeUpdate;
             if (tssrequest(&tssreq2, buildManifestBuffer, devVals, basebandMode)){
-                warning("[TSSR] faild to build tssrequest for alternative installType\n");
+                warning("[TSSR] failed to build tssrequest for alternative installType\n");
             }else{
                 apticket2 = tss_request_send(tssreq2, NULL);
                 if (print_tss_response) debug_plist(apticket2);
@@ -1208,7 +1206,6 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
             free(versions[i-1]);
             if (res == 0) continue;
         }
-        
         
         nextVer = atoi(versions[i]);
         if (currVer && currVer != nextVer) printf("\n"), rspn = 0;
