@@ -16,6 +16,8 @@
 #include "download.h"
 #include "tsschecker.h"
 #include "all.h"
+#include <libfragmentzip/libfragmentzip.h>
+
 
 #define FLAG_LIST_IOS       1 << 0
 #define FLAG_LIST_DEVICES   1 << 1
@@ -143,6 +145,7 @@ int main(int argc, const char * argv[]) {
     int err = 0;
     int isSigned = 0;
     printf("Version: "TSSCHECKER_VERSION_SHA" - "TSSCHECKER_VERSION_COUNT"\n");
+    printf("%s\n",fragmentzip_version());
     
     dbglog = 1;
     idevicerestore_debug = 0;
