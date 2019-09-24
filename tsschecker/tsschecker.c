@@ -145,6 +145,9 @@ static struct bbdevice bbdevices[] = {
     {"iPhone11,4", 165673526, 12}, // iPhone XS Max (China)
     {"iPhone11,6", 165673526, 12}, // iPhone XS Max (Global)
     {"iPhone11,8", 165673526, 12}, // iPhone XR
+    // {"iPhone12,1", 524245983, 12}, // iPhone 11
+    // {"iPhone12,3", 524245983, 12}, // iPhone 11 Pro
+    // {"iPhone12,5", 524245983, 12}, // iPhone 11 Pro Max
     
     // iPads
     {"iPad1,1", 0, 0}, // iPad (1st gen)
@@ -162,6 +165,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad6,12", 3840149528, 4}, // iPad (5th gen, 2017, Cellular)
     {"iPad7,5", 0, 0}, // iPad (6th gen, 2018, Wi-Fi)
     {"iPad7,6", 3840149528, 4}, // iPad (6th gen, 2018, Cellular)
+    {"iPad7,11", 0, 0}, // iPad (7th gen, 2019, Wi-Fi)
+    // {"iPad7,12", 524245983, 12}, // iPad (7th gen, 2019, Cellular)
     
     // iPad minis
     {"iPad2,5", 0, 0}, // iPad mini (1st gen, Wi-Fi)
@@ -355,7 +360,6 @@ error:
 #undef reterror
 }
 
-
 #pragma mark json functions
 
 long parseTokens(const char *json, jssytok_t **tokens){
@@ -387,7 +391,6 @@ malloc_rets:
         memset(rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
     rets_base = rets;
     
-
     jssytok_t *tmp = firmwares->subval;
     for (size_t i=0; i<firmwares->size; tmp=tmp->next, i++) {
         jssytok_t *ios = jssy_dictGetValueForKey(tmp, (versVals->buildID) ? "buildid" : "version");
@@ -410,7 +413,6 @@ malloc_rets:
                 memcpy(versVals->version, i_vers->value, i_vers->size);
                 versVals->version[i_vers->size] = '\0';
             }
-            
             
             if (!rets) retcounter++;
             else{
@@ -439,10 +441,8 @@ malloc_rets:
         }
     }
     
-    
     if (!retcounter) return NULL;
     else if (!rets) goto malloc_rets;
-    
     
     return (t_versionURL*)rets_base;
 }
@@ -509,7 +509,6 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
         info("[TSSC] using cached Buildmanifest for %s\n",name);
     }else info("[TSSC] opening Buildmanifest for %s\n",name);
     
-    
     if (!f || nocache){
         //download if it isn't there
         if (downloadPartialzip(url, (isOta) ? "AssetData/boot/BuildManifest.plist" : "BuildManifest.plist", fileDir)){
@@ -527,7 +526,6 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     fread(buildmanifest, fsize, 1, f);
     buildmanifest[fsize] = '\0';
     fclose(f);
-    
     
     free(fileDir);
     return buildmanifest;
