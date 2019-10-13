@@ -19,16 +19,17 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "download.h"
-#include "tsschecker.h"
-#include "all.h"
 #include <libfragmentzip/libfragmentzip.h>
 
+#include "download.h"
+#include "debug.h"
+#include "tsschecker.h"
+#include "all.h"
 
-#define FLAG_LIST_IOS       1 << 0
-#define FLAG_LIST_DEVICES   1 << 1
-#define FLAG_BUILDMANIFEST  1 << 2
-#define FLAG_LATEST_IOS     1 << 3
+#define FLAG_LIST_IOS       (1 << 0)
+#define FLAG_LIST_DEVICES   (1 << 1)
+#define FLAG_BUILDMANIFEST  (1 << 2)
+#define FLAG_LATEST_IOS     (1 << 3)
 
 int idevicerestore_debug;
 #define reterror(code,a ...) {error(a); err = code; goto error;}
@@ -65,9 +66,9 @@ static struct option longopts[] = {
 void cmd_help(){
     printf("Usage: tsschecker [OPTIONS]\n");
     printf("Checks (real) signing status of device/firmware\n\n");
-    printf("  -d, --device MODEL\t\tspecific device by its MODEL (eg. iPhone4,1)\n");
+    printf("  -d, --device MODEL\t\tspecific device by its model (eg. iPhone4,1)\n");
     printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
-    printf("      --buildid BUILDID\t\tspecific buildid instead of iOS version (eg. 13C75)\n");
+    printf("  -Z  --buildid BUILDID\t\tspecific buildid instead of iOS version (eg. 13C75)\n");
     printf("  -B, --boardconfig BOARD\tspecific boardconfig instead of iPhone model (eg. n61ap)\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
@@ -79,10 +80,10 @@ void cmd_help(){
     printf("                 \t\tespecially useful with -s and -e for saving blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \t\tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
-    printf("      --apnonce NONCE\t\tmanually specify APNONCE instead of using random one (not required for saving blobs)\n");
-    printf("      --sepnonce NONCE\t\tmanually specify SEPNONCE instead of using random one (not required for saving blobs)\n");
+    printf("      --apnonce NONCE\t\tmanually specify ApNonce instead of using random one (not required for saving blobs)\n");
+    printf("      --sepnonce NONCE\t\tmanually specify SepNonce instead of using random one (not required for saving blobs)\n");
     printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX for saving valid BBTicket\n");
-    printf("      --generator GEN\t\tmanually specify generator in format 0x%%16llx\n");
+    printf("  -g, --generator GEN\t\tmanually specify generator in format 0x%%16llx\n");
     printf("      --save-path PATH\t\tspecify path for saving blobs\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("      --beta\t\t\trequest ticket for beta instead of normal release (use with -o)\n");
@@ -189,7 +190,7 @@ int main(int argc, const char * argv[]) {
                 if (versVals.version) reterror(-9, "[TSSC] parsing parameter failed!\n");
                 versVals.version = strdup(optarg);
                 break;
-            case 'Z': // long option: "ios"; can be called as short option
+            case 'Z': // long option: "buildid"; can be called as short option
                 versVals.buildID = strdup(optarg);
                 break;
             case 'B': // long option: "boardconfig"; can be called as short option
@@ -275,7 +276,7 @@ int main(int argc, const char * argv[]) {
                 rawFilePath = optarg;
                 idevicerestore_debug = 1;
                 break;
-            case 11: // only long option "bbsnum"
+            case 11: // only long option: "bbsnum"
                 bbsnum = optarg;
                 break;
             default:
@@ -298,8 +299,8 @@ int main(int argc, const char * argv[]) {
         fclose(f);
         
         printf("Sending TSS request:\n%s",buf);
-        
         char *rsp = tss_request_send_raw(buf, NULL, (int*)&bufSize);
+
         printf("TSS server returned:\n%s\n",rsp);
         free(rsp);
         return 0;
@@ -319,7 +320,7 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    if (devVals.deviceModel){
+    if (devVals.deviceModel) {
         for (char *c = devVals.deviceModel; *c; c++)
             *c = tolower(*c); //make devicemodel lowercase
         //make devicemodel look nice. This is completely optional
@@ -398,9 +399,7 @@ int main(int argc, const char * argv[]) {
         }
     }
 
-    
-    
-    if (flags & FLAG_LATEST_IOS && !versVals.version){
+    if (flags & FLAG_LATEST_IOS && !versVals.version) {
         int versionCnt = 0;
         int i = 0;
             

@@ -16,7 +16,13 @@ Follow [this guide](https://dev.to/jake/using-libcurl3-and-libcurl4-on-ubuntu-18
 
 tsschecker is not only meant to be used to check signing status, but also to explore Apple's TSS servers.
 By using all of its customization possibilities, you might discover a combination of devices and iOS versions that is now getting signed but wasn't getting signed before. 
-You can use file 'nonces.txt' to save blobs with popular ApNonces.
+
+### About nonces:
+_default generators for saving tickets:_
+* `0xbd34a880be0b53f3` // used on Electra / Chimera jailbreaks
+* `0x1111111111111111` // used on unc0ver jailbreak
+
+Nonce coliision method isn't actual now, because we've [checkm8](https://github.com/axi0mx/ipwndfu) low-level exploit.
 
 # Dependencies
 *  ## Bundled libs
@@ -42,7 +48,7 @@ Usage: `tsschecker [OPTIONS]`
 |----------------|---------------------------|-----------------------------------------------------------------------------------|
 |  `-d`          | `--device MODEL`          | specify device by its MODEL (eg. `iPhone4,1`)                                     |
 |  `-i`          | `--ios VERSION`           | specify iOS version (eg. `6.1.3`)                                                 |
-|				         | `--buildid BUILDID`		   | specific buildid instead of iOS version (eg. `13C75`)							               |
+|  `-Z`				      | `--buildid BUILDID`	| specific buildid instead of iOS version (eg. `13C75`)							               |
 |  `-B` 	   | `--boardconfig BOARD`	   | specific boardconfig instead of iPhone model (eg. `n61ap`)						             |
 |  `-h`          | `--help`                  | prints usage information                                                          |
 |  `-o`          | `--ota`	                 | check OTA signing status, instead of normal restore                               |
@@ -51,10 +57,10 @@ Usage: `tsschecker [OPTIONS]`
 |  `-u`          |`--update-install         `| request update ticket instead of erase                          |  
 |  `-s`          | `--save`		     		       | save fetched shsh blobs (mostly makes sense with -e)                              |
 |  `-l`			     | `--latest`  				       | use latest public iOS version instead of manually specifying one<br>especially useful with `-s` and `-e` for saving blobs                                                                                              |
-|      			     | `--apnonce NONCE`   		   | manually specify APNONCE instead of using random one (not required for saving blobs) |
-|      			     | `--sepnonce NONCE`        | manually specify SEPNONCE instead of using random one (not required for saving blobs) 		                                                                                                                                  |
+|      			     | `--apnonce NONCE`   		   | manually specify ApNonce instead of using random one (not required for saving blobs) |
+|      			     | `--sepnonce NONCE`        | manually specify SepNonce instead of using random one (not required for saving blobs) 		                                                                                                                                  |
 |                           | `--bbsnum SNUM`        | manually specify BbSNUM in HEX for saving valid BBTicket                                                                                                                                         |
-|                           | `--generator GEN`        | manually specify generator in format 0x%%16llx                                                                                                                                         |
+|  `-g`                       | `--generator GEN`        | manually specify generator in format 0x%%16llx                                                                                                                                         |
 |      			     | `--save-path PATH`        | specify path for saving blobs 		 														 |
 |  `-e`          | `--ecid ECID`	         | manually specify an ECID to be used for fetching blobs, instead of using random ones. <br>ECID must be either dec or hex eg. `5482657301265` or `ab46efcbf71`                                                          |
 |                |  `--beta`	             | request ticket for beta instead of normal release (use with `-o`)                |

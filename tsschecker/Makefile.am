@@ -5,15 +5,14 @@ lib_LIBRARIES = libjssy.a
 libjssy_a_CFLAGS = $(AM_CFLAGS)
 libjssy_a_SOURCES = $(top_srcdir)/external/jssy/jssy/jssy.c
 
-
 if NOMAIN
 noinst_LTLIBRARIES = libtsschecker.la
 libtsschecker_la_SOURCES = tsschecker.c tss.c download.c
 libtsschecker_la_CFLAGS = $(AM_CFLAGS)
 libtsschecker_la_LIBADD = $(AM_LDFLAGS) libjssy.a
 else
-bin_PROGRAMS	= tsschecker
+bin_PROGRAMS = tsschecker
 tsschecker_CFLAGS = $(AM_CFLAGS)
 tsschecker_LDADD = $(AM_LDFLAGS) libjssy.a
-tsschecker_SOURCES	= tsschecker.c tss.c download.c main.c
+tsschecker_SOURCES = tsschecker.c tss.c download.c main.c
 endif

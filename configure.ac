@@ -1,8 +1,8 @@
 AC_PREREQ([2.69])
 AC_INIT([tsschecker], [1.0.4], [tihmstar@gmail.com])
+
 # prepare for automake
 AM_INIT_AUTOMAKE([foreign])
-
 AC_CONFIG_SRCDIR([tsschecker/tsschecker.h])
 AC_CONFIG_HEADERS([config.h])
 
