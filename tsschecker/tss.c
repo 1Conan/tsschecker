@@ -28,7 +28,6 @@
 #include <curl/curl.h>
 #include <plist/plist.h>
 
-#include "tss.h"
 #ifdef WIN32
 #include <windows.h>
 #define __mkdir(path, mode) mkdir(path)
@@ -45,6 +44,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include "tss.h"
 
 #define TSS_CLIENT_VERSION_STRING "libauthinstall-293.1.16"
 #define ECID_STRSIZE 0x20
@@ -1231,6 +1232,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
             // no status code in response. retry
             free(response->content);
             free(response);
+            response = NULL;
             sleep(2);
             continue;
         } else if (status_code == 8) {
@@ -1246,7 +1248,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
             // server error, most likely the request was malformed
             break;
         } else if (status_code == 126) {
-            // An internal error occured, most likely the request was malformed
+            // An internal error occurred, most likely the request was malformed
             break;
         } else if (status_code == 128) {
             // Error that occurs when saving blobs on certain A8(X) devices and earlier
@@ -1257,15 +1259,17 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
     }
     
     if (status_code != 0) {
-        if (strstr(response->content, "MESSAGE=") != NULL) {
+        if (response && strstr(response->content, "MESSAGE=") != NULL) {
             char* message = strstr(response->content, "MESSAGE=") + strlen("MESSAGE=");
             error("ERROR: TSS request failed (status=%d, message=%s)\n", status_code, message);
         } else {
             error("ERROR: TSS request failed: %s (status=%d)\n", curl_error_message, status_code);
         }
         free(request);
-        free(response->content);
-        free(response);
+        if (response)
+            free(response->content);
+        if (response)
+            free(response);
         return NULL;
     }
     
