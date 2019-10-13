@@ -46,8 +46,9 @@
 #endif
 
 #include "tss.h"
+#include "endianness.h"
 
-#define TSS_CLIENT_VERSION_STRING "libauthinstall-293.1.16"
+#define TSS_CLIENT_VERSION_STRING "libauthinstall-698.0.5"
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 
@@ -218,7 +219,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	}
 	node = NULL;
 
-    /* BbCalibrationManifestKeyHash */
+	/* BbCalibrationManifestKeyHash */
 	node = plist_dict_get_item(build_identity, "BbCalibrationManifestKeyHash");
 	if (node && plist_get_node_type(node) == PLIST_DATA) {
 		plist_dict_set_item(parameters, "BbCalibrationManifestKeyHash", plist_copy(node));
@@ -298,51 +299,85 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 		}
 	}
 	node = NULL;
-    
-    /* Yonkers,BoardID - Used for Yonkers firmware request */
-    node = plist_dict_get_item(build_identity, "Yonkers,BoardID");
-    if (node) {
-        if (plist_get_node_type(node) == PLIST_STRING) {
-            char *strval = NULL;
-            int intval = 0;
-            plist_get_string_val(node, &strval);
-            sscanf(strval, "%x", &intval);
-            plist_dict_set_item(parameters, "Yonkers,BoardID", plist_new_uint(intval));
-        } else {
-            plist_dict_set_item(parameters, "Yonkers,BoardID", plist_copy(node));
-        }
-    }
-    node = NULL;
-    
-    /* Yonkers,ChipID - Used for Yonkers firmware request */
-    node = plist_dict_get_item(build_identity, "Yonkers,ChipID");
-    if (node) {
-        if (plist_get_node_type(node) == PLIST_STRING) {
-            char *strval = NULL;
-            int intval = 0;
-            plist_get_string_val(node, &strval);
-            sscanf(strval, "%x", &intval);
-            plist_dict_set_item(parameters, "Yonkers,ChipID", plist_new_uint(intval));
-        } else {
-            plist_dict_set_item(parameters, "Yonkers,ChipID", plist_copy(node));
-        }
-    }
-    node = NULL;
-    
-    /* add Yonkers,PatchEpoch - Used for Yonkers firmware request */
-    node = plist_dict_get_item(build_identity, "Yonkers,PatchEpoch");
-    if (node) {
-        if (plist_get_node_type(node) == PLIST_STRING) {
-            char *strval = NULL;
-            int intval = 0;
-            plist_get_string_val(node, &strval);
-            sscanf(strval, "%x", &intval);
-            plist_dict_set_item(parameters, "Yonkers,PatchEpoch", plist_new_uint(intval));
-        } else {
-            plist_dict_set_item(parameters, "Yonkers,PatchEpoch", plist_copy(node));
-        }
-    }
-    node = NULL;
+
+	/* Yonkers,BoardID - Used for Yonkers firmware request */
+	node = plist_dict_get_item(build_identity, "Yonkers,BoardID");
+	if (node) {
+		if (plist_get_node_type(node) == PLIST_STRING) {
+			char *strval = NULL;
+			int intval = 0;
+			plist_get_string_val(node, &strval);
+			sscanf(strval, "%x", &intval);
+			plist_dict_set_item(parameters, "Yonkers,BoardID", plist_new_uint(intval));
+		} else {
+			plist_dict_set_item(parameters, "Yonkers,BoardID", plist_copy(node));
+		}
+	}
+	node = NULL;
+
+	/* Yonkers,ChipID - Used for Yonkers firmware request */
+	node = plist_dict_get_item(build_identity, "Yonkers,ChipID");
+	if (node) {
+		if (plist_get_node_type(node) == PLIST_STRING) {
+			char *strval = NULL;
+			int intval = 0;
+			plist_get_string_val(node, &strval);
+			sscanf(strval, "%x", &intval);
+			plist_dict_set_item(parameters, "Yonkers,ChipID", plist_new_uint(intval));
+		} else {
+			plist_dict_set_item(parameters, "Yonkers,ChipID", plist_copy(node));
+		}
+	}
+	node = NULL;
+
+	/* add Yonkers,PatchEpoch - Used for Yonkers firmware request */
+	node = plist_dict_get_item(build_identity, "Yonkers,PatchEpoch");
+	if (node) {
+		if (plist_get_node_type(node) == PLIST_STRING) {
+			char *strval = NULL;
+			int intval = 0;
+			plist_get_string_val(node, &strval);
+			sscanf(strval, "%x", &intval);
+			plist_dict_set_item(parameters, "Yonkers,PatchEpoch", plist_new_uint(intval));
+		} else {
+			plist_dict_set_item(parameters, "Yonkers,PatchEpoch", plist_copy(node));
+		}
+	}
+	node = NULL;
+
+	/* add Rap,BoardID */
+	node = plist_dict_get_item(build_identity, "Rap,BoardID");
+	if (node) {
+		plist_dict_set_item(parameters, "Rap,BoardID", plist_copy(node));
+	}
+	node = NULL;
+
+	/* add Rap,ChipID */
+	node = plist_dict_get_item(build_identity, "Rap,ChipID");
+	if (node) {
+		plist_dict_set_item(parameters, "Rap,ChipID", plist_copy(node));
+	}
+	node = NULL;
+
+	/* add Rap,SecurityDomain */
+	node = plist_dict_get_item(build_identity, "Rap,SecurityDomain");
+	if (node) {
+		plist_dict_set_item(parameters, "Rap,SecurityDomain", plist_copy(node));
+	}
+	node = NULL;
+
+	/* add eUICC,ChipID */
+	node = plist_dict_get_item(build_identity, "eUICC,ChipID");
+	if (node) {
+		plist_dict_set_item(parameters, "eUICC,ChipID", plist_copy(node));
+	}
+	node = NULL;
+
+	node = plist_dict_get_item(build_identity, "PearlCertificationRootPub");
+	if (node) {
+		plist_dict_set_item(parameters, "PearlCertificationRootPub", plist_copy(node));
+	}
+	node = NULL;
 
 	/* add build identity manifest dictionary */
 	node = plist_dict_get_item(build_identity, "Manifest");
@@ -408,9 +443,14 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 		tsserror("ERROR: Unable to find required ApSepNonce in parameters\n");
 		return -1;
 	}
-
-    plist_dict_set_item(request, "SepNonce", plist_copy(node));
+	plist_dict_set_item(request, "SepNonce", plist_copy(node));
 	node = NULL;
+
+	/* PearlCertificationRootPub */
+	node = plist_dict_get_item(parameters, "PearlCertificationRootPub");
+	if (node) {
+		plist_dict_set_item(request, "PearlCertificationRootPub", plist_copy(node));
+	}
 
 	return 0;
 }
@@ -618,7 +658,7 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 			return -1;
 		}
 
-		/* do not populate BaseBandFirmware, only in baseband request */
+		/* do not populate BasebandFirmware, only in baseband request */
 		if ((strcmp(key, "BasebandFirmware") == 0)) {
 			free(key);
 			continue;
@@ -643,16 +683,16 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 			tss_entry_apply_restore_request_rules(tss_entry, parameters, rules);
 		}
 
-        /* Make sure we have a Digest key for Trusted items even if empty */
-        plist_t node = plist_dict_get_item(manifest_entry, "Trusted");
-        if (node && plist_get_node_type(node) == PLIST_BOOLEAN) {
-            uint8_t trusted;
-            plist_get_bool_val(node, &trusted);
-            if (trusted && !plist_access_path(manifest_entry, 1, "Digest")) {
-                debug("DEBUG: No Digest data, using empty value for entry %s\n", key);
-                plist_dict_set_item(tss_entry, "Digest", plist_new_data(NULL, 0));
-            }
-        }
+		/* Make sure we have a Digest key for Trusted items even if empty */
+		plist_t node = plist_dict_get_item(manifest_entry, "Trusted");
+		if (node && plist_get_node_type(node) == PLIST_BOOLEAN) {
+			uint8_t trusted;
+			plist_get_bool_val(node, &trusted);
+			if (trusted && !plist_access_path(manifest_entry, 1, "Digest")) {
+				debug("DEBUG: No Digest data, using empty value for entry %s\n", key);
+				plist_dict_set_item(tss_entry, "Digest", plist_new_data(NULL, 0));
+			}
+		}
 
 		/* finally add entry to request */
 		plist_dict_set_item(request, key, tss_entry);
@@ -693,7 +733,7 @@ int tss_request_add_baseband_tags(plist_t request, plist_t parameters, plist_t o
 	}
 	node = NULL;
 
-    /* BbCalibrationManifestKeyHash */
+	/* BbCalibrationManifestKeyHash */
 	node = plist_dict_get_item(parameters, "BbCalibrationManifestKeyHash");
 	if (node) {
 		plist_dict_set_item(request, "BbCalibrationManifestKeyHash", plist_copy(node));
@@ -740,7 +780,8 @@ int tss_request_add_baseband_tags(plist_t request, plist_t parameters, plist_t o
 	node = plist_copy(node);
 	uint64_t val;
 	plist_get_uint_val(node, &val);
-	plist_set_uint_val(node, (int32_t)val);
+	int32_t bb_cert_id = (int32_t)val;
+	plist_set_uint_val(node, bb_cert_id);
 	plist_dict_set_item(request, "BbGoldCertId", node);
 	node = NULL;
 
@@ -764,6 +805,16 @@ int tss_request_add_baseband_tags(plist_t request, plist_t parameters, plist_t o
 	if (plist_dict_get_item(bbfwdict, "Info")) {
 		plist_dict_remove_item(bbfwdict, "Info");
 	}
+
+	/* depending on the BasebandCertId remove certain nodes */
+	if (bb_cert_id == 0x26F3FACC || bb_cert_id == 0x5CF2EC4E || bb_cert_id == 0x8399785A) {
+		plist_dict_remove_item(bbfwdict, "PSI2-PartialDigest");
+		plist_dict_remove_item(bbfwdict, "RestorePSI2-PartialDigest");
+	} else {
+		plist_dict_remove_item(bbfwdict, "PSI-PartialDigest");
+		plist_dict_remove_item(bbfwdict, "RestorePSI-PartialDigest");
+	}
+
 	plist_dict_set_item(request, "BasebandFirmware", bbfwdict);
 
 	/* apply overrides */
@@ -1132,6 +1183,231 @@ int tss_request_add_yonkers_tags(plist_t request, plist_t parameters, plist_t ov
     }
     
     return 0;
+}
+
+int tss_request_add_vinyl_tags(plist_t request, plist_t parameters, plist_t overrides)
+{
+	plist_t node = NULL;
+
+	plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
+	if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
+		error("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
+		return -1;
+	}
+
+	/* add tags indicating we want to get the eUICC,Ticket */
+	plist_dict_set_item(request, "@BBTicket", plist_new_bool(1));
+	plist_dict_set_item(request, "@eUICC,Ticket", plist_new_bool(1));
+
+	node = plist_dict_get_item(parameters, "eUICC,ChipID");
+	if (node) {
+		plist_dict_set_item(request, "eUICC,ChipID", plist_copy(node));
+	}
+	node = plist_dict_get_item(parameters, "eUICC,EID");
+	if (node) {
+		plist_dict_set_item(request, "eUICC,EID", plist_copy(node));
+	}
+	node = plist_dict_get_item(parameters, "eUICC,RootKeyIdentifier");
+	if (node) {
+		plist_dict_set_item(request, "eUICC,RootKeyIdentifier", plist_copy(node));
+	}
+
+	/* set Nonce for eUICC,Gold component */
+	node = plist_dict_get_item(parameters, "EUICCGoldNonce");
+	if (node) {
+		plist_t n = plist_dict_get_item(request, "eUICC,Gold");
+		if (n) {
+			plist_dict_set_item(n, "Nonce", plist_copy(node));
+		}
+	}
+
+	/* set Nonce for eUICC,Main component */
+	node = plist_dict_get_item(parameters, "EUICCMainNonce");
+	if (node) {
+		plist_t n = plist_dict_get_item(request, "eUICC,Main");
+		if (n) {
+			plist_dict_set_item(n, "Nonce", plist_copy(node));
+		}
+	}
+
+	/* apply overrides */
+	if (overrides) {
+		plist_dict_merge(&request, overrides);
+	}
+
+	return 0;
+}
+
+int tss_request_add_rose_tags(plist_t request, plist_t parameters, plist_t overrides)
+{
+	plist_t node = NULL;
+
+	plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
+	if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
+		error("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
+		return -1;
+	}
+
+	/* add tags indicating we want to get the Rap,Ticket */
+	plist_dict_set_item(request, "@BBTicket", plist_new_bool(1));
+	plist_dict_set_item(request, "@Rap,Ticket", plist_new_bool(1));
+
+	uint64_t u64val = 0;
+	uint8_t bval = 0;
+
+	u64val = _plist_dict_get_uint(parameters, "Rap,BoardID");
+	plist_dict_set_item(request, "Rap,BoardID", plist_new_uint(u64val));
+
+	u64val = _plist_dict_get_uint(parameters, "Rap,ChipID");
+	plist_dict_set_item(request, "Rap,ChipID", plist_new_uint(u64val));
+
+	u64val = _plist_dict_get_uint(parameters, "Rap,ECID");
+	plist_dict_set_item(request, "Rap,ECID", plist_new_uint(u64val));
+
+	node = plist_dict_get_item(parameters, "Rap,Nonce");
+	if (node) {
+		plist_dict_set_item(request, "Rap,Nonce", plist_copy(node));
+	}
+
+	bval = _plist_dict_get_bool(parameters, "Rap,ProductionMode");
+	plist_dict_set_item(request, "Rap,ProductionMode", plist_new_bool(bval));
+
+	u64val = _plist_dict_get_uint(parameters, "Rap,SecurityDomain");
+	plist_dict_set_item(request, "Rap,SecurityDomain", plist_new_uint(u64val));
+
+	bval = _plist_dict_get_bool(parameters, "Rap,SecurityMode");
+	plist_dict_set_item(request, "Rap,SecurityMode", plist_new_bool(bval));
+
+	char *comp_name = NULL;
+	plist_dict_iter iter = NULL;
+	plist_dict_new_iter(manifest_node, &iter);
+	while (iter) {
+		node = NULL;
+		comp_name = NULL;
+		plist_dict_next_item(manifest_node, iter, &comp_name, &node);
+		if (comp_name == NULL) {
+			node = NULL;
+			break;
+		}
+		if (strncmp(comp_name, "Rap,", 4) == 0) {
+			plist_t manifest_entry = plist_copy(node);
+
+			/* handle RestoreRequestRules */
+			plist_t rules = plist_access_path(manifest_entry, 2, "Info", "RestoreRequestRules");
+			if (rules) {
+				debug("DEBUG: Applying restore request rules for entry %s\n", comp_name);
+				tss_entry_apply_restore_request_rules(manifest_entry, parameters, rules);
+			}
+
+			/* Make sure we have a Digest key for Trusted items even if empty */
+			plist_t node = plist_dict_get_item(manifest_entry, "Trusted");
+			if (node && plist_get_node_type(node) == PLIST_BOOLEAN) {
+				uint8_t trusted;
+				plist_get_bool_val(node, &trusted);
+				if (trusted && !plist_access_path(manifest_entry, 1, "Digest")) {
+					debug("DEBUG: No Digest data, using empty value for entry %s\n", comp_name);
+					plist_dict_set_item(manifest_entry, "Digest", plist_new_data(NULL, 0));
+				}
+			}
+
+			plist_dict_remove_item(manifest_entry, "Info");
+
+			/* finally add entry to request */
+			plist_dict_set_item(request, comp_name, manifest_entry);
+		}
+		free(comp_name);
+	}
+	free(iter);
+
+	/* apply overrides */
+	if (overrides) {
+		plist_dict_merge(&request, overrides);
+	}
+
+	return 0;
+}
+
+int tss_request_add_veridian_tags(plist_t request, plist_t parameters, plist_t overrides)
+{
+	plist_t node = NULL;
+
+	plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
+	if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
+		error("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
+		return -1;
+	}
+
+	/* add tags indicating we want to get the Rap,Ticket */
+	plist_dict_set_item(request, "@BBTicket", plist_new_bool(1));
+	plist_dict_set_item(request, "@BMU,Ticket", plist_new_bool(1));
+
+	uint64_t u64val = 0;
+	uint8_t bval = 0;
+
+	u64val = _plist_dict_get_uint(parameters, "BMU,BoardID");
+	plist_dict_set_item(request, "BMU,BoardID", plist_new_uint(u64val));
+
+	u64val = _plist_dict_get_uint(parameters, "ChipID");
+	plist_dict_set_item(request, "BMU,ChipID", plist_new_uint(u64val));
+
+	node = plist_dict_get_item(parameters, "Nonce");
+	if (node) {
+		plist_dict_set_item(request, "BMU,Nonce", plist_copy(node));
+	}
+
+	bval = _plist_dict_get_bool(parameters, "ProductionMode");
+	plist_dict_set_item(request, "BMU,ProductionMode", plist_new_bool(bval));
+
+	u64val = _plist_dict_get_uint(parameters, "UniqueID");
+	plist_dict_set_item(request, "BMU,UniqueID", plist_new_uint(u64val));
+
+	char *comp_name = NULL;
+	plist_dict_iter iter = NULL;
+	plist_dict_new_iter(manifest_node, &iter);
+	while (iter) {
+		node = NULL;
+		comp_name = NULL;
+		plist_dict_next_item(manifest_node, iter, &comp_name, &node);
+		if (comp_name == NULL) {
+			node = NULL;
+			break;
+		}
+		if (strncmp(comp_name, "BMU,", 4) == 0) {
+			plist_t manifest_entry = plist_copy(node);
+
+			/* handle RestoreRequestRules */
+			plist_t rules = plist_access_path(manifest_entry, 2, "Info", "RestoreRequestRules");
+			if (rules) {
+				debug("DEBUG: Applying restore request rules for entry %s\n", comp_name);
+				tss_entry_apply_restore_request_rules(manifest_entry, parameters, rules);
+			}
+
+			/* Make sure we have a Digest key for Trusted items even if empty */
+			plist_t node = plist_dict_get_item(manifest_entry, "Trusted");
+			if (node && plist_get_node_type(node) == PLIST_BOOLEAN) {
+				uint8_t trusted;
+				plist_get_bool_val(node, &trusted);
+				if (trusted && !plist_access_path(manifest_entry, 1, "Digest")) {
+					debug("DEBUG: No Digest data, using empty value for entry %s\n", comp_name);
+					plist_dict_set_item(manifest_entry, "Digest", plist_new_data(NULL, 0));
+				}
+			}
+
+			plist_dict_remove_item(manifest_entry, "Info");
+
+			/* finally add entry to request */
+			plist_dict_set_item(request, comp_name, manifest_entry);
+		}
+		free(comp_name);
+	}
+	free(iter);
+
+	/* apply overrides */
+	if (overrides) {
+		plist_dict_merge(&request, overrides);
+	}
+
+	return 0;
 }
 
 static size_t tss_write_callback(char* data, size_t size, size_t nmemb, tss_response* response) {
