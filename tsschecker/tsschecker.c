@@ -637,7 +637,7 @@ int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
         }else{
             return -1; //ERROR parsing failed
         }
-        if ((next =! next) && nlen < nonceLen) ret[nlen++] = tmp,tmp=0;
+        if ((next =! next) && nlen < nonceLen) (void)(ret[nlen++] = tmp),tmp=0;
     }
     
     if (parsedLen) *parsedLen = nlen;
@@ -837,7 +837,7 @@ getID0:
 error:
     if (manifest) plist_free(manifest);
     if (tssparameter) plist_free(tssparameter);
-    if (error) plist_free(tssreq), *tssreqret = NULL;
+    if (error) (void)(plist_free(tssreq)), *tssreqret = NULL;
     return error;
 #undef reterror
 }
@@ -1053,16 +1053,14 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
             cursigned |= (isSigned > 0);
             
             isSigned = (isSignedOne > 0 || isSigned > 0);
-            if (buildManifest) free(buildManifest), buildManifest = NULL;
+            if (buildManifest) (void)(free(buildManifest)), buildManifest = NULL;
             info("iOS %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
         }
-        free(u->url),u->url = NULL;
-        free(u->buildID),u->buildID = NULL;
-        free(u->version),u->version = NULL;
+        (void)(free(u->url)),u->url = NULL;
+        (void)(free(u->buildID)),u->buildID = NULL;
+        (void)(free(u->version)),u->version = NULL;
     }
-    free(urls),urls = NULL;
-    
-    
+    (void)(free(urls)),urls = NULL;
     
 error:
     nocache = nocacheorig;
@@ -1072,7 +1070,6 @@ error:
 }
 
 #pragma mark print functions
-
 char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
     warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
     t_versionURL *versions, *v;
@@ -1124,7 +1121,7 @@ int printListOfDevices(jssytok_t *tokens){
             }
         }
         printJString(tmp);
-        if (++rspn>= MAX_PER_LINE) putchar('\n'), rspn = 0; else putchar(' ');
+        if (++rspn>= MAX_PER_LINE) (void)(putchar('\n')), rspn = 0; else putchar(' ');
         
     }
     putchar('\n');
@@ -1207,13 +1204,13 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
         }
         
         nextVer = atoi(versions[i]);
-        if (currVer && currVer != nextVer) printf("\n"), rspn = 0;
+        if (currVer && currVer != nextVer) (void)(printf("\n")), rspn = 0;
         currVer = nextVer;
         if (!rspn) printf("[iOS %2i] ",currVer);
         int printed = 0;
         printf("%s%n",versions[i],&printed);
         while (printed++ < 12) putchar(' ');
-        if (++rspn>= MAX_PER_LINE) putchar('\n'), rspn = 0; else putchar(' ');
+        if (++rspn>= MAX_PER_LINE) (void)(putchar('\n')), rspn = 0; else putchar(' ');
     }
     free(versions[versionsCnt-1]);
     free(versions);

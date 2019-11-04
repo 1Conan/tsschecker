@@ -332,9 +332,9 @@ int main(int argc, const char * argv[]) {
     
     if (ecid) {
         if ((devVals.ecid = parseECID(ecid)) == 0){
-            reterror(-7, "[TSSC] manually specified ecid=%s, but parsing failed\n",ecid);
+            reterror(-7, "[TSSC] manually specified ECID=%s, but parsing failed\n",ecid);
         }else{
-            info("[TSSC] manually specified ecid to use, parsed \"%s\" to dec:%lld hex:%llx\n",ecid,devVals.ecid,devVals.ecid);
+            info("[TSSC] manually specified ECID to use, parsed \"%s\" to dec:%lld hex:%llx\n",ecid,devVals.ecid,devVals.ecid);
         }
     }
     
@@ -345,7 +345,7 @@ int main(int argc, const char * argv[]) {
             for (int i=0; i< devVals.parsedApnonceLen; i++) info("%02x",*tmp++);
             info("\n");
         }else{
-            reterror(-7, "[TSSC] manually specified apnonce=%s, but parsing failed\n",apnonce);
+            reterror(-7, "[TSSC] manually specified ApNonce=%s, but parsing failed\n",apnonce);
         }
     }
     
@@ -356,7 +356,7 @@ int main(int argc, const char * argv[]) {
             for (int i=0; i< devVals.parsedSepnonceLen; i++) info("%02x",*tmp++);
             info("\n");
         }else{
-            reterror(-7, "[TSSC] manually specified sepnonce=%s, but parsing failed\n",sepnonce);
+            reterror(-7, "[TSSC] manually specified SepNonce=%s, but parsing failed\n",sepnonce);
         }
     }
     

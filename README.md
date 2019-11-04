@@ -22,7 +22,7 @@ _default generators for saving tickets:_
 * `0xbd34a880be0b53f3` // used on Electra / Chimera jailbreaks
 * `0x1111111111111111` // used on unc0ver jailbreak
 
-Nonce coliision method isn't actual now, because we've [checkm8](https://github.com/axi0mx/ipwndfu) low-level exploit.
+Nonce collision method isn't actual now, because we've [checkm8](https://github.com/axi0mx/ipwndfu) low-level exploit.
 
 # Dependencies
 *  ## Bundled libs
