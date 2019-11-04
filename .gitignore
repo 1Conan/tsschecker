@@ -7,7 +7,9 @@
 *.o
 *.la
 *.lo
-*Makefile*
+*.so
+*Makefile
+*Makefile.in
 aclocal.m4
 autom4te.cache
 compile
@@ -22,4 +24,4 @@ missing
 */all.h*
 */tsschecker*
 stamp-h1
-xcuserdata/*
+xcuserdata
