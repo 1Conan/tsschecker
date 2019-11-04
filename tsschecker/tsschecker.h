@@ -14,9 +14,9 @@ extern "C" {
 #endif
 
 #include <stdio.h>
-#include "jssy.h"
 #include <plist/plist.h>
 
+#include "jssy.h"
 #include "tss.h"
 #include "debug.h"
     
@@ -111,7 +111,6 @@ const char *getBoardconfigFromModel(const char *model);
 const char *getModelFromBoardconfig(const char *boardconfig);
 plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall);
 plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *boardconfig, int isUpdateInstall);
-
 
 #ifdef __cplusplus
 }

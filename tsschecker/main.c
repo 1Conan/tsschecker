@@ -20,7 +20,6 @@
 #include <ctype.h>
 
 #include <libfragmentzip/libfragmentzip.h>
-
 #include "download.h"
 #include "debug.h"
 #include "tsschecker.h"

@@ -166,7 +166,7 @@ static struct bbdevice bbdevices[] = {
     {"iPad7,5", 0, 0}, // iPad (6th gen, 2018, Wi-Fi)
     {"iPad7,6", 3840149528, 4}, // iPad (6th gen, 2018, Cellular)
     {"iPad7,11", 0, 0}, // iPad (7th gen, 2019, Wi-Fi)
-    // {"iPad7,12", 524245983, 12}, // iPad (7th gen, 2019, Cellular)
+    {"iPad7,12", 524245983, 12}, // iPad (7th gen, 2019, Cellular)
     
     // iPad minis
     {"iPad2,5", 0, 0}, // iPad mini (1st gen, Wi-Fi)

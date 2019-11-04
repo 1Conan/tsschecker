@@ -6,6 +6,7 @@ if [ $? -eq 0 ]; then
 else
   libtoolize --force
 fi
+
 aclocal -I m4
 autoconf
 autoheader
