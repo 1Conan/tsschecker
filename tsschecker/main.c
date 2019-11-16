@@ -66,28 +66,28 @@ void cmd_help(){
     printf("Usage: tsschecker [OPTIONS]\n");
     printf("Checks (real) signing status of device/firmware\n\n");
     printf("  -d, --device MODEL\t\tspecific device by its model (eg. iPhone4,1)\n");
-    printf("  -i, --ios VERSION\t\tspecific iOS version (eg. 6.1.3)\n");
-    printf("  -Z  --buildid BUILDID\t\tspecific buildid instead of iOS version (eg. 13C75)\n");
-    printf("  -B, --boardconfig BOARD\tspecific boardconfig instead of iPhone model (eg. n61ap)\n");
+    printf("  -i, --ios VERSION\t\tspecific firmware version (eg. 6.1.3)\n");
+    printf("  -Z  --buildid\t\t\tspecific buildid instead of firmware version (eg. 13C75)\n");
+    printf("  -B, --boardconfig\t\tspecific boardconfig instead of device model (eg. n61ap)\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
     printf("  -m, --build-manifest\t\tmanually specify buildmanifest (can be used with -d)\n");
     printf("  -s, --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
-    printf("  -u, --update-install\t\t\trequest update ticket instead of erase\n");
-    printf("  -l, --latest\t\t\tuse latest public iOS version instead of manually specifying one\n");
+    printf("  -u, --update-install\t\trequest update ticket instead of erase\n");
+    printf("  -l, --latest\t\t\tuse latest public firmware version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
-    printf("                 \t\tECID must be either dec or hex eg. 5482657301265 or ab46efcbf71\n");
+    printf("                 \t\tECID must be either DEC or HEX eg. 5482657301265 or ab46efcbf71\n");
     printf("      --apnonce NONCE\t\tmanually specify ApNonce instead of using random one (not required for saving blobs)\n");
     printf("      --sepnonce NONCE\t\tmanually specify SepNonce instead of using random one (not required for saving blobs)\n");
-    printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX for saving valid BBTicket\n");
+    printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX for saving valid BBTicket (not required for saving blobs)\n");
     printf("  -g, --generator GEN\t\tmanually specify generator in format 0x%%16llx\n");
     printf("      --save-path PATH\t\tspecify path for saving blobs\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("      --beta\t\t\trequest ticket for beta instead of normal release (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
-    printf("      --list-ios\t\tlist all known iOS versions\n");
+    printf("      --list-ios\t\tlist all known firmware versions\n");
     printf("      --nocache \t\tignore caches and redownload required files\n");
     printf("      --print-tss-request\tprint TSS request that will be sent to Apple\n");
     printf("      --print-tss-response\tprint TSS response that come from Apple\n");
@@ -177,6 +177,7 @@ int main(int argc, const char * argv[]) {
         cmd_help();
         return -1;
     }
+
     while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hg:slbuo", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
@@ -315,7 +316,7 @@ int main(int argc, const char * argv[]) {
             if ((tmp = (char*)getModelFromBoardconfig(devVals.deviceBoard)))
                 devVals.deviceModel = strdup(tmp);
             else
-                reterror(-25, "[TSSC] If you using --boardconfig please also specify devicemodel with -d\n");
+                reterror(-25, "[TSSC] If you using --boardconfig, please also specify device model with -d\n");
         }
     }
     
@@ -376,7 +377,7 @@ int main(int argc, const char * argv[]) {
                          (int)devVals.bbsnumSize);
             }
         } else {
-            reterror(-7, "[TSSC] manually specified bbsnum=%s, but parsing failed\n", bbsnum);
+            reterror(-7, "[TSSC] manually specified BbSNUM=%s, but parsing failed\n", bbsnum);
         }
     }
     
@@ -403,14 +404,14 @@ int main(int argc, const char * argv[]) {
         int i = 0;
             
         char **versions = getListOfiOSForDevice(firmwareTokens, devVals.deviceModel, versVals.isOta, &versionCnt);
-        if (!versionCnt) reterror(-8, "[TSSC] failed finding latest iOS. If you using --boardconfig please also specify devicemodel with -d ota=%d\n",versVals.isOta);
+        if (!versionCnt) reterror(-8, "[TSSC] failed finding latest firmware version. If you using --boardconfig, please also specify device model with -d ota=%d\n",versVals.isOta);
         char *bpos = NULL;
         while((bpos = strstr(versVals.version = strdup(versions[i++]),"[B]")) != 0){
             if (versVals.useBeta) break;
             free((char*)versVals.version);
-            if (--versionCnt == 0) reterror(-9, "[TSSC] automatic iOS selection couldn't find non-beta iOS\n");
+            if (--versionCnt == 0) reterror(-9, "[TSSC] automatic firmware selection couldn't find non-beta firmware\n");
         }
-        info("[TSSC] selecting latest iOS: %s\n",versVals.version);
+        info("[TSSC] selecting latest version of firmware: %s\n",versVals.version);
         if (bpos) *bpos= '\0';
         if (versions) free(versions[versionCnt-1]),free(versions);
     }
@@ -429,7 +430,7 @@ int main(int argc, const char * argv[]) {
 
         }else{
             if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
-            if (!versVals.version && !versVals.buildID) reterror(-5,"[TSSC] please specify an iOS version or buildID for this option\n\tuse -h for more help\n");
+            if (!versVals.version && !versVals.buildID) reterror(-5,"[TSSC] please specify an firmware version or buildID for this option\n\tuse -h for more help\n");
             
             isSigned = isVersionSignedForDevice(firmwareTokens, &versVals, &devVals);
         }

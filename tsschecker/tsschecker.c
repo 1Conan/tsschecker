@@ -361,7 +361,6 @@ error:
 }
 
 #pragma mark json functions
-
 long parseTokens(const char *json, jssytok_t **tokens){
     
     log("[JSON] counting elements\n");
@@ -373,7 +372,6 @@ long parseTokens(const char *json, jssytok_t **tokens){
 }
 
 #pragma mark get functions
-
 //returns NULL terminated array of t_versionURL objects
 t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
     t_versionURL *rets = NULL;
@@ -827,10 +825,10 @@ getID0:
                 reterror("[TSSR] failed to populate baseband values\n");
             }
         }else{
-            log("[TSSR] LOG: device %s doesn't need a Baseband ticket, continuing without requesting a Baseband ticket\n",devVals->deviceModel);
+            log("[TSSR] LOG: device %s doesn't need a baseband ticket, continuing without requesting a Baseband ticket\n",devVals->deviceModel);
         }
     }else{
-        info("[TSSR] User specified doesn't to request a Baseband ticket.\n");
+        info("[TSSR] User specified doesn't to request a baseband ticket.\n");
     }
     
     *tssreqret = tssreq;
@@ -1054,7 +1052,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
             
             isSigned = (isSignedOne > 0 || isSigned > 0);
             if (buildManifest) (void)(free(buildManifest)), buildManifest = NULL;
-            info("iOS %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+            info("Firmware version %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
         }
         (void)(free(u->url)),u->url = NULL;
         (void)(free(u->buildID)),u->buildID = NULL;
@@ -1186,7 +1184,6 @@ char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, i
     return versions;
 }
 
-
 int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 #define MAX_PER_LINE 10
     
@@ -1220,9 +1217,7 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 #undef MAX_PER_LINE
 }
 
-
 #pragma mark check functions
-
 jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta){
     jssytok_t *ctok = (isOta) ? tokens : jssy_dictGetValueForKey(tokens, "devices");
     
@@ -1235,7 +1230,6 @@ jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOt
 }
 
 int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, jssytok_t *tokens){
-    
     jssytok_t *firmwares = getFirmwaresForDevice(devVals->deviceModel, tokens, versVals->isOta);
     if (!firmwares)
         return 0;
