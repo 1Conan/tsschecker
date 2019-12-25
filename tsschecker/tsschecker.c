@@ -16,6 +16,7 @@
 
 #include <libfragmentzip/libfragmentzip.h>
 #include <libirecovery.h>
+
 #include "tsschecker.h"
 #include "debug.h"
 #include "download.h"
@@ -1089,7 +1090,7 @@ char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t 
     return ret;
 }
 
-#warning print devices function doesn't actually check if devices are sorted. it assues they are sorted in json
+/* Print devices function doesn't actually check if devices are sorted. it assues they are sorted in json */
 int printListOfDevices(jssytok_t *tokens){
 #define MAX_PER_LINE 10
     log("[JSON] printing device list\n");
