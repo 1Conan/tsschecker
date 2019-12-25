@@ -85,8 +85,8 @@ typedef struct{
 
 int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize);
 
-char *getFirmwareJson();
-char *getOtaJson();
+char *getFirmwareJson(void);
+char *getOtaJson(void);
 long parseTokens(const char *json, jssytok_t **tokens);
 char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt);
 int printListOfDevices(jssytok_t *tokens);

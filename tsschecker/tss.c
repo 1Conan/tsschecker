@@ -163,7 +163,7 @@ uint64_t _plist_dict_get_uint(plist_t dict, const char *key)
             } else if (strsz == 1) {
                 uintval = strval[0];
             } else {
-                error("%s: ERROR: invalid size %d for data to integer conversion\n", __func__, strsz);
+                error("%s: ERROR: invalid size %llu for data to integer conversion\n", __func__, strsz);
             }
             free(strval);
         }
@@ -209,7 +209,7 @@ uint8_t _plist_dict_get_bool(plist_t dict, const char *key)
             if (strsz == 1) {
                 bval = strval[0];
             } else {
-                error("%s: ERROR: invalid size %d for data to boolean conversion\n", __func__, strsz);
+                error("%s: ERROR: invalid size %llu for data to boolean conversion\n", __func__, strsz);
             }
             free(strval);
         }
