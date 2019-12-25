@@ -6,20 +6,12 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([tsschecker/tsschecker.h])
 AC_CONFIG_HEADERS([config.h])
 
-# Checks the platform.
-AC_MSG_CHECKING([whether to enable WIN32 specific flags])
-case "$host_os" in
-*mingw*)
-        win32=true
-        AC_MSG_RESULT([yes])
-	AC_CHECK_TOOL(WINDRES, windres)
-  ;;
-*)
-        win32=false
-        AC_MSG_RESULT([no])
-  ;;
+# Check for operating system
+AC_MSG_CHECKING([whether we need platform-specific build settings])
+case $host_os in
+  darwin* )
+        ;;
 esac
-AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
 
 # Checks for programs.
 AC_PROG_CC
@@ -27,14 +19,13 @@ CFLAGS+=" -std=c11"
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIRS([m4])
+AC_CANONICAL_HOST
 
 # Versioning.
 CFLAGS+=" -D TSSCHECKER_VERSION_COUNT=\\\"$(git rev-list --count HEAD | tr -d '\n')\\\""
 CFLAGS+=" -D TSSCHECKER_VERSION_SHA=\\\"$(git rev-parse HEAD | tr -d '\n')\\\""
 
 # Checks for libraries.
-AC_CANONICAL_HOST
-
 AC_ARG_WITH(
     [libcrypto],
     [AS_HELP_STRING([--with-libcrypto], [build with libcrypto (default for non-Mac)])],
@@ -51,16 +42,16 @@ AC_ARG_WITH(
     ]
 )
 
-PKG_CHECK_MODULES(libplist, libplist >= 1.0)
+PKG_CHECK_MODULES(libplist, libplist >= 2.0.0)
 PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
-PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 1.0)
+PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 48)
 AS_IF([test "x$with_libcrypto" != xno],
     [PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)]
 )
 PKG_CHECK_MODULES(libirecovery, libirecovery >= 0.2.0)
 
 # Checks for header files.
-AC_CHECK_HEADERS([getopt.h stddef.h stdlib.h string.h stdio.h unistd.h])
+AC_CHECK_HEADERS([getopt.h stddef.h stdio.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_INT32_T

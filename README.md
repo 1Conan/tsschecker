@@ -42,23 +42,23 @@ Usage: `tsschecker [OPTIONS]`
 
 | option (short) | option (long)             | description                                                                       |
 |----------------|---------------------------|-----------------------------------------------------------------------------------|
+|  `-h`          | `--help`                  | prints usage information                                                          |        
 |  `-d`          | `--device MODEL`          | specify device by its model (eg. `iPhone4,1`)                                     |
 |  `-i`          | `--ios VERSION`           | specify firmware version (eg. `6.1.3`)                                                 |
-|  `-Z`				      | `--buildid `	| specific buildid instead of firmware version (eg. `13C75`)							               |
-|  `-B` 	   | `--boardconfig `	   | specific boardconfig instead of device model (eg. `n61ap`)						             |
+|  `-Z`	   | `--buildid BUILD `	| specific buildid instead of firmware version (eg. `13C75`)							               |
+|  `-B` 	   | `--boardconfig BOARD `	   | specific boardconfig instead of device model (eg. `n61ap`)						             |
 |  `-o`          | `--ota`	                 | check OTA signing status, instead of normal restore                               |
 |  `-b`          | `--no-baseband`           | don't check baseband signing status. Request a ticket without baseband            |
-|  `-m`          |`--build-manifest`   | manually specify buildmanifest (can be used with `-d`)                           | 
+|  `-m`          | `--build-manifest`   | manually specify buildmanifest (can be used with `-d`)                           | 
 |  `-s`          | `--save`		     		       | save fetched shsh blobs (mostly makes sense with -e)                              |
-|  `-u`          |`--update-install         `| request update ticket instead of erase                          |  
-|  `-l`			     | `--latest`  				       | use latest public firmware version instead of manually specifying one<br>especially useful with `-s` and `-e` for saving blobs                                                                                              |
+|  `-u`          | `--update-install         `| request update ticket instead of erase                          |  
+|  `-l`	   | `--latest`  				       | use latest public firmware version instead of manually specifying one<br>especially useful with `-s` and `-e` for saving signing tickets                                                                                              |
 |  `-e`          | `--ecid ECID`	         | manually specify an ECID to be used for fetching blobs, instead of using random ones. <br>ECID must be either DEC or HEX eg. `5482657301265` or `ab46efcbf71`                                                          |
-|      			     | `--apnonce NONCE`   		   | manually specify ApNonce instead of using random one (not required for saving blobs) |
-|      			     | `--sepnonce NONCE`        | manually specify SepNonce instead of using random one (not required for saving blobs) 		                                                                                                                                  |
+|  `-g`          | `--generator GEN`        | manually specify generator in format 0x%%16llx                                                                                                        |
+|      			     | `--apnonce NONCE`   		   | manually specify ApNonce instead of using random one (not required for saving signing tickets) |
+|      			     | `--sepnonce NONCE`        | manually specify SepNonce instead of using random one (not required for saving signing tickets) 		                                                                                                                                  |
 |                           | `--bbsnum SNUM`        | manually specify BbSNUM in HEX for saving valid BBTicket (not required for saving blobs)                                                                                                                                   |
-|  `-g`                       | `--generator GEN`        | manually specify generator in format 0x%%16llx                                                                                                                                         |
-|      			     | `--save-path PATH`        | specify path for saving blobs 		 			
-|  `-h`          | `--help`                  | prints usage information                                                          |											 |
+|      			     | `--save-path PATH`        | specify path for saving blobs 		 											 |
 |                |`--beta`	             | request ticket for beta instead of normal release (use with `-o`)                |
 |                |`--list-devices`          | list all known devices                                                            |
 |                |`--list-ios`	             | list all known firmware versions                                                       |
