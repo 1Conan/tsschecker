@@ -55,7 +55,7 @@ enum paths{
 static const char *win_pathvars[]={
     "\\tsschecker",
     "\\ota.json",
-    "\\firmware.json"
+    "\\firmwares.json"
 };
 
 static const char *win_path_get(enum paths path){
@@ -88,7 +88,7 @@ static const char *win_path_get(enum paths path){
 
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
 #define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
-#define FIRMWARE_JSON_PATH "/tmp/firmware.json"
+#define FIRMWARE_JSON_PATH "/tmp/firmwares.json"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
@@ -231,7 +231,7 @@ inline static t_bbdevice bbdevices_get_all() {
 }
 
 char *getFirmwareJson(){
-    info("[TSSC] opening firmware.json\n");
+    info("[TSSC] opening firmwares.json\n");
     FILE *f = fopen(FIRMWARE_JSON_PATH, "rb");
     if (!f || nocache){
         downloadFile(FIRMWARE_JSON_URL, FIRMWARE_JSON_PATH);
