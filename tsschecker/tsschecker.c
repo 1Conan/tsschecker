@@ -216,6 +216,26 @@ static struct bbdevice bbdevices[] = {
     {"iPad8,11", 0, 0}, // iPad Pro (12,9", 4th gen, Wi-Fi)
     {"iPad8,12", 524245983, 12}, // iPad Pro 12,9", 4th gen, Cellular)
     
+    // Apple Watches
+    {"Watch1,1", 0, 0}, // Apple Watch 1st gen (38mm)
+    {"Watch1,2", 0, 0}, // Apple Watch 1st gen (42mm)
+    {"Watch2,6", 0, 0}, // Apple Watch Series 1 (38mm)
+    {"Watch2,7", 0, 0}, // Apple Watch Series 1 (42mm)
+    {"Watch2,3", 0, 0}, // Apple Watch Series 2 (38mm)
+    {"Watch2,4", 0, 0}, // Apple Watch Series 2 (42mm)
+    {"Watch3,1", 3840149528, 4}, // Apple Watch Series 3 (38mm GPS + Cellular)
+    {"Watch3,2", 3840149528, 4}, // Apple Watch Series 3 (42mm GPS + Cellular)
+    {"Watch3,3", 0, 0}, // Apple Watch Series 3 (38mm GPS)
+    {"Watch3,4", 0, 0}, // Apple Watch Series 3 (42mm GPS)
+    {"Watch4,1", 0, 0}, // Apple Watch Series 4 (40mm GPS)
+    {"Watch4,2", 0, 0}, // Apple Watch Series 4 (44mm GPS)
+    {"Watch4,3", 744114402, 12}, // Apple Watch Series 4 (40mm GPS + Cellular)
+    {"Watch4,4", 744114402, 12}, // Apple Watch Series 4 (44mm GPS + Cellular)
+    {"Watch5,1", 0, 0}, // Apple Watch Series 5 (40mm GPS)
+    {"Watch5,2", 0, 0}, // Apple Watch Series 5 (44mm GPS)
+    {"Watch5,3", 744114402, 12}, // Apple Watch Series 5 (40mm GPS + Cellular)
+    {"Watch5,4", 744114402, 12}, // Apple Watch Series 5 (44mm GPS + Cellular)
+    
     // Apple TVs
     {"AppleTV1,1", 0, 0}, // 1st gen
     {"AppleTV2,1", 0, 0}, // 2nd gen
