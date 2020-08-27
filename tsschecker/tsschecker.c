@@ -299,25 +299,31 @@ const char *getModelFromBoardconfig(const char *boardconfig){
 }
 
 plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *boardconfig, int isUpdateInstall){
-    plist_t rt = NULL;
-#define reterror(a ... ) {error(a); rt = NULL; goto error;}
-    
+    plist_t selected_build_identity = NULL;
     plist_t buildidentities = plist_dict_get_item(buildManifest, "BuildIdentities");
     if (!buildidentities || plist_get_node_type(buildidentities) != PLIST_ARRAY){
-        reterror("[TSSR] Error: could not get BuildIdentities\n");
+        error("[TSSR] Error: could not get BuildIdentities\n");
+        return NULL;
     }
-    for (int i=0; i<plist_array_get_size(buildidentities); i++) {
-        rt = plist_array_get_item(buildidentities, i);
-        if (!rt || plist_get_node_type(rt) != PLIST_DICT){
-            reterror("[TSSR] Error: could not get id%d\n",i);
+    
+    for (int i = 0; i < plist_array_get_size(buildidentities); i++) {
+        info("[TSSR] Checking BuildIdentity %d\n", i);
+        plist_t build_identity = plist_array_get_item(buildidentities, i);
+        if (!build_identity || plist_get_node_type(build_identity) != PLIST_DICT){
+            warning("[TSSR] Could not get BuildIdentity\n");
+            continue;
         }
-        plist_t infodict = plist_dict_get_item(rt, "Info");
+        plist_t infodict = plist_dict_get_item(build_identity, "Info");
         if (!infodict || plist_get_node_type(infodict) != PLIST_DICT){
-            reterror("[TSSR] Error: could not get infodict\n");
+            warning("[TSSR] Could not get info dictionary\n");
+            continue;
         }
         plist_t RestoreBehavior = plist_dict_get_item(infodict, "RestoreBehavior");
+        // certain buildidentities (eg: Research Developer Erase Install) in some manifests
+        // don't contain a RestoreBehavior
         if (!RestoreBehavior || plist_get_node_type(RestoreBehavior) != PLIST_STRING){
-            reterror("[TSSR] Error: could not get RestoreBehavior\n");
+            warning("[TSSR] Could not get RestoreBehavior\n");
+            continue;
         }
         char *string = NULL;
         plist_get_string_val(RestoreBehavior, &string);
@@ -326,24 +332,22 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
         if ((strncmp(string, "Erase", strlen(string)) != 0) == !isUpdateInstall){
             /* continue when Erase found but isUpdateInstall
                is true or Update found and isUpdateInstall is false */
-            rt = NULL;
             continue;
         }
         
         plist_t DeviceClass = plist_dict_get_item(infodict, "DeviceClass");
         if (!DeviceClass || plist_get_node_type(DeviceClass) != PLIST_STRING){
-            reterror("[TSSR] Error: could not get DeviceClass\n");
+            warning("[TSSR] Could not get DeviceClass\n");
         }
         plist_get_string_val(DeviceClass, &string);
-        if (strcasecmp(string, boardconfig) != 0)
-            rt = NULL;
-        else
+        if (strcasecmp(string, boardconfig) == 0)
+        {
+            info("[TSSR] Selected BuildIdentity for request\n");
+            selected_build_identity = build_identity;
             break;
+        }
     }
-    
-error:
-    return rt;
-#undef reterror
+    return selected_build_identity;
 }
 
 plist_t getBuildidentity(plist_t buildManifest, const char *model, int isUpdateInstall){
@@ -760,14 +764,14 @@ getID0:
                 ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, devVals->isUpdateInstall)
                 : getBuildidentity(manifest, devVals->deviceModel, devVals->isUpdateInstall);
     if (!id0 && !devVals->installType){
-        warning("[TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually\n");
+        warning("[TSSC] could not get BuildIdentity for installType=Erase. Using fallback installType=Update since user did not specify installType manually\n");
 
         devVals->installType = kInstallTypeUpdate;
         goto getID0;
     }
     
     if (!id0 || plist_get_node_type(id0) != PLIST_DICT){
-        reterror("[TSSR] Error: could not get id0 for installType=%s\n",devVals->isUpdateInstall ? "Update" : "Erase");
+        reterror("[TSSR] Error: could not get BuildIdentity for installType=%s\n",devVals->isUpdateInstall ? "Update" : "Erase");
     }
     plist_t manifestdict = plist_dict_get_item(id0, "Manifest");
     if (!manifestdict || plist_get_node_type(manifestdict) != PLIST_DICT){
