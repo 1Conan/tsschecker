@@ -14,13 +14,13 @@
 #include <time.h>
 #include <stdio.h>
 
-#include <libfragmentzip/libfragmentzip.h>
-#include <libirecovery.h>
-
 #include "tsschecker.h"
 #include "debug.h"
 #include "download.h"
 #include "tss.h"
+
+#include <libfragmentzip/libfragmentzip.h>
+#include <libirecovery.h>
 
 #ifdef __APPLE__
 #   include <CommonCrypto/CommonDigest.h>
@@ -55,7 +55,7 @@ enum paths{
 static const char *win_pathvars[]={
     "\\tsschecker",
     "\\ota.json",
-    "\\firmware.json"
+    "\\firmwares.json"
 };
 
 static const char *win_path_get(enum paths path){
@@ -88,7 +88,7 @@ static const char *win_path_get(enum paths path){
 
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
 #define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
-#define FIRMWARE_JSON_PATH "/tmp/firmware.json"
+#define FIRMWARE_JSON_PATH "/tmp/firmwares.json"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
@@ -149,6 +149,7 @@ static struct bbdevice bbdevices[] = {
     {"iPhone12,1", 524245983, 12}, // iPhone 11
     {"iPhone12,3", 524245983, 12}, // iPhone 11 Pro
     {"iPhone12,5", 524245983, 12}, // iPhone 11 Pro Max
+    {"iPhone12,8", 524245983, 12}, // iPhone SE (2020)
     
     // iPads
     {"iPad1,1", 0, 0}, // iPad (1st gen)
@@ -210,6 +211,30 @@ static struct bbdevice bbdevices[] = {
     {"iPad8,6", 0, 0}, // iPad Pro (12,9", 3rd gen, 1 TB model, Wi-Fi)
     {"iPad8,7", 165673526, 12}, // iPad Pro 12,9", 3rd gen, Cellular)
     {"iPad8,8", 165673526, 12}, // iPad Pro 12,9", 3rd gen, 1 TB model, Cellular)
+    {"iPad8,9", 0, 0}, // iPad Pro (11", 2nd gen, Wi-Fi)
+    {"iPad8,10", 524245983, 12}, // iPad Pro 11", 2nd gen, Cellular)
+    {"iPad8,11", 0, 0}, // iPad Pro (12,9", 4th gen, Wi-Fi)
+    {"iPad8,12", 524245983, 12}, // iPad Pro 12,9", 4th gen, Cellular)
+    
+    // Apple Watches
+    {"Watch1,1", 0, 0}, // Apple Watch 1st gen (38mm)
+    {"Watch1,2", 0, 0}, // Apple Watch 1st gen (42mm)
+    {"Watch2,6", 0, 0}, // Apple Watch Series 1 (38mm)
+    {"Watch2,7", 0, 0}, // Apple Watch Series 1 (42mm)
+    {"Watch2,3", 0, 0}, // Apple Watch Series 2 (38mm)
+    {"Watch2,4", 0, 0}, // Apple Watch Series 2 (42mm)
+    {"Watch3,1", 3840149528, 4}, // Apple Watch Series 3 (38mm GPS + Cellular)
+    {"Watch3,2", 3840149528, 4}, // Apple Watch Series 3 (42mm GPS + Cellular)
+    {"Watch3,3", 0, 0}, // Apple Watch Series 3 (38mm GPS)
+    {"Watch3,4", 0, 0}, // Apple Watch Series 3 (42mm GPS)
+    {"Watch4,1", 0, 0}, // Apple Watch Series 4 (40mm GPS)
+    {"Watch4,2", 0, 0}, // Apple Watch Series 4 (44mm GPS)
+    {"Watch4,3", 744114402, 12}, // Apple Watch Series 4 (40mm GPS + Cellular)
+    {"Watch4,4", 744114402, 12}, // Apple Watch Series 4 (44mm GPS + Cellular)
+    {"Watch5,1", 0, 0}, // Apple Watch Series 5 (40mm GPS)
+    {"Watch5,2", 0, 0}, // Apple Watch Series 5 (44mm GPS)
+    {"Watch5,3", 744114402, 12}, // Apple Watch Series 5 (40mm GPS + Cellular)
+    {"Watch5,4", 744114402, 12}, // Apple Watch Series 5 (44mm GPS + Cellular)
     
     // Apple TVs
     {"AppleTV1,1", 0, 0}, // 1st gen
@@ -226,7 +251,7 @@ inline static t_bbdevice bbdevices_get_all() {
 }
 
 char *getFirmwareJson(){
-    info("[TSSC] opening firmware.json\n");
+    info("[TSSC] opening firmwares.json\n");
     FILE *f = fopen(FIRMWARE_JSON_PATH, "rb");
     if (!f || nocache){
         downloadFile(FIRMWARE_JSON_URL, FIRMWARE_JSON_PATH);
@@ -833,7 +858,7 @@ getID0:
             log("[TSSR] LOG: device %s doesn't need a baseband ticket, continuing without requesting a Baseband ticket\n",devVals->deviceModel);
         }
     }else{
-        info("[TSSR] User specified doesn't to request a baseband ticket.\n");
+        info("[TSSR] User specified to not request a baseband ticket.\n");
     }
     
     *tssreqret = tssreq;
