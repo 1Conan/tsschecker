@@ -1253,7 +1253,8 @@ jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOt
     
     jssytok_t *tmp = ctok->subval;
     for (int i=0; i<ctok->size; tmp = tmp->next,i++)
-        if (strncasecmp(device, tmp->value, tmp->size) == 0)
+        if (strncasecmp(device, tmp->value, tmp->size) == 0
+            && strlen(device) == tmp->size)
             return jssy_dictGetValueForKey(tmp->subval, "firmwares");
     
     return NULL;
