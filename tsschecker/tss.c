@@ -48,7 +48,7 @@
 #include "tss.h"
 #include "endianness.h"
 
-#define TSS_CLIENT_VERSION_STRING "libauthinstall-698.0.5"
+#define TSS_CLIENT_VERSION_STRING "libauthinstall-776.40.16"
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 
