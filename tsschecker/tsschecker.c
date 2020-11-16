@@ -276,6 +276,11 @@ static struct bbdevice bbdevices[] = {
     {"Watch5,3", 744114402, 12}, // Apple Watch Series 5 (40mm GPS + Cellular)
     {"Watch5,4", 744114402, 12}, // Apple Watch Series 5 (44mm GPS + Cellular)
     
+    // HomePods
+    {"AudioAccessory1,1", 0, 0}, // HomePod 1st gen
+    {"AudioAccessory1,2", 0, 0}, // HomePod 1st gen (2018)
+    {"AudioAccessory5,1", 0, 0}, // HomePod mini
+    
     // Apple TVs
     {"AppleTV1,1", 0, 0}, // 1st gen
     {"AppleTV2,1", 0, 0}, // 2nd gen
@@ -717,7 +722,8 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
 
-    if (strncasecmp(devVals->deviceModel, "AppleTV2,", strlen("AppleTV2,")) == 0 ||
+    if (strncasecmp(devVals->deviceModel, "AudioAccessory1,", strlen("AudioAccessory1,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "AppleTV2,", strlen("AppleTV2,")) == 0 ||
             strncasecmp(devVals->deviceModel, "AppleTV3,", strlen("AppleTV3,")) == 0 ||
             strncasecmp(devVals->deviceModel, "AppleTV5,", strlen("AppleTV5,")) == 0 ||
             strncasecmp(devVals->deviceModel, "Watch1,", strlen("Watch1,")) == 0 ||
