@@ -7,7 +7,7 @@ env:
   LIBCURL_VERSION: 7.73.0
   ZLIB_VERSION: 1.2.11
   LIBZIP_VERSION: 1.7.3
-  LIBGENERAL_VERSION: 34
+  LIBGENERAL_VERSION: 35
   LIBFRAGMENTZIP_VERSION: 60
   LIBIRECOVERY_VERSION: 1.0.0
 
@@ -43,7 +43,6 @@ jobs:
           echo "ROOT=${ROOT}" >> $GITHUB_ENV
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          sudo apt-get install libreadline-dev
 
       - name: setup toolchain
         run: |
@@ -201,7 +200,6 @@ jobs:
           echo "ROOT=${ROOT}" >> $GITHUB_ENV
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          sudo apt-get install libreadline-dev
 
       - name: setup toolchain
         run: |
@@ -264,7 +262,8 @@ jobs:
             --enable-ipv6 \
             --disable-dependency-tracking \
             --with-zlib=${ROOT}/usr \
-            --with-winssl
+            --with-winssl \
+            --with-schannel
           make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
@@ -341,9 +340,149 @@ jobs:
           name: tsschecker_windows
           path: tsschecker/tsschecker.exe
 
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: ccache cache files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ccache
+            ~/dep_src
+          key: build-macos-${ { env.GITHUB_SHA } }
+          restore-keys: |
+            build-macos-
+
+      - name: setup environment
+        run: |
+          export DOWNLOAD_PATH=${HOME}/dep_src
+          export DEP_PATH=${HOME}/build
+          export ROOT=${HOME}/root
+          mkdir -p ${DOWNLOAD_PATH} ${DEP_PATH} ${ROOT}
+          echo "DOWNLOAD_PATH=${DOWNLOAD_PATH}" >> $GITHUB_ENV
+          echo "DEP_PATH=${DEP_PATH}" >> $GITHUB_ENV
+          echo "ROOT=${ROOT}" >> $GITHUB_ENV
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: setup toolchain
+        run: |
+          brew install ccache libtool autoconf automake
+          echo "CC=ccache clang" >> $GITHUB_ENV
+          echo "CXX=ccache clang++" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I${ROOT}/usr/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${ROOT}/usr/lib" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${ROOT}/usr/lib/pkgconfig" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=${ROOT}/usr/lib" >> $GITHUB_ENV
+
+      - name: build libplist
+        run: |
+          wget -q -nc -P ${DOWNLOAD_PATH} https://github.com/libimobiledevice/libplist/releases/download/${LIBPLIST_VERSION}/libplist-${LIBPLIST_VERSION}.tar.bz2
+          tar xf ${DOWNLOAD_PATH}/libplist-${LIBPLIST_VERSION}.tar.bz2 -C ${DEP_PATH}
+          cd ${DEP_PATH}/libplist-${LIBPLIST_VERSION}
+          ./configure --prefix=/usr --without-cython --enable-static --disable-shared
+          make
+          make install DESTDIR="${ROOT}"
+
+      - name: build libirecovery
+        run: |
+          wget -q -nc -P ${DOWNLOAD_PATH} https://github.com/libimobiledevice/libirecovery/releases/download/${LIBIRECOVERY_VERSION}/libirecovery-${LIBIRECOVERY_VERSION}.tar.bz2
+          tar xf ${DOWNLOAD_PATH}/libirecovery-${LIBIRECOVERY_VERSION}.tar.bz2 -C ${DEP_PATH}
+          cd ${DEP_PATH}/libirecovery-${LIBIRECOVERY_VERSION}
+          wget https://gist.github.com/1Conan/2d015aad17f87f171b32ebfd9f48fb96/raw/c12fca047f8b0bba1c8983470bf863d80d7e1c1d/libirecovery.patch
+          patch -p1 < libirecovery.patch
+          glibtoolize --force
+          aclocal -I m4
+          autoheader
+          automake --add-missing
+          autoconf
+          ./configure --prefix=/usr --enable-static --disable-shared --with-dummy
+          make
+          make install DESTDIR="${ROOT}"
+
+      - name: build libcurl
+        run: |
+          wget -q -nc -P ${DOWNLOAD_PATH} https://curl.haxx.se/download/curl-${LIBCURL_VERSION}.tar.gz
+          tar xf ${DOWNLOAD_PATH}/curl-${LIBCURL_VERSION}.tar.gz -C ${DEP_PATH}
+          cd ${DEP_PATH}/curl-${LIBCURL_VERSION}
+          ./configure \
+            --prefix=/usr \
+            --enable-static \
+            --disable-shared \
+            --enable-ipv6 \
+            --disable-dependency-tracking \
+            --with-zlib=${ROOT}/usr \
+            --with-darwinssl \
+            --with-secure-transport \
+            --without-ca-bundle \
+            --without-ca-path \
+            --without-zstd \
+            --without-brotli \
+            --disable-ldap \
+            --disable-ldaps \
+            --without-libidn2 \
+            --without-nghttp2 \
+            --without-librtmp
+          make
+          make install DESTDIR="${ROOT}"
+
+      - name: build libzip
+        run: |
+          wget -q -nc -P ${DOWNLOAD_PATH} https://libzip.org/download/libzip-${LIBZIP_VERSION}.tar.gz
+          tar xf ${DOWNLOAD_PATH}/libzip-${LIBZIP_VERSION}.tar.gz -C ${DEP_PATH}
+          cd ${DEP_PATH}/libzip-${LIBZIP_VERSION}
+          cmake \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
+            -DENABLE_BZIP2=FALSE \
+            -DENABLE_LZMA=FALSE \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DSKIP_BUILD_RPATH=TRUE
+          make
+          make install DESTDIR="${ROOT}"
+
+      - name: build libgeneral
+        run: |
+          wget -q -nc -P ${DOWNLOAD_PATH} \
+            https://github.com/tihmstar/libgeneral/releases/download/${LIBGENERAL_VERSION}/buildroot_macos-latest.zip
+          unzip ${DOWNLOAD_PATH}/buildroot_macos-latest.zip -d ${HOME}
+          rsync -a ${HOME}/buildroot_macos-latest/usr/local/ ${ROOT}/usr/
+          rm -rf ${HOME}/buildroot_macos-latest ${DOWNLOAD_PATH}/buildroot_macos-latest.zip
+          #rm -rf ${DEP_PATH}/libgeneral
+          #git clone https://github.com/tihmstar/libgeneral ${DEP_PATH}/libgeneral
+          #cd ${DEP_PATH}/libgeneral
+          #git checkout f571dc2949c4ca4c9b5db72fff35878717e5ce0b
+          #./autogen.sh --enable-static --disable-shared --prefix=/usr
+          #make
+          #make install DESTDIR="${ROOT}"
+
+      - name: build libfragmentzip
+        run: |
+          wget -q -nc -P ${DOWNLOAD_PATH} \
+            https://github.com/tihmstar/libfragmentzip/releases/download/${LIBFRAGMENTZIP_VERSION}/buildroot_macos-latest.zip
+          unzip ${DOWNLOAD_PATH}/buildroot_macos-latest.zip -d ${HOME}
+          rsync -a ${HOME}/buildroot_macos-latest/usr/local/ ${ROOT}/usr/
+          rm -rf ${HOME}/buildroot_macos-latest ${DOWNLOAD_PATH}/buildroot_macos-latest.zip
+
+      - name: configure
+        run: |
+          ./autogen.sh \
+            --enable-static \
+            --disable-shared \
+      - name: build
+        run: make LDFLAGS="-all-static ${LDFLAGS}"
+      - uses: actions/upload-artifact@v1
+        with:
+          name: tsschecker_macos
+          path: tsschecker/tsschecker
+
   releases:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-windows]
+    needs: [build-linux, build-windows, build-macos]
     steps:
       - uses: actions/checkout@v1
 
@@ -357,8 +496,13 @@ jobs:
         with:
           name: tsschecker_windows
           path: tsschecker_windows
+      - name: Download macos artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: tsschecker_macos
+          path: tsschecker_macos
 
-      - name: Set env vars and zip
+      - name: Set env vars
         run: |
           echo "BUILD_VERSION_NUM=$(echo "$(git rev-list --count HEAD | tr -d '\n')")" >> $GITHUB_ENV
           echo "BUILD_VERSION_SHA=$(echo "$(git rev-parse HEAD | tr -d '\n'])")" >> $GITHUB_ENV
@@ -393,3 +537,12 @@ jobs:
           asset_path: ./tsschecker_windows/tsschecker.exe
           asset_name: tsschecker.exe
           asset_content_type: application/x-msdownload
+      - name: Upload Release Asset macos
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./tsschecker_macos/tsschecker
+          asset_name: tsschecker_macos
+          asset_content_type: application/x-mach-binary
