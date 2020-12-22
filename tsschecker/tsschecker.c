@@ -108,6 +108,12 @@ const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
 // iPhone & iPod touch (1st generations) doesn't have signing technology.
 static struct bbdevice bbdevices[] = {
+    // Apple Silicon Macs
+    {"ADP3,2", 0, 0},         // Developer Transition Kit
+    {"Macmini9,1", 0, 0},     // Mac Mini (M1, 2020)
+    {"MacBookAir10,1", 0, 0}, // MacBook Air (M1, 2020)
+    {"MacBookPro17,1", 0, 0}, // MacBook Pro (13-inch, M1, 2020)
+    
     // iPod touches
     {"iPod2,1", 0, 0}, // 2nd gen
     {"iPod3,1", 0, 0}, // 3rd gen
@@ -117,41 +123,6 @@ static struct bbdevice bbdevices[] = {
     {"iPod9,1", 0, 0}, // 7th gen
     
     // iPhones
-<<<<<<< HEAD
-    {"iPhone3,1", 257, 12}, // iPhone 4 GSM
-    {"iPhone3,2", 257, 12}, // iPhone 4 GSM (2012, Rev A)
-    {"iPhone3,3", 2, 4}, // iPhone 4 CDMA
-    {"iPhone4,1", 2, 4}, // iPhone 4s
-    {"iPhone5,1", 3255536192, 4}, // iPhone 5 (GSM)
-    {"iPhone5,2", 3255536192, 4}, // iPhone 5 (Global)
-    {"iPhone5,3", 3554301762, 4}, // iPhone 5c (GSM)
-    {"iPhone5,4", 3554301762, 4}, // iPhone 5c (Global)
-    {"iPhone6,1", 3554301762, 4}, // iPhone 5s (GSM)
-    {"iPhone6,2", 3554301762, 4}, // iPhone 5s (Global)
-    {"iPhone7,1", 3840149528, 4}, // iPhone 6 Plus
-    {"iPhone7,2", 3840149528, 4}, // iPhone 6
-    {"iPhone8,1", 3840149528, 4}, // iPhone 6s
-    {"iPhone8,2", 3840149528, 4}, // iPhone 6s Plus
-    {"iPhone8,4", 3840149528, 4}, // iPhone SE
-    {"iPhone9,1", 2315222105, 4}, // iPhone 7 (Global)
-    {"iPhone9,2", 2315222105, 4}, // iPhone 7 Plus (Global)
-    {"iPhone9,3", 1421084145, 12}, // iPhone 7 GSM
-    {"iPhone9,4", 1421084145, 12}, // iPhone 7 Plus (GSM)
-    {"iPhone10,1", 2315222105, 4}, // iPhone 8 (Global)
-    {"iPhone10,2", 2315222105, 4}, // iPhone 8 Plus (Global)
-    {"iPhone10,3", 2315222105, 4}, // iPhone X (Global)
-    {"iPhone10,4", 524245983, 12}, // iPhone 8 (GSM)
-    {"iPhone10,5", 524245983, 12}, // iPhone 8 Plus (GSM)
-    {"iPhone10,6", 524245983, 12}, // iPhone X GSM
-    {"iPhone11,2", 165673526, 12}, // iPhone XS
-    {"iPhone11,4", 165673526, 12}, // iPhone XS Max (China)
-    {"iPhone11,6", 165673526, 12}, // iPhone XS Max (Global)
-    {"iPhone11,8", 165673526, 12}, // iPhone XR
-    {"iPhone12,1", 524245983, 12}, // iPhone 11
-    {"iPhone12,3", 524245983, 12}, // iPhone 11 Pro
-    {"iPhone12,5", 524245983, 12}, // iPhone 11 Pro Max
-    {"iPhone12,8", 524245983, 12}, // iPhone SE (2020)
-=======
     {"iPhone3,1",  257, 12},        // iPhone 4 GSM
     {"iPhone3,2",  257, 12},        // iPhone 4 GSM (2012, Rev A)
     {"iPhone3,3",  2, 4},           // iPhone 4 CDMA
@@ -189,7 +160,6 @@ static struct bbdevice bbdevices[] = {
     {"iPhone13,2", 3095201109, 4},  // iPhone 12
     {"iPhone13,3", 3095201109, 4},  // iPhone 12 Pro
     {"iPhone13,4", 3095201109, 4},  // iPhone 12 Pro Max
->>>>>>> 5252d71 (Support the iPhone 12 model series)
     
     // iPads
     {"iPad1,1", 0, 0}, // iPad (1st gen)
