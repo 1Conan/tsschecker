@@ -106,13 +106,31 @@ int nocache = 0;
 int save_shshblobs = 0;
 const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
-// iPhone & iPod touch (1st generations) doesn't have signing technology.
+// iPhone & iPod touch (1st generations) do not use SHSH or APTicket.
 static struct bbdevice bbdevices[] = {
     // Apple Silicon Macs
     {"ADP3,2", 0, 0},         // Developer Transition Kit
     {"Macmini9,1", 0, 0},     // Mac Mini (M1, 2020)
     {"MacBookAir10,1", 0, 0}, // MacBook Air (M1, 2020)
     {"MacBookPro17,1", 0, 0}, // MacBook Pro (13-inch, M1, 2020)
+    
+    // Apple T2 Coprocessor
+    {"iBridge2,1", 0, 0}, // Apple T2 iMacPro1,1 (j137)
+    {"iBridge2,3", 0, 0}, // Apple T2 MacBookPro15,1 (j680)
+    {"iBridge2,4", 0, 0}, // Apple T2 MacBookPro15,2 (j132)
+    {"iBridge2,5", 0, 0}, // Apple T2 Macmini8,1 (j174)
+    {"iBridge2,6", 0, 0}, // Apple T2 MacPro7,1 (j160)
+    {"iBridge2,7", 0, 0}, // Apple T2 MacBookPro15,3 (j780)
+    {"iBridge2,8", 0, 0}, // Apple T2 MacBookAir8,1 (j140k)
+    {"iBridge2,10", 0, 0}, // Apple T2 MacBookPro15,4 (j213)
+    {"iBridge2,12", 0, 0}, // Apple T2 MacBookAir8,2 (j140a)
+    {"iBridge2,14", 0, 0}, // Apple T2 MacBookPro16,1 (j152f)
+    {"iBridge2,15", 0, 0}, // Apple T2 MacBookAir9,1 (j230k)
+    {"iBridge2,16", 0, 0}, // Apple T2 MacBookPro16,2 (j214k)
+    {"iBridge2,19", 0, 0}, // Apple T2 iMac20,1 (j185)
+    {"iBridge2,20", 0, 0}, // Apple T2 iMac20,2 (j185f)
+    {"iBridge2,21", 0, 0}, // Apple T2 MacBookPro16,3 (j223)
+    {"iBridge2,22", 0, 0}, // Apple T2 MacBookPro16,4 (j215)
     
     // iPod touches
     {"iPod2,1", 0, 0}, // 2nd gen
