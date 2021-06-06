@@ -59,6 +59,7 @@ static struct option longopts[] = {
     { "raw",                required_argument, NULL, 10  },
     { "bbsnum",             required_argument, NULL, 11  },
     { "server-url",         required_argument, NULL, 12  },
+    { "cydia",              no_argument,       NULL, 'c' },
     { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
@@ -75,6 +76,7 @@ void cmd_help(){
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request a ticket without baseband\n");
     printf("  -m, --build-manifest\t\tmanually specify buildmanifest (can be used with -d)\n");
     printf("  -s, --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
+    printf("  -c, --cydia\t\t\tuse Cydia's TSS instead of Apple's\n");
     printf("  -u, --update-install\t\trequest update ticket instead of erase\n");
     printf("  -l, --latest\t\t\tuse latest public firmware version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving signing tickets\n");
@@ -88,7 +90,7 @@ void cmd_help(){
     printf("      --beta\t\t\trequest ticket for beta instead of normal release (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known firmware versions\n");
-    printf("      --server-url SERVER-URL\t\tcustom tss url\n");
+    printf("      --server-url\t\tcustom tss url\n");
     printf("      --nocache \t\tignore caches and redownload required files\n");
     printf("      --print-tss-request\tprint TSS request that will be sent to Apple\n");
     printf("      --print-tss-response\tprint TSS response that come from Apple\n");
@@ -180,7 +182,7 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
 
-    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hg:slbuo", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:e:m:B:hg:slbuoc", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -236,6 +238,9 @@ int main(int argc, const char * argv[]) {
                 break;
             case 's': // long option: "save"; can be called as short option
                 save_shshblobs = 1;
+                break;
+            case 'c': // long option: "cydia"; can be called as short option
+                serverUrl = "http://cydia.saurik.com/TSS/controller?action=2/";
                 break;
             case 'o': // long option: "ota"; can be called as short option
                 versVals.isOta = 1;
