@@ -1562,7 +1562,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
         
         response = malloc(sizeof(tss_response));
         if (response == NULL) {
-            fprintf(stderr, "Unable to allocate sufficent memory\n");
+            fprintf(stderr, "Unable to allocate sufficient memory\n");
             return NULL;
         }
         
@@ -1593,7 +1593,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
         curl_easy_perform(handle);
         curl_slist_free_all(header);
         curl_easy_cleanup(handle);
-        
+
         if (strstr(response->content, "MESSAGE=SUCCESS")) {
             status_code = 0;
             info("success\n");

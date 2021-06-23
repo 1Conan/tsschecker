@@ -7,11 +7,29 @@ AC_CONFIG_SRCDIR([tsschecker/tsschecker.h])
 AC_CONFIG_HEADERS([config.h])
 
 # Check for operating system
+AC_CANONICAL_HOST
+
+build_linux=no
+build_windows=no
+build_mac=no
+
 AC_MSG_CHECKING([whether we need platform-specific build settings])
-case $host_os in
-  darwin* )
+case "${host_os}" in
+    linux*)
+        build_linux=yes
+        ;;
+    cygwin*|mingw*)
+        build_windows=yes
+        ;;
+    darwin*)
+        build_mac=yes
         ;;
 esac
+
+# Pass the conditionals to automake
+AM_CONDITIONAL([LINUX], [test "$build_linux" = "yes"])
+AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
+AM_CONDITIONAL([OSX], [test "$build_mac" = "yes"])
 
 # Checks for programs.
 AC_PROG_CC
@@ -19,7 +37,6 @@ CFLAGS+=" -std=gnu11"
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIRS([m4])
-AC_CANONICAL_HOST
 
 # Versioning.
 CFLAGS+=" -D TSSCHECKER_VERSION_COUNT=\\\"$(git rev-list --count HEAD | tr -d '\n')\\\""
