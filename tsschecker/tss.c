@@ -51,7 +51,7 @@
 #ifdef WIN32
 #define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-776.100.16" 
 #else
-#define TSS_CLIENT_VERSION_STRING "libauthinstall-776.100.16"
+#define TSS_CLIENT_VERSION_STRING "libauthinstall-776.140.3"
 #endif
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)

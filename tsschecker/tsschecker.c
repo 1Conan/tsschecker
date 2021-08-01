@@ -896,6 +896,14 @@ getID0:
             reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
         }
     }
+    if (plist_dict_get_item(tssreq, "Savage,BE-Dev-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BE-Dev-Patch");
+    if(plist_dict_get_item(tssreq, "Savage,BE-Prod-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BE-Prod-Patch");
+    if(plist_dict_get_item(tssreq, "Savage,BF-Dev-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BF-Dev-Patch");
+    if(plist_dict_get_item(tssreq, "Savage,BF-Prod-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BF-Prod-Patch");
     if (basebandMode == kBasebandModeOnlyBaseband) {
         if (plist_dict_get_item(tssreq, "@ApImg4Ticket"))
             plist_dict_set_item(tssreq, "@ApImg4Ticket", plist_new_bool(0));
