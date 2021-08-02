@@ -531,7 +531,20 @@ malloc_rets:
     return (t_versionURL*)rets_base;
 }
 
+#ifdef WIN32
 static void fragmentzip_callback(){}
+#else
+static void printline(int percent){
+    info("%03d [",percent);for (int i=0; i<100; i++) putchar((percent >0) ? ((--percent > 0) ? '=' : '>') : ' ');
+    info("]");
+}
+
+static void fragmentzip_callback(unsigned int progress){
+    info("\x1b[A\033[J"); //clear 2 lines
+    printline((int)progress);
+    info("\n");
+}
+#endif
 
 int downloadPartialzip(const char *url, const char *file, const char *dst){
     log("[LFZP] downloading %s from %s\n",file,url);
