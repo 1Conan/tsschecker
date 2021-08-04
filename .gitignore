@@ -15,6 +15,7 @@ autom4te.cache
 compile
 config.*
 configure
+configure~
 depcomp
 install-sh
 libtool

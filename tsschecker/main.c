@@ -67,10 +67,10 @@ void cmd_help(){
     printf("Checks (real) TSS signing status for device/firmware\n\n");
     printf("Usage: tsschecker [OPTIONS]\n\n");
     printf("  -h, --help\t\t\tprints usage information\n");
-    printf("  -d, --device MODEL\t\tspecify device by its model (eg. iPhone8,1)\n");
-    printf("  -i, --ios VERSION\t\tspecify firmware version (eg. 13.4.1)\n");
-    printf("  -Z  --buildid BUILD\t\tspecific buildid instead of firmware version (eg. 17E255)\n");
-    printf("  -B, --boardconfig BOARD \tspecific boardconfig instead of device model (eg. n71ap)\n");
+    printf("  -d, --device MODEL\t\tspecify device by its model (eg. iPhone10,3)\n");
+    printf("  -i, --ios VERSION\t\tspecify firmware version (eg. 14.7.1)\n");
+    printf("  -Z  --buildid BUILD\t\tspecify buildid instead of firmware version (eg. 18G82)\n");
+    printf("  -B, --boardconfig BOARD \tspecify boardconfig instead of device model (eg. d22ap)\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request tickets without baseband\n");
     printf("  -m, --build-manifest\t\tmanually specify a BuildManifest (can be used with -d)\n");
@@ -79,10 +79,10 @@ void cmd_help(){
     printf("  -l, --latest\t\t\tuse the latest public firmware version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving shsh blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
-    printf("                 \t\tECID must be either DEC or HEX eg. 5482657301265 or ab46efcbf71\n");
-    printf("  -g, --generator GEN\t\tmanually specify generator in format 0x%%16llx\n\n");
+    printf("                 \t\tECID must be either DEC or HEX eg. 5482657301265 or 0xab46efcbf71\n");
+    printf("  -g, --generator GEN\t\tmanually specify generator in HEX format 16 in length (eg. 0x1111111111111111)\n\n");
     printf("      --apnonce NONCE\t\tmanually specify ApNonce instead of using random ones\n\t\t\t\t(required for saving blobs for A12/S4 and newer devices with generator)\n\n");
-    printf("      --sepnonce NONCE\t\tmanually specify SepNonce instead of using random ones (not required for saving blobs)\n");
+    printf("      --sepnonce NONCE\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
     printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
     printf("      --save-path PATH\t\tspecify output path for saving shsh blobs\n");
     printf("      --server-url URL\t\tmanually specify TSS server url\n");
@@ -151,7 +151,7 @@ char *parseNonce(const char *nonce, size_t *parsedLen){
 int main(int argc, const char * argv[]) {
     int err = 0;
     int isSigned = 0;
-    printf("tsschecker version: "TSSCHECKER_VERSION_COUNT".0-"TSSCHECKER_VERSION_SHA"\n");
+    printf("tsschecker version: 0."TSSCHECKER_VERSION_COUNT"-"TSSCHECKER_VERSION_SHA"\n");
     printf("%s\n",fragmentzip_version());
     
     dbglog = 1;
