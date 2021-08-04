@@ -182,47 +182,51 @@ static struct bbdevice bbdevices[] = {
     {"iPhone13,4", 3095201109, 4},  // iPhone 12 Pro Max
     
     // iPads
-    {"iPad1,1", 0, 0}, // iPad (1st gen)
-    {"iPad2,1", 0, 0}, // iPad 2 Wi-Fi
-    {"iPad2,2", 257, 12}, // iPad 2 GSM
-    {"iPad2,3", 257, 12}, // iPad 2 CDMA
-    {"iPad2,4", 0, 0}, // iPad 2 Wi-Fi (2012, Rev A)
-    {"iPad3,1", 0, 0}, // the new iPad (3rd gen, Wi-Fi)
-    {"iPad3,2", 4, 4}, // the new iPad (3rd gen, CDMA)
-    {"iPad3,3", 4, 4}, // the new iPad (3rd gen, GSM)
-    {"iPad3,4", 0, 0}, // iPad with Retina display (4th gen, Wi-Fi)
-    {"iPad3,5", 3255536192, 4}, // iPad with Retina display (4th gen, CDMA)
-    {"iPad3,6", 3255536192, 4}, // iPad with Retina display (4th gen, GSM)
-    {"iPad6,11", 0, 0}, // iPad (5th gen, 2017, Wi-Fi)
+    {"iPad1,1",  0, 0},          // iPad (1st gen)
+    {"iPad2,1",  0, 0},          // iPad 2 Wi-Fi
+    {"iPad2,2",  257, 12},       // iPad 2 GSM
+    {"iPad2,3",  257, 12},       // iPad 2 CDMA
+    {"iPad2,4",  0, 0},          // iPad 2 Wi-Fi (2012, Rev A)
+    {"iPad3,1",  0, 0},          // iPad (3rd gen, Wi-Fi)
+    {"iPad3,2",  4, 4},          // iPad (3rd gen, CDMA)
+    {"iPad3,3",  4, 4},          // iPad (3rd gen, GSM)
+    {"iPad3,4",  0, 0},          // iPad with Retina display (4th gen, Wi-Fi)
+    {"iPad3,5",  3255536192, 4}, // iPad with Retina display (4th gen, CDMA)
+    {"iPad3,6",  3255536192, 4}, // iPad with Retina display (4th gen, GSM)
+    {"iPad6,11", 0, 0},          // iPad (5th gen, 2017, Wi-Fi)
     {"iPad6,12", 3840149528, 4}, // iPad (5th gen, 2017, Cellular)
-    {"iPad7,5", 0, 0}, // iPad (6th gen, 2018, Wi-Fi)
-    {"iPad7,6", 3840149528, 4}, // iPad (6th gen, 2018, Cellular)
-    {"iPad7,11", 0, 0}, // iPad (7th gen, 2019, Wi-Fi)
-    {"iPad7,12", 524245983, 12}, // iPad (7th gen, 2019, Cellular)
+    {"iPad7,5",  0, 0},          // iPad (6th gen, 2018, Wi-Fi)
+    {"iPad7,6",  3840149528, 4}, // iPad (6th gen, 2018, Cellular)
+    {"iPad7,11", 0, 0},          // iPad (7th gen, 2019, Wi-Fi)
+    {"iPad7,12", 165673526, 12}, // iPad (7th gen, 2019, Cellular)
+    {"iPad11,6", 0, 0},          // iPad (8th gen, 2020, Wi-Fi)
+    {"iPad11,7", 165673526, 12}, // iPad (8th gen, 2020, Cellular)
     
     // iPad minis
-    {"iPad2,5", 0, 0}, // iPad mini (1st gen, Wi-Fi)
-    {"iPad2,6", 3255536192, 4}, // iPad mini (1st gen, CDMA)
-    {"iPad2,7", 3255536192, 4}, // iPad mini (1st gen, GSM)
-    {"iPad4,4", 0, 0}, // iPad mini 2 (Wi-Fi)
-    {"iPad4,5", 3554301762, 4}, // iPad mini 2 (Cellular)
-    {"iPad4,6", 3554301762, 4}, // iPad mini 2 (Cellular, China)
-    {"iPad4,7", 0, 0}, // iPad mini 3 (Wi-Fi)
-    {"iPad4,8", 3554301762, 4}, // iPad mini 3 (Cellular)
-    {"iPad4,9", 3554301762, 4}, // iPad mini 3 (Cellular, China)
-    {"iPad5,1", 0, 0}, // iPad mini 4 (Wi-Fi)
-    {"iPad5,2", 3840149528, 4}, // iPad mini 4 (Cellular)
-    {"iPad11,1", 0, 0}, // iPad mini (5th gen, Wi-Fi)
+    {"iPad2,5",  0, 0},          // iPad mini (1st gen, Wi-Fi)
+    {"iPad2,6",  3255536192, 4}, // iPad mini (1st gen, CDMA)
+    {"iPad2,7",  3255536192, 4}, // iPad mini (1st gen, GSM)
+    {"iPad4,4",  0, 0},          // iPad mini 2 (Wi-Fi)
+    {"iPad4,5",  3554301762, 4}, // iPad mini 2 (Cellular)
+    {"iPad4,6",  3554301762, 4}, // iPad mini 2 (Cellular, China)
+    {"iPad4,7",  0, 0},          // iPad mini 3 (Wi-Fi)
+    {"iPad4,8",  3554301762, 4}, // iPad mini 3 (Cellular)
+    {"iPad4,9",  3554301762, 4}, // iPad mini 3 (Cellular, China)
+    {"iPad5,1",  0, 0},          // iPad mini 4 (Wi-Fi)
+    {"iPad5,2",  3840149528, 4}, // iPad mini 4 (Cellular)
+    {"iPad11,1", 0, 0},          // iPad mini (5th gen, Wi-Fi)
     {"iPad11,2", 165673526, 12}, // iPad mini (5th gen, Cellular)
     
     // iPad Airs
-    {"iPad4,1", 0, 0}, // iPad Air (Wi-Fi)
-    {"iPad4,2", 3554301762, 4}, // iPad Air (Cellular)
-    {"iPad4,3", 3554301762, 4}, // iPad Air (Cellular, China)
-    {"iPad5,3", 0, 0}, // iPad Air 2 (Wi-Fi)
-    {"iPad5,4", 3840149528, 4}, // iPad Air 2 (Cellular)
-    {"iPad11,3", 0, 0}, // iPad Air (3rd gen, Wi-Fi)
+    {"iPad4,1",  0, 0},          // iPad Air (Wi-Fi)
+    {"iPad4,2",  3554301762, 4}, // iPad Air (Cellular)
+    {"iPad4,3",  3554301762, 4}, // iPad Air (Cellular, China)
+    {"iPad5,3",  0, 0},          // iPad Air 2 (Wi-Fi)
+    {"iPad5,4",  3840149528, 4}, // iPad Air 2 (Cellular)
+    {"iPad11,3", 0, 0},          // iPad Air (3rd gen, Wi-Fi)
     {"iPad11,4", 165673526, 12}, // iPad Air (3rd gen, Cellular)
+    {"iPad13,1", 0, 0},          // iPad Air (4th gen, Wi-Fi)
+    {"iPad13,2", 524245983, 12}, // iPad Air (4th gen, Cellular)
     
     // iPad Pros
     {"iPad6,3",    0, 0},            // iPad Pro (9.7-inch, Wi-Fi)
@@ -255,24 +259,32 @@ static struct bbdevice bbdevices[] = {
     {"iPad13,11",  3095201109, 4},   // iPad Pro (12.9-inch, 5th gen, 2TB, Cellular)
     
     // Apple Watches
-    {"Watch1,1", 0, 0}, // Apple Watch 1st gen (38mm)
-    {"Watch1,2", 0, 0}, // Apple Watch 1st gen (42mm)
-    {"Watch2,6", 0, 0}, // Apple Watch Series 1 (38mm)
-    {"Watch2,7", 0, 0}, // Apple Watch Series 1 (42mm)
-    {"Watch2,3", 0, 0}, // Apple Watch Series 2 (38mm)
-    {"Watch2,4", 0, 0}, // Apple Watch Series 2 (42mm)
-    {"Watch3,1", 3840149528, 4}, // Apple Watch Series 3 (38mm GPS + Cellular)
-    {"Watch3,2", 3840149528, 4}, // Apple Watch Series 3 (42mm GPS + Cellular)
-    {"Watch3,3", 0, 0}, // Apple Watch Series 3 (38mm GPS)
-    {"Watch3,4", 0, 0}, // Apple Watch Series 3 (42mm GPS)
-    {"Watch4,1", 0, 0}, // Apple Watch Series 4 (40mm GPS)
-    {"Watch4,2", 0, 0}, // Apple Watch Series 4 (44mm GPS)
-    {"Watch4,3", 744114402, 12}, // Apple Watch Series 4 (40mm GPS + Cellular)
-    {"Watch4,4", 744114402, 12}, // Apple Watch Series 4 (44mm GPS + Cellular)
-    {"Watch5,1", 0, 0}, // Apple Watch Series 5 (40mm GPS)
-    {"Watch5,2", 0, 0}, // Apple Watch Series 5 (44mm GPS)
-    {"Watch5,3", 744114402, 12}, // Apple Watch Series 5 (40mm GPS + Cellular)
-    {"Watch5,4", 744114402, 12}, // Apple Watch Series 5 (44mm GPS + Cellular)
+    {"Watch1,1",  0, 0},          // Apple Watch 1st gen (38mm)
+    {"Watch1,2",  0, 0},          // Apple Watch 1st gen (42mm)
+    {"Watch2,6",  0, 0},          // Apple Watch Series 1 (38mm)
+    {"Watch2,7",  0, 0},          // Apple Watch Series 1 (42mm)
+    {"Watch2,3",  0, 0},          // Apple Watch Series 2 (38mm)
+    {"Watch2,4",  0, 0},          // Apple Watch Series 2 (42mm)
+    {"Watch3,1",  3840149528, 4}, // Apple Watch Series 3 (38mm GPS + Cellular)
+    {"Watch3,2",  3840149528, 4}, // Apple Watch Series 3 (42mm GPS + Cellular)
+    {"Watch3,3",  0, 0},          // Apple Watch Series 3 (38mm GPS)
+    {"Watch3,4",  0, 0},          // Apple Watch Series 3 (42mm GPS)
+    {"Watch4,1",  0, 0},          // Apple Watch Series 4 (40mm GPS)
+    {"Watch4,2",  0, 0},          // Apple Watch Series 4 (44mm GPS)
+    {"Watch4,3",  744114402, 12}, // Apple Watch Series 4 (40mm GPS + Cellular)
+    {"Watch4,4",  744114402, 12}, // Apple Watch Series 4 (44mm GPS + Cellular)
+    {"Watch5,1",  0, 0},          // Apple Watch Series 5 (40mm GPS)
+    {"Watch5,2",  0, 0},          // Apple Watch Series 5 (44mm GPS)
+    {"Watch5,3",  744114402, 12}, // Apple Watch Series 5 (40mm GPS + Cellular)
+    {"Watch5,4",  744114402, 12}, // Apple Watch Series 5 (44mm GPS + Cellular)
+    {"Watch5,9",  0, 0},          // Apple Watch SE (40mm GPS)
+    {"Watch5,10", 0, 0},          // Apple Watch SE (44mm GPS)
+    {"Watch5,11", 744114402, 12}, // Apple Watch SE (40mm GPS + Cellular)
+    {"Watch5,12", 744114402, 12}, // Apple Watch SE (44mm GPS + Cellular)
+    {"Watch6,1",  0, 0},          // Apple Watch Series 6 (40mm GPS)
+    {"Watch6,2",  0, 0},          // Apple Watch Series 6 (44mm GPS)
+    {"Watch6,3",  744114402, 12}, // Apple Watch Series 6 (40mm GPS + Cellular)
+    {"Watch6,4",  744114402, 12}, // Apple Watch Series 6 (44mm GPS + Cellular)
     
     // HomePods
     {"AudioAccessory1,1", 0, 0}, // HomePod 1st gen
@@ -519,6 +531,9 @@ malloc_rets:
     return (t_versionURL*)rets_base;
 }
 
+#ifdef WIN32
+static void fragmentzip_callback(){}
+#else
 static void printline(int percent){
     info("%03d [",percent);for (int i=0; i<100; i++) putchar((percent >0) ? ((--percent > 0) ? '=' : '>') : ' ');
     info("]");
@@ -529,9 +544,10 @@ static void fragmentzip_callback(unsigned int progress){
     printline((int)progress);
     info("\n");
 }
+#endif
 
 int downloadPartialzip(const char *url, const char *file, const char *dst){
-    log("[LFZP] downloading %s from %s\n\n",file,url);
+    log("[LFZP] downloading %s from %s\n",file,url);
     fragmentzip_t *info = fragmentzip_open(url);
     if (!info) {
         error("[LFZP] failed to open url\n");
@@ -1046,7 +1062,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, (*devVals->generator || apticket2) ? "2" : "");
         
         
-        FILE *shshfile = fopen(fname, "w");
+        FILE *shshfile = fopen(fname, "wb");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
         else{
             fwrite(data, strlen(data), 1, shshfile);
