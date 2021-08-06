@@ -153,7 +153,7 @@ jobs:
           esac
         fi
         cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
-        CC= CXX= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=/usr --static -static ${OPENSSL_PLATFORM}
+        CC= CXX= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=/usr --static -static ${PLATFORM}
         make -j$(nproc) CC="${CC}" CXX="${CXX}"
         make install_sw DESTDIR="${ROOT}"
 
@@ -197,7 +197,7 @@ jobs:
         fi
 
         cmake \
-          ${LIBZIP_CONFIGURE_FLAGS} \
+          ${CONFIGURE_FLAGS} \
           -DCMAKE_CROSSCOMPILING=TRUE \
           -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_SHARED_LIBRARY_LINK_C_FLAGS="" \
