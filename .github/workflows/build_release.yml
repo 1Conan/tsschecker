@@ -49,8 +49,8 @@ jobs:
         echo "TRIPLE=${{ matrix.triple }}" >> $GITHUB_ENV
         echo "TOOLCHAIN=${{ matrix.triple }}-cross" >> $GITHUB_ENV
 
-        export ARCH=$(echo ${TRIPLE} | cut -d- -f 1)
-        export OS=$(echo ${TRIPLE} | cut -d- -f 2)
+        export ARCH=$(echo ${{ matrix.triple }} | cut -d- -f 1)
+        export OS=$(echo ${{ matrix.triple }} | cut -d- -f 2)
 
         if [ "${OS}" = "w64" ]; then
           export OS="win"
