@@ -1221,7 +1221,11 @@ int printListOfDevices(jssytok_t *tokens){
     size_t currLen = 0;
     int rspn = 0;
     putchar('\n');
-    jssytok_t *ctok = jssy_dictGetValueForKey(tokens, "devices");
+    jssytok_t *ctok = NULL;
+    if (!(ctok = jssy_dictGetValueForKey(tokens, "devices"))){
+        warning("Failed to get value for key 'devices', trying with tokens instead!\n\n");
+        ctok = tokens;
+    }
     
     jssytok_t *tmp = ctok->subval;
     for (size_t i=0; i<ctok->size; tmp = tmp->next,i++) {
