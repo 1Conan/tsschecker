@@ -327,7 +327,7 @@ jobs:
             esac
             OS=$(echo ${DIR} | cut -d_ -f 2)
             ARCH=$(echo ${DIR} | cut -d_ -f 3-)
-            mv ${DIR}/tsschecker${EXE_SUFFIX} bins/tsschecker_${OS}_${ARCH}${EXE_SUFFIX}
+            mv ${DIR}tsschecker${EXE_SUFFIX} "bins/tsschecker_${OS}_${ARCH%/}${EXE_SUFFIX}"
           done
 
       - name: Release
