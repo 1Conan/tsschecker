@@ -311,3 +311,31 @@ jobs:
       - name: List artifacts
         run: ls -R
         working-directory: artifacts
+
+      - name: Rename artifacts
+        working-directory: artifacts
+        run: |
+          mkdir -p bins
+          for DIR in tsschecker_*/; do
+            case ${DIR} in
+              *_win_*)
+                EXE_SUFFIX=".exe"
+                ;;
+              *)
+                EXE_SUFFIX=""
+                ;;
+            esac
+            OS=$(echo ${DIR} | cut -d_ -f 2)
+            ARCH=$(echo ${DIR} | cut -d_ -f 3-)
+            mv ${DIR}/tsschecker${EXE_SUFFIX} bins/tsschecker_${OS}_${ARCH}${EXE_SUFFIX}
+          done
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Build ${{ env.BUILD_VERSION_STR }}
+          tag_name: ${{ env.BUILD_VERSION_NUM }}
+          files: artifacts/bins/tsschecker_*
+          body: ${{ env.COMMIT_MSG }}
+          draft: false
+          prerelease: true
