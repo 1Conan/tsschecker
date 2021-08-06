@@ -24,16 +24,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: cache files
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.ccache
-          ~/dep_src
-        key: build-win-linux-${ { env.GITHUB_SHA } }
-        restore-keys: |
-          build-win-linux-
-
     - name: setup environment
       run: |
         export DOWNLOAD_PATH=${HOME}/dep_src
@@ -68,18 +58,17 @@ jobs:
 
     - name: Download and setup toolchain
       run: |
-        sudo apt-get install -y ccache
-        wget -nc -P ${DOWNLOAD_PATH} https://musl.cc/${TOOLCHAIN}.tgz
+        wget -q -nc -P ${DOWNLOAD_PATH} https://musl.cc/${TOOLCHAIN}.tgz
         tar xf ${DOWNLOAD_PATH}/${TOOLCHAIN}.tgz -C ${HOME}
         if [ "${OS}" = "win" ]; then
-          wget -nc -P ${DOWNLOAD_PATH} \
+          wget -q -nc -P ${DOWNLOAD_PATH} \
             https://github.com/meganz/mingw-std-threads/archive/refs/tags/${MINGW_STD_THREADS_VERSION}.tar.gz
           mkdir -p ${ROOT}/usr/include
           tar xf ${DOWNLOAD_PATH}/${MINGW_STD_THREADS_VERSION}.tar.gz -C ${DEP_PATH}
         fi
         echo "PATH=${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
-        echo "CC=ccache ${TRIPLE}-gcc" >> $GITHUB_ENV
-        echo "CXX=ccache ${TRIPLE}-g++" >> $GITHUB_ENV
+        echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
+        echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
         echo "CFLAGS=-Os -Wall -static" >> $GITHUB_ENV
         echo "CXXFLAGS=${CFLAGS}" >> $GITHUB_ENV
         echo "CPPFLAGS=-I${ROOT}/usr/include -I${DEP_PATH}/mingw-std-threads-${MINGW_STD_THREADS_VERSION}" >> $GITHUB_ENV
@@ -100,12 +89,12 @@ jobs:
 
     - name: build libirecovery
       run: |
-        wget -nc -P ${DOWNLOAD_PATH} \
+        wget -q -nc -P ${DOWNLOAD_PATH} \
           https://github.com/libimobiledevice/libirecovery/releases/download/${LIBIRECOVERY_VERSION}/libirecovery-${LIBIRECOVERY_VERSION}.tar.bz2
         tar xf ${DOWNLOAD_PATH}/libirecovery-${LIBIRECOVERY_VERSION}.tar.bz2 -C ${DEP_PATH}
 
         cd ${DEP_PATH}/libirecovery-${LIBIRECOVERY_VERSION}
-        wget https://gist.github.com/1Conan/2d015aad17f87f171b32ebfd9f48fb96/raw/c12fca047f8b0bba1c8983470bf863d80d7e1c1d/libirecovery.patch
+        wget -q https://gist.github.com/1Conan/2d015aad17f87f171b32ebfd9f48fb96/raw/c12fca047f8b0bba1c8983470bf863d80d7e1c1d/libirecovery.patch
         patch -p1 < libirecovery.patch
         libtoolize --force
         aclocal -I m4
@@ -129,7 +118,7 @@ jobs:
 
     - name: build openssl
       run: |
-        wget -nc -P ${DOWNLOAD_PATH} \
+        wget -q -nc -P ${DOWNLOAD_PATH} \
           https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
         tar xf ${DOWNLOAD_PATH}/openssl-${OPENSSL_VERSION}.tar.gz -C ${DEP_PATH}
 
@@ -157,7 +146,7 @@ jobs:
 
     - name: build libcurl
       run: |
-        wget -nc -P ${DOWNLOAD_PATH} \
+        wget -q -nc -P ${DOWNLOAD_PATH} \
           https://curl.haxx.se/download/curl-${LIBCURL_VERSION}.tar.gz
         tar xf ${DOWNLOAD_PATH}/curl-${LIBCURL_VERSION}.tar.gz -C ${DEP_PATH}
 
@@ -183,7 +172,7 @@ jobs:
 
     - name: build libzip
       run: |
-        wget -nc -P ${DOWNLOAD_PATH} \
+        wget -q -nc -P ${DOWNLOAD_PATH} \
           https://libzip.org/download/libzip-${LIBZIP_VERSION}.tar.gz
         tar xf ${DOWNLOAD_PATH}/libzip-${LIBZIP_VERSION}.tar.gz -C ${DEP_PATH}
         cd ${DEP_PATH}/libzip-${LIBZIP_VERSION}
