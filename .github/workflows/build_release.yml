@@ -146,8 +146,10 @@ jobs:
           case ${ARCH} in
             x86_64)
               export PLATFORM="mingw64"
+              ;;
             i686)
               export PLATFORM="mingw"
+              ;;
           esac
         fi
         cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
