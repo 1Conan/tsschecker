@@ -24,6 +24,16 @@ jobs:
       with:
         submodules: recursive
 
+    - name: cache files
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.ccache
+          ~/dep_src
+        key: build-win-linux-${ { env.GITHUB_SHA } }
+        restore-keys: |
+          build-win-linux-
+
     - name: setup environment
       run: |
         export DOWNLOAD_PATH=${HOME}/dep_src
@@ -58,6 +68,7 @@ jobs:
 
     - name: Download and setup toolchain
       run: |
+        sudo apt-get install -y ccache
         wget -q -nc -P ${DOWNLOAD_PATH} https://musl.cc/${TOOLCHAIN}.tgz
         tar xf ${DOWNLOAD_PATH}/${TOOLCHAIN}.tgz -C ${HOME}
         if [ "${OS}" = "win" ]; then
@@ -66,9 +77,9 @@ jobs:
           mkdir -p ${ROOT}/usr/include
           tar xf ${DOWNLOAD_PATH}/${MINGW_STD_THREADS_VERSION}.tar.gz -C ${DEP_PATH}
         fi
-        echo "PATH=${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
-        echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
-        echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
+        echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
+        echo "CC=ccache ${TRIPLE}-gcc" >> $GITHUB_ENV
+        echo "CXX=ccache ${TRIPLE}-g++" >> $GITHUB_ENV
         echo "CFLAGS=-Os -Wall -static" >> $GITHUB_ENV
         echo "CXXFLAGS=${CFLAGS}" >> $GITHUB_ENV
         echo "CPPFLAGS=-I${ROOT}/usr/include -I${DEP_PATH}/mingw-std-threads-${MINGW_STD_THREADS_VERSION}" >> $GITHUB_ENV
