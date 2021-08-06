@@ -18,7 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        triple: [x86_64-linux-musl,x86_64-w64-mingw32]
+        triple:
+        - x86_64-linux-musl
+        - i486-linux-musl
+        - arm-linux-musleabi
+        - aarch64-linux-musl
+        - mips-linux-musl
+        - x86_64-w64-mingw32
+        - i686-w64-mingw32
     steps:
     - uses: actions/checkout@v1
       with:
