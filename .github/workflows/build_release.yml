@@ -289,3 +289,25 @@ jobs:
       with:
         name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
         path: tsschecker/tsschecker${{ env.EXE_SUFFIX }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-win-lin]
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Set env vars
+        run: |
+          echo "BUILD_VERSION_NUM=$(echo "$(git rev-list --count HEAD | tr -d '\n')")" >> $GITHUB_ENV
+          echo "BUILD_VERSION_SHA=$(echo "$(git rev-parse HEAD | tr -d '\n'])")" >> $GITHUB_ENV
+          echo "BUILD_VERSION_STR=$(echo "$(git rev-list --count HEAD | tr -d '\n')-$(git rev-parse HEAD | tr -d '\n'])")" >> $GITHUB_ENV
+          echo "COMMIT_MSG=$(echo "$(git log -1 --pretty=%B)")" >> $GITHUB_ENV
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v1
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: ls -R
+        working-directory: artifacts
