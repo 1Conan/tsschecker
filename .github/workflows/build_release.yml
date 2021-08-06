@@ -37,9 +37,9 @@ jobs:
         path: |
           ~/.ccache
           ~/dep_src
-        key: build-win-linux-${ { env.GITHUB_SHA } }
+        key: build-win-linux-${{ matrix.triple }}-${ { env.GITHUB_SHA } }
         restore-keys: |
-          build-win-linux-
+          build-win-linux-${{ matrix.triple }}
 
     - name: setup environment
       run: |
