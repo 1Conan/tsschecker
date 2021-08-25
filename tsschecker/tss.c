@@ -484,6 +484,46 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	return 0;
 }
 
+int tss_request_add_rap_img4_tags(plist_t request, plist_t parameters) {
+    plist_t node = NULL;
+    plist_dict_set_item(request, "@Rap,Ticket", plist_new_bool(1));
+
+    
+    /* Rap,BoardID */
+    node = plist_dict_get_item(parameters, "Rap,BoardID");
+    if (node) {
+        plist_dict_set_item(request, "Rap,BoardID", plist_copy(node));
+    }
+    node = NULL;
+    
+    /* Rap,ChipID */
+    node = plist_dict_get_item(parameters, "Rap,ChipID");
+    if (node) {
+        plist_dict_set_item(request, "Rap,ChipID", plist_copy(node));
+    }
+    node = NULL;
+    
+    /* Rap,SecurityDomain */
+    node = plist_dict_get_item(parameters, "Rap,SecurityDomain");
+    if (node) {
+        plist_dict_set_item(request, "Rap,SecurityDomain", plist_copy(node));
+    }
+    node = NULL;
+    
+    //we are always requesting in Production mode, right?
+    plist_dict_set_item(request, "Rap,ProductionMode", plist_new_bool(1));
+
+    //we are always requesting in SecurityMode mode, right?
+    plist_dict_set_item(request, "Rap,SecurityMode", plist_new_bool(1));
+
+    
+    //we need these mods for tss_request_add_ap_tags
+    plist_dict_set_item(parameters, "ApSecurityMode", plist_new_bool(1));
+    plist_dict_set_item(parameters, "ApProductionMode", plist_new_bool(1));
+    plist_dict_set_item(parameters, "ApSupportsImg4", plist_new_bool(1));
+    return 0;
+}
+
 int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 	plist_t node = NULL;
 

@@ -666,8 +666,10 @@ void getRandNum(char *dst, size_t size, int base){
 #pragma mark tss functions
 int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t nonce_size, char *sep_nonce, size_t sep_nonce_size, int image4supported){
     plist_dict_set_item(tssreq, "ApECID", plist_new_uint(ecid)); //0000000000000000
+    plist_dict_set_item(tssreq, "Rap,ECID", plist_new_uint(ecid)); //0000000000000000
     if (nonce) {
         plist_dict_set_item(tssreq, "ApNonce", plist_new_data(nonce, nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
+        plist_dict_set_item(tssreq, "Rap,Nonce", plist_new_data(nonce, nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
     }
     
     if (sep_nonce) {//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
@@ -675,10 +677,13 @@ int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t n
     }
     
     plist_dict_set_item(tssreq, "ApProductionMode", plist_new_bool(1));
-    
+    plist_dict_set_item(tssreq, "Rap,ProductionMode", plist_new_bool(1));
+
     if (image4supported) {
         plist_dict_set_item(tssreq, "ApSecurityMode", plist_new_bool(1));
         plist_dict_set_item(tssreq, "ApSupportsImg4", plist_new_bool(1));
+
+        plist_dict_set_item(tssreq, "Rap,SecurityMode", plist_new_bool(1));
     } else {
         plist_dict_set_item(tssreq, "ApSupportsImg4", plist_new_bool(0));
     }
@@ -756,7 +761,7 @@ int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
     return 0;
 }
 
-int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
+int tss_populate_random(plist_t tssreq, int isIMG4Supported, t_devicevals *devVals){
     size_t nonceLen = 32; //valid for all devices with KTRR
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
@@ -857,7 +862,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     debug("[TSSR] ApNonce=%s\n",devVals->apnonce);
     debug("[TSSR] SepNonce=%s\n",devVals->sepnonce);
     
-    int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, is64bit);
+    int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, isIMG4Supported);
     return rt;
 }
 
@@ -891,27 +896,45 @@ getID0:
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
     int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
     
-    if (tss_populate_random(tssparameter,is64Bit,devVals))
+    plist_t Rap_BoardID = plist_dict_get_item(id0, "Rap,BoardID");
+    int isRapDevice = !(!Rap_BoardID || plist_get_node_type(Rap_BoardID) != PLIST_UINT);
+    
+    if (tss_populate_random(tssparameter,is64Bit || isRapDevice,devVals))
         reterror("[TSSR] failed to populate tss request\n");
     
     tss_parameters_add_from_manifest(tssparameter, id0);
-    if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
-        reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
-    }
-    
+            
     if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
         reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
     }
     
-    if (is64Bit) {
-        if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
+    if (isRapDevice) {
+        if (tss_request_add_rose_tags(tssreq, tssparameter, NULL) < 0) {
             reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
         }
-    } else {
-        if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
-            reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
+    }else{
+        if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
+            reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+        }
+        if (is64Bit) {
+            if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
+                reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
+            }
+        } else {
+            if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
+                reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
+            }
+        }
+        if (basebandMode == kBasebandModeOnlyBaseband) {
+            if (plist_dict_get_item(tssreq, "@ApImg4Ticket"))
+                plist_dict_set_item(tssreq, "@ApImg4Ticket", plist_new_bool(0));
+            if (plist_dict_get_item(tssreq, "@APTicket"))
+                plist_dict_set_item(tssreq, "@APTicket", plist_new_bool(0));
+            //TODO: don't use .shsh2 ending and don't save generator when saving only baseband
+            info("[TSSR] User specified to request only a Baseband ticket.\n");
         }
     }
+
     if (plist_dict_get_item(tssreq, "Savage,BE-Dev-Patch"))
         plist_dict_remove_item(tssreq, "Savage,BE-Dev-Patch");
     if(plist_dict_get_item(tssreq, "Savage,BE-Prod-Patch"))
@@ -920,14 +943,6 @@ getID0:
         plist_dict_remove_item(tssreq, "Savage,BF-Dev-Patch");
     if(plist_dict_get_item(tssreq, "Savage,BF-Prod-Patch"))
         plist_dict_remove_item(tssreq, "Savage,BF-Prod-Patch");
-    if (basebandMode == kBasebandModeOnlyBaseband) {
-        if (plist_dict_get_item(tssreq, "@ApImg4Ticket"))
-            plist_dict_set_item(tssreq, "@ApImg4Ticket", plist_new_bool(0));
-        if (plist_dict_get_item(tssreq, "@APTicket"))
-            plist_dict_set_item(tssreq, "@APTicket", plist_new_bool(0));
-        //TODO: don't use .shsh2 ending and don't save generator when saving only baseband
-        info("[TSSR] User specified to request only a Baseband ticket.\n");
-    }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
         //TODO: verify that this being int64_t instead of uint64_t doesn't actually break something
@@ -1000,7 +1015,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->parsedApnonceLen = 0;
             devVals->apnonce = (char *)0x1337;
             devVals->installType = kInstallTypeErase;
-            if (!tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
+            if (tssreq2 && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
                 apticket3 = tss_request_send(tssreq2, server_url_string);
                 if (print_tss_response) debug_plist(apticket3);
             }
