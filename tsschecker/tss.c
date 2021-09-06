@@ -38,7 +38,7 @@
 #else
 #include <sys/stat.h>
 #define __mkdir(path, mode) mkdir(path, mode)
-#define FMT_qu "%qu"
+#define FMT_qu "%llu"
 #endif
 
 #ifdef HAVE_CONFIG_H
