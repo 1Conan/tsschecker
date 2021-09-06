@@ -24,6 +24,8 @@ jobs:
         - arm-linux-musleabi
         - aarch64-linux-musl
         - mips-linux-musl
+        - riscv32-linux-musl
+        - riscv64-linux-musl
         - x86_64-w64-mingw32
         - i686-w64-mingw32
     steps:
@@ -142,10 +144,10 @@ jobs:
 
         if [ "${OS}" = "linux" ]; then
           case ${ARCH} in
-            x86_64|aarch64|mips64*)
+            x86_64|aarch64|mips64*|riscv64)
               export PLATFORM="linux-generic64"
               ;;
-            i686|i486|arm*|mips)
+            i686|i486|arm*|mips|riscv32)
               export PLATFORM="linux-generic32"
               ;;
           esac
