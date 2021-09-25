@@ -180,6 +180,10 @@ static struct bbdevice bbdevices[] = {
     {"iPhone13,2", 3095201109, 4},  // iPhone 12
     {"iPhone13,3", 3095201109, 4},  // iPhone 12 Pro
     {"iPhone13,4", 3095201109, 4},  // iPhone 12 Pro Max
+    {"iPhone14,2", 495958265, 4},  // iPhone 13 Pro
+    {"iPhone14,3", 495958265, 4},  // iPhone 13 Pro Max
+    {"iPhone14,4", 495958265, 4},  // iPhone 13 mini
+    {"iPhone14,5", 495958265, 4},  // iPhone 13
     
     // iPads
     {"iPad1,1",  0, 0},          // iPad (1st gen)
@@ -216,6 +220,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad5,2",  3840149528, 4}, // iPad mini 4 (Cellular)
     {"iPad11,1", 0, 0},          // iPad mini (5th gen, Wi-Fi)
     {"iPad11,2", 165673526, 12}, // iPad mini (5th gen, Cellular)
+    {"iPad14,1", 0, 0},          // iPad mini (6th gen, Wi-Fi)
+    {"iPad14,2", 495958265, 4},  // iPad mini (6th gen, Cellular)
     
     // iPad Airs
     {"iPad4,1",  0, 0},          // iPad Air (Wi-Fi)

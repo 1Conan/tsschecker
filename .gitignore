@@ -25,4 +25,6 @@ missing
 */all.h*
 */tsschecker*
 stamp-h1
-xcuserdata
+xcuserdata.idea
+.build_complete
+.idea
