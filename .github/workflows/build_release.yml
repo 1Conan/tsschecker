@@ -303,8 +303,9 @@ jobs:
           echo "BUILD_VERSION_NUM=$(echo "$(git rev-list --count HEAD | tr -d '\n')")" >> $GITHUB_ENV
           echo "BUILD_VERSION_SHA=$(echo "$(git rev-parse HEAD | tr -d '\n'])")" >> $GITHUB_ENV
           echo "BUILD_VERSION_STR=$(echo "$(git rev-list --count HEAD | tr -d '\n')-$(git rev-parse HEAD | tr -d '\n'])")" >> $GITHUB_ENV
-          echo "COMMIT_MSG=$(echo "$(git log -1 --pretty=%B)")" >> $GITHUB_ENV
-
+          echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
+          echo "$(echo "$(git log -1 --pretty=%B)")" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
       - name: Download artifacts
         uses: actions/download-artifact@v2
         with:
