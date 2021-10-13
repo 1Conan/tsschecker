@@ -366,7 +366,7 @@ jobs:
 
         echo "CC=sccache clang -arch ${ARCH} -mmacosx-version-min=10.13" >> $GITHUB_ENV
         echo "CXX=sccache clang++ -arch ${ARCH} -mmacosx-version-min=10.13" >> $GITHUB_ENV
-        echo "CFLAGS=-Os" >> $GITHUB_ENV
+        echo "CFLAGS=-Os -I${ROOT}/usr/include" >> $GITHUB_ENV
         echo "CPPFLAGS=-I${ROOT}/usr/include" >> $GITHUB_ENV
         echo "LDFLAGS=-L${ROOT}/usr/lib" >> $GITHUB_ENV
         echo "PKG_CONFIG_PATH=${ROOT}/usr/lib/pkgconfig" >> $GITHUB_ENV
@@ -464,7 +464,7 @@ jobs:
         git checkout ${LIBGENERAL_COMMIT}
 
         ./autogen.sh --host=${HOST_ARCH}-apple-darwin --enable-static --disable-shared --prefix=/usr
-        make -j$(nproc)
+        make -j${CPU_COUNT}
         make install DESTDIR="${ROOT}"
 
     - name: build libfragmentzip
@@ -472,19 +472,22 @@ jobs:
         rm -rf ${DEP_PATH}/libfragmentzip
         git clone https://github.com/tihmstar/libfragmentzip.git ${DEP_PATH}/libfragmentzip
         cd ${DEP_PATH}/libfragmentzip
-        ./autogen.sh curl_LIBS="${ROOT}/usr/lib/libcurl.a" \
+        curl_LIBS="${ROOT}/usr/lib/libcurl.a" \
+        zlib_LIBS="${ROOT}/usr/lib/libz.a" \
+        libzip_LIBS="${ROOT}/usr/lib/libzip.a" \
+        ./autogen.sh \
           --host=${HOST_ARCH}-apple-darwin \
           --prefix=/usr \
           --enable-static \
           --disable-shared
-        make -j$(nproc)
+        make -j${CPU_COUNT}
         make install DESTDIR="${ROOT}"
 
     - name: build tsschecker
       run: |
         ./autogen.sh --host=${HOST_ARCH}-apple-darwin --enable-static --disable-shared
 
-        make LDFLAGS="-all-static ${LDFLAGS}"
+        make -j${CPU_COUNT} LDFLAGS="-all-static ${LDFLAGS}"
         strip tsschecker/tsschecker
 
     - uses: actions/upload-artifact@v1
