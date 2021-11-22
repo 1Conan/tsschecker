@@ -104,6 +104,7 @@ int print_tss_request = 0;
 int print_tss_response = 0;
 int nocache = 0;
 int save_shshblobs = 0;
+int save_bplist = 0;
 const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
 // iPhone & iPod touch (1st generations) do not use SHSH or APTicket.
@@ -1028,15 +1029,20 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         plist_get_uint_val(pecid, &devVals->ecid);
         char *cecid = ecid_to_string(devVals->ecid);
         
-        uint32_t size = 0;
-        char* data = NULL;
         if (*devVals->generator)
             plist_dict_set_item(apticket, "generator", plist_new_string(devVals->generator));
         if (apticket2)
             plist_dict_set_item(apticket, "updateInstall", apticket2);
         if (apticket3)
             plist_dict_set_item(apticket, "noNonce", apticket3);
-        plist_to_xml(apticket, &data, &size);
+        
+        uint32_t size = 0;
+        char* data = NULL;
+
+        if (save_bplist)
+            plist_to_bin(apticket, &data, &size);
+        else
+            plist_to_xml(apticket, &data, &size);
         
         char *apnonce = "";
         size_t apnonceLen = 0;
@@ -1056,7 +1062,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         snprintf(tmpDevicename, tmpDeviceNameSize, "%s", devVals->deviceModel);
         if (devVals->deviceBoard) snprintf(tmpDevicename+strlen(tmpDevicename), tmpDeviceNameSize-strlen(tmpDevicename), "_%s",devVals->deviceBoard);
         
-        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + tmpDeviceNameSize + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"___-.shsh2") + 1;
+        size_t fnamelen = strlen(shshSavePath) + 1 + strlen(cecid) + tmpDeviceNameSize + strlen(cpvers) + strlen(cbuild) + strlen(DIRECTORY_DELIMITER_STR"___-.bshsh2") + 1;
         fnamelen += devVals->parsedApnonceLen*2;
         
         char *fname = malloc(fnamelen);
@@ -1064,14 +1070,11 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         size_t prePathLen= strlen(shshSavePath);
         if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
-        
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, (*devVals->generator || apticket2) ? "2" : "");
-        
-        
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.%Sshsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, save_bplist ? "b" : "", (*devVals->generator || apticket2) ? "2" : "");
         FILE *shshfile = fopen(fname, "wb");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
         else{
-            fwrite(data, strlen(data), 1, shshfile);
+            fwrite(data, size, 1, shshfile);
             fclose(shshfile);
             info("Saved shsh blobs!\n");
         }

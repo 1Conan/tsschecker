@@ -59,6 +59,7 @@ static struct option longopts[] = {
     { "raw",                required_argument, NULL, 10  },
     { "bbsnum",             required_argument, NULL, 11  },
     { "server-url",         required_argument, NULL, 12  },
+    { "bplist",             no_argument,       NULL, 13  },
     { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
@@ -85,6 +86,7 @@ void cmd_help(){
     printf("      --sepnonce NONCE\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
     printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
     printf("      --save-path PATH\t\tspecify output path for saving shsh blobs\n");
+    printf("      --bplist\t\t\tsave shsh blob as binary plist (used with --save)\n");
     printf("      --server-url URL\t\tmanually specify TSS server url\n");
     printf("      --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
@@ -157,6 +159,7 @@ int main(int argc, const char * argv[]) {
     dbglog = 1;
     idevicerestore_debug = 0;
     save_shshblobs = 0;
+    save_bplist = 0;
     int optindex = 0;
     int opt = 0;
     long flags = 0;
@@ -283,6 +286,9 @@ int main(int argc, const char * argv[]) {
                 break;
             case 12: // only long option: "server-url"
                 serverUrl = optarg;
+                break;
+            case 13: // only long option: "bplist"
+                save_bplist = 1;
                 break;
             default:
                 cmd_help();
