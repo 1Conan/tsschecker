@@ -2,15 +2,10 @@ name: Build & Release
 on: [push]
 env:
   LIBPLIST_VERSION: 2.2.0
-  OPENSSL_VERSION: 1.1.1l
-  LIBCURL_VERSION: 7.79.1
   ZLIB_VERSION: 1.2.11
-  LIBZIP_VERSION: 1.7.3
-  LIBGENERAL_VERSION: 56
-  LIBFRAGMENTZIP_VERSION: 60
-  LIBIRECOVERY_VERSION: 1.0.0
-  LIBGENERAL_COMMIT: e0d98cbeedece5d62e3e9432c3ed37cd87da5338
-  MINGW_STD_THREADS_VERSION: 1.0.0
+  LIBZIP_VERSION: 1.8.0
+  WOLFSSL_VERSION: 5.0.0
+  LIBCURL_VERSION: 7.79.1
   SCCACHE_VERSION: 0.2.15
 
 jobs:
@@ -24,7 +19,7 @@ jobs:
         - i486-linux-musl
         - arm-linux-musleabi
         - aarch64-linux-musl
-        - mips-linux-musl
+        - mips-linux-muslsf
         - riscv32-linux-musl
         - riscv64-linux-musl
         - x86_64-w64-mingw32
@@ -40,23 +35,25 @@ jobs:
 
     - name: cache files
       uses: actions/cache@v2
+      if: ${{ !env.ACT }}
       with:
         path: |
           ~/.cache/sccache
-          ~/dep_src
+          ~/workspace
         key: build-win-linux-${{ matrix.triple }}-${ { env.GITHUB_SHA } }
         restore-keys: |
           build-win-linux-${{ matrix.triple }}
 
     - name: setup environment
       run: |
-        export DOWNLOAD_PATH=${HOME}/dep_src
-        export DEP_PATH=${HOME}/build
-        export ROOT=${HOME}/root
-        mkdir -p ${DOWNLOAD_PATH} ${DEP_PATH} ${ROOT}
-        echo "DOWNLOAD_PATH=${DOWNLOAD_PATH}" >> $GITHUB_ENV
-        echo "DEP_PATH=${DEP_PATH}" >> $GITHUB_ENV
-        echo "ROOT=${ROOT}" >> $GITHUB_ENV
+        export WORKSPACE=${HOME}/workspace
+
+        mkdir -p ${WORKSPACE}/build_{base,work,source}
+
+        echo "BUILD_SOURCE=${WORKSPACE}/build_source" >> $GITHUB_ENV
+        echo "BUILD_WORK=${WORKSPACE}/build_work" >> $GITHUB_ENV
+        echo "BUILD_BASE=${WORKSPACE}/build_base" >> $GITHUB_ENV
+
         echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
@@ -64,178 +61,89 @@ jobs:
         export OS=$(echo ${{ matrix.triple }} | cut -d- -f 2)
 
         if [ "${OS}" = "w64" ]; then
-          export OS="win"
-        fi
-
-        echo "OS=${OS}" >> $GITHUB_ENV
-        echo "ARCH=${ARCH}" >> $GITHUB_ENV
-
-        if [ "${OS}" = "win" ]; then
+          echo "OS=win" >> $GITHUB_ENV
           echo "EXE_SUFFIX=.exe" >> $GITHUB_ENV
         else
+          echo "OS=${OS}" >> $GITHUB_ENV
           echo "EXE_SUFFIX=" >> $GITHUB_ENV
         fi
-
+        echo "ARCH=${ARCH}" >> $GITHUB_ENV
 
     - name: Download and setup toolchain
       run: |
-        wget -q -nc -P ${DOWNLOAD_PATH} https://musl.cc/${TOOLCHAIN}.tgz
-        tar xf ${DOWNLOAD_PATH}/${TOOLCHAIN}.tgz -C ${HOME}
-
-        if [ "${OS}" = "win" ]; then
-          wget -q -nc -P ${DOWNLOAD_PATH} \
-            https://github.com/meganz/mingw-std-threads/archive/refs/tags/${MINGW_STD_THREADS_VERSION}.tar.gz
-          mkdir -p ${ROOT}/usr/include
-          tar xf ${DOWNLOAD_PATH}/${MINGW_STD_THREADS_VERSION}.tar.gz -C ${DEP_PATH}
-        fi
+        wget -q -nc -P ${BUILD_SOURCE} https://musl.cc/${TOOLCHAIN}.tgz
+        tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
 
         # Download sccache
-        wget -q -nc -P ${DOWNLOAD_PATH} \
+        wget -q -nc -P ${BUILD_SOURCE} \
           https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz
-        tar xf ${DOWNLOAD_PATH}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz -C ${HOME}
+        tar xf ${BUILD_SOURCE}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz -C ${HOME}
         mv ${HOME}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl/sccache ${HOME}/${TOOLCHAIN}/bin
         chmod +x ${HOME}/${TOOLCHAIN}/bin/sccache
 
         echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
+
         echo "CC=sccache ${TRIPLE}-gcc" >> $GITHUB_ENV
         echo "CXX=sccache ${TRIPLE}-g++" >> $GITHUB_ENV
-        echo "CFLAGS=-Os -Wall -static" >> $GITHUB_ENV
-        echo "CXXFLAGS=${CFLAGS}" >> $GITHUB_ENV
-        echo "CPPFLAGS=-I${ROOT}/usr/include -I${DEP_PATH}/mingw-std-threads-${MINGW_STD_THREADS_VERSION}" >> $GITHUB_ENV
-        echo "LDFLAGS=-L${ROOT}/usr/lib -L${ROOT}/usr/lib64" >> $GITHUB_ENV
-        echo "PKG_CONFIG_PATH=${ROOT}/usr/lib/pkgconfig" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=${ROOT}/usr/lib" >> $GITHUB_ENV
+        echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
+        echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
+        echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
+        echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
+        echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
 
-    - name: build libplist
-      run: |
-        wget -q -nc -P ${DOWNLOAD_PATH} \
-          https://github.com/libimobiledevice/libplist/releases/download/${LIBPLIST_VERSION}/libplist-${LIBPLIST_VERSION}.tar.bz2
-        tar xf ${DOWNLOAD_PATH}/libplist-${LIBPLIST_VERSION}.tar.bz2 -C ${DEP_PATH}
+        echo "CFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+        echo "CXXFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+        echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
+        echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
+        echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
 
-        cd ${DEP_PATH}/libplist-${LIBPLIST_VERSION}
-        ./configure --host=${TRIPLE} --prefix=/usr --without-cython --enable-static --disable-shared
-        make -j$(nproc)
-        make install DESTDIR="${ROOT}"
-
-    - name: build libirecovery
-      run: |
-        wget -q -nc -P ${DOWNLOAD_PATH} \
-          https://github.com/libimobiledevice/libirecovery/releases/download/${LIBIRECOVERY_VERSION}/libirecovery-${LIBIRECOVERY_VERSION}.tar.bz2
-        tar xf ${DOWNLOAD_PATH}/libirecovery-${LIBIRECOVERY_VERSION}.tar.bz2 -C ${DEP_PATH}
-
-        cd ${DEP_PATH}/libirecovery-${LIBIRECOVERY_VERSION}
-        wget -q https://gist.github.com/1Conan/2d015aad17f87f171b32ebfd9f48fb96/raw/c12fca047f8b0bba1c8983470bf863d80d7e1c1d/libirecovery.patch
-        patch -p1 < libirecovery.patch
-        libtoolize --force
-        aclocal -I m4
-        autoheader
-        automake --add-missing
-        autoconf
-        ./configure --host=${TRIPLE} --prefix=/usr --enable-static --disable-shared --with-dummy
-        make -j$(nproc)
-        make install DESTDIR="${ROOT}"
+        echo "CONFIGURE_FLAGS=--host=${TRIPLE} --prefix=${BUILD_BASE} --enable-static --disable-shared" >> $GITHUB_ENV
 
     - name: build zlib
       run: |
-        wget -q -nc -P ${DOWNLOAD_PATH} \
+        wget -q -nc -P ${BUILD_SOURCE} \
           https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
-        tar xf ${DOWNLOAD_PATH}/zlib-${ZLIB_VERSION}.tar.gz -C ${DEP_PATH}
+        tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
 
-        cd ${DEP_PATH}/zlib-${ZLIB_VERSION}
-        ./configure --static --prefix=/usr
-        make -j$(nproc)
-        make install DESTDIR="${ROOT}"
-
-    - name: build openssl
-      run: |
-        wget -q -nc -P ${DOWNLOAD_PATH} \
-          https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
-        tar xf ${DOWNLOAD_PATH}/openssl-${OPENSSL_VERSION}.tar.gz -C ${DEP_PATH}
-
-        if [ "${OS}" = "linux" ]; then
-          export PLATFORM="linux-${ARCH}"
-          case ${ARCH} in
-            i486)
-              export PLATFORM="linux-x86"
-              ;;
-            mips)
-              export PLATFORM="linux-mips32"
-              ;;
-            riscv64)
-              export PLATFORM="linux64-riscv64"
-              ;;
-            arm|riscv32)
-              export PLATFORM="linux-generic32"
-              ;;
-          esac
-        elif [ "${OS}" = "win" ]; then
-          case ${ARCH} in
-            x86_64)
-              export PLATFORM="mingw64"
-              ;;
-            i686)
-              export PLATFORM="mingw"
-              ;;
-          esac
-        fi
-        cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
-        CC= CXX= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=/usr --static -static ${PLATFORM}
-        make -j$(nproc) CC="${CC}" CXX="${CXX}"
-        make install_sw DESTDIR="${ROOT}"
-
-    - name: build libcurl
-      run: |
-        wget -q -nc -P ${DOWNLOAD_PATH} \
-          https://curl.haxx.se/download/curl-${LIBCURL_VERSION}.tar.gz
-        tar xf ${DOWNLOAD_PATH}/curl-${LIBCURL_VERSION}.tar.gz -C ${DEP_PATH}
-
-        cd ${DEP_PATH}/curl-${LIBCURL_VERSION}
-
-        if [ "${OS}" = "win" ]; then
-          export CONFIGURE_FLAGS="--with-winssl --with-schannel"
-        elif [ "${OS}" = "linux" ]; then
-          export CONFIGURE_FLAGS="--with-openssl"
-        fi
-
+        cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
         ./configure \
-          --prefix=/usr \
-          --host=${TRIPLE} \
-          --enable-static \
-          --disable-shared \
-          --enable-ipv6 \
-          --disable-dependency-tracking \
-          --with-zlib \
-          ${CONFIGURE_FLAGS}
-        make -j$(nproc)
-        make install DESTDIR="${ROOT}"
+          --prefix=${BUILD_BASE} \
+          --static
+        make -j $(nproc)
+        make install
 
     - name: build libzip
       run: |
-        wget -q -nc -P ${DOWNLOAD_PATH} \
+        wget -q -nc -P ${BUILD_SOURCE} \
           https://libzip.org/download/libzip-${LIBZIP_VERSION}.tar.gz
-        tar xf ${DOWNLOAD_PATH}/libzip-${LIBZIP_VERSION}.tar.gz -C ${DEP_PATH}
-        cd ${DEP_PATH}/libzip-${LIBZIP_VERSION}
+        tar xf ${BUILD_SOURCE}/libzip-${LIBZIP_VERSION}.tar.gz -C ${BUILD_WORK}
 
         if [ "${OS}" = "win" ]; then
-          export CONFIGURE_FLAGS="-DCMAKE_SYSTEM_NAME=Windows"
+          CMAKE_SYSTEM_NAME="Windows"
         elif [ "${OS}" = "linux" ]; then
-          export CONFIGURE_FLAGS="-DCMAKE_SYSTEM_NAME=Linux"
+          CMAKE_SYSTEM_NAME="Linux"
         fi
 
+        cd ${BUILD_WORK}/libzip-${LIBZIP_VERSION}
         cmake \
-          ${CONFIGURE_FLAGS} \
-          -DCMAKE_CROSSCOMPILING=TRUE \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DCMAKE_SHARED_LIBRARY_LINK_C_FLAGS="" \
-          -DCMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS="" \
-          -DCMAKE_C_FLAGS="${CFLAGS} ${CPPFLAGS}" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CROSSCOMPILING=true \
+          -DCMAKE_SYSTEM_NAME="${CMAKE_SYSTEM_NAME}" \
+          -DCMAKE_SYSTEM_PROCESSOR=${ARCH} \
+          -DCMAKE_C_FLAGS="${CFLAGS}" \
+          -DCMAKE_FIND_ROOT_PATH="${BUILD_BASE}" \
+          -DCMAKE_C_COMPILER=${TRIPLE}-gcc \
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+          -DCMAKE_AR=${HOME}/${TRIPLE}-cross/bin/${AR} \
+          -DCMAKE_RANLIB=${HOME}/${TRIPLE}-cross/bin/${RANLIB} \
+          -DCMAKE_INSTALL_PREFIX=${BUILD_BASE} \
           -DCMAKE_EXE_LINKER_FLAGS="-static" \
           -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
-          -DENABLE_BZIP2=FALSE \
-          -DENABLE_LZMA=FALSE \
-          -DCMAKE_INSTALL_PREFIX=/usr \
-          -DSKIP_BUILD_RPATH=TRUE \
-          -DZLIB_LIBRARY=${ROOT}/usr/lib/libz.a \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DENABLE_BZIP2=OFF \
+          -DENABLE_LZMA=OFF \
+          -DENABLE_ZSTD=OFF \
           -DENABLE_GNUTLS=OFF \
           -DENABLE_OPENSSL=OFF \
           -DENABLE_MBEDTLS=OFF \
@@ -247,65 +155,169 @@ jobs:
           -DBUILD_DOC=OFF
 
         make -j$(nproc)
-        make install DESTDIR="${ROOT}"
+        make install
 
-    - name: build libgeneral
+
+    - name: build libplist
       run: |
-        rm -rf ${DEP_PATH}/libgeneral
-        git clone https://github.com/tihmstar/libgeneral ${DEP_PATH}/libgeneral
-        cd ${DEP_PATH}/libgeneral
-        git checkout ${LIBGENERAL_COMMIT}
+        wget -q -nc -P ${BUILD_SOURCE} \
+          https://github.com/libimobiledevice/libplist/releases/download/${LIBPLIST_VERSION}/libplist-${LIBPLIST_VERSION}.tar.bz2
+        tar xf ${BUILD_SOURCE}/libplist-${LIBPLIST_VERSION}.tar.bz2 -C ${BUILD_WORK}
 
-        # Windows patches
-        if [ "${OS}" = "win" ]; then
-          # vasprintf
-          sed -i '/using namespace tihmstar/a \
-          int vasprintf(char **s, const char *fmt, va_list ap) {\
-          \n\tva_list ap2;\n\tva_copy(ap2, ap);\
-          \n\tint l = vsnprintf(0, 0, fmt, ap2);\
-          \n\tva_end(ap2);\n\tif (l<0 || !(*s=(char*)malloc(l+1U))) return -1;\
-          \n\treturn vsnprintf(*s, l+1U, fmt, ap);\
-          \n}' ${DEP_PATH}/libgeneral/libgeneral/exception.cpp
+        cd ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}
+        ./configure \
+          ${CONFIGURE_FLAGS} \
+          --without-cython
 
-          # threading patches
-          sed -i 's/#include <thread>/#include <mingw.thread.h>/g' ${DEP_PATH}/libgeneral/include/libgeneral/Event.hpp
-          sed -i 's/#include <mutex>/#include <mingw.mutex.h>/g' ${DEP_PATH}/libgeneral/include/libgeneral/Event.hpp
-          sed -i 's/#include <condition_variable>/#include <mingw.condition_variable.h>/g' ${DEP_PATH}/libgeneral/include/libgeneral/Event.hpp
-          sed -i 's/#include <future>/#include <mingw.future.h>/g' ${DEP_PATH}/libgeneral/include/libgeneral/Manager.hpp
-          sed -i 's/sched_yield/std::this_thread::yield/g' ${DEP_PATH}/libgeneral/libgeneral/Manager.cpp
-          sed -i 's/#include <mutex>/#include <mingw.mutex.h>/g' ${DEP_PATH}/libgeneral/include/libgeneral/lck_container.hpp
+        make -j$(nproc)
+        make install
+
+    - name: build libimobiledevice-glue
+      run: |
+        wget -q -nc -P ${BUILD_SOURCE} \
+          https://github.com/libimobiledevice/libimobiledevice-glue/archive/refs/heads/master.tar.gz
+        mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz
+        tar xf ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz -C ${BUILD_WORK}
+
+        cd ${BUILD_WORK}/libimobiledevice-glue-master
+        ./autogen.sh \
+          ${CONFIGURE_FLAGS}
+
+        make -j$(nproc)
+        make install
+
+    - name: build libirecovery
+      run: |
+        wget -q -nc -P ${BUILD_SOURCE} \
+          https://github.com/libimobiledevice/libirecovery/archive/refs/heads/master.tar.gz
+        mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libirecovery-master.tar.gz
+        tar xf ${BUILD_SOURCE}/libirecovery-master.tar.gz -C ${BUILD_WORK}
+
+        # Remove readline requirement
+        sed -i '/readline/,+2d' ${BUILD_WORK}/libirecovery-master/configure.ac
+        # Disable tools building
+        sed -i '/tools/d' ${BUILD_WORK}/libirecovery-master/configure.ac
+        sed -i 's/ tools//' ${BUILD_WORK}/libirecovery-master/Makefile.am
+
+        cd ${BUILD_WORK}/libirecovery-master
+        ./autogen.sh \
+          ${CONFIGURE_FLAGS} \
+          --with-dummy
+
+        make -j$(nproc)
+        make install
+
+    - name: build wolfssl
+      run: |
+        wget -q -nc -P ${BUILD_SOURCE} \
+          https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
+        mv \
+          ${BUILD_SOURCE}/v${WOLFSSL_VERSION}-stable.tar.gz \
+          ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz
+        tar xf ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz -C ${BUILD_WORK}
+
+        cd ${BUILD_WORK}/wolfssl-${WOLFSSL_VERSION}-stable
+        ./autogen.sh
+        ./configure \
+          ${CONFIGURE_FLAGS} \
+            --disable-examples \
+            --disable-crypttests \
+            --disable-tls13 \
+            --disable-aescbc \
+            --disable-sha224 \
+            --disable-sha3 \
+            --disable-sha512 \
+            --enable-ipv6 \
+            --enable-ocsp \
+            --enable-opensslextra
+
+        make -j$(nproc)
+        make install
+
+    - name: build tiny-curl
+      run: |
+        wget -q -nc -P ${BUILD_SOURCE} \
+          https://curl.se/tiny/tiny-curl-${LIBCURL_VERSION}.tar.gz
+        tar xf ${BUILD_SOURCE}/tiny-curl-${LIBCURL_VERSION}.tar.gz -C ${BUILD_WORK}
+
+        # fix for musl
+        if [ "${OS}" = "linux" ]; then
+          sed \
+            -i '/#ifndef curl_fd_set_typedefed/a #include <sys/select.h>' \
+            ${BUILD_WORK}/tiny-curl-${LIBCURL_VERSION}/include/curl/system.h
         fi
 
-        ./autogen.sh --enable-static --disable-shared --host=${TRIPLE} --prefix=/usr
+        if [ "${OS}" = "win" ]; then
+          CURL_FLAGS="--with-schannel"
+        else
+          CURL_FLAGS="--without-libcrypto --with-wolfssl"
+        fi
+
+        cd ${BUILD_WORK}/tiny-curl-${LIBCURL_VERSION}
+        ./configure \
+          ${CONFIGURE_FLAGS} \
+          --disable-debug \
+          --enable-http \
+          --enable-ipv6 \
+          --enable-libcurl-option \
+          ${CURL_FLAGS}
+
         make -j$(nproc)
-        make install DESTDIR="${ROOT}"
+        make install
+
+    - name: (not) build libgeneral
+      run: |
+        wget -q -nc -P ${BUILD_SOURCE} \
+          https://github.com/tihmstar/libgeneral/raw/master/include/libgeneral/macros.h
+        mkdir -p ${BUILD_BASE}/include/libgeneral
+        mv ${BUILD_SOURCE}/macros.h ${BUILD_BASE}/include/libgeneral
 
     - name: build libfragmentzip
       run: |
-        rm -rf ${DEP_PATH}/libfragmentzip
-        git clone https://github.com/tihmstar/libfragmentzip.git ${DEP_PATH}/libfragmentzip
-        cd ${DEP_PATH}/libfragmentzip
-        ./autogen.sh curl_LIBS="${ROOT}/usr/lib/libcurl.a" \
-          --prefix=/usr \
-          --host=${TRIPLE} \
-          --enable-static \
-          --disable-shared
+        wget -q -nc -P ${BUILD_SOURCE} \
+          https://github.com/tihmstar/libfragmentzip/archive/refs/heads/master.tar.gz
+        mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libfragmentzip-master.tar.gz
+        tar xf ${BUILD_SOURCE}/libfragmentzip-master.tar.gz -C ${BUILD_WORK}
+
+        # Fix >=48 requirements
+        sed \
+          -i 's/@VERSION_COMMIT_COUNT@/48/' \
+          ${BUILD_WORK}/libfragmentzip-master/libfragmentzip.pc.in
+
+        # remove libgeneral lib requirement
+        sed -i \
+          -e'/libgeneral/d' \
+          -e '/VERSION_COMMIT_COUNT/d' \
+          -e '/VERSION_COMMIT_SHA/d' \
+          -e 's/, m4_esyscmd.*,/, 48,/' \
+          ${BUILD_WORK}/libfragmentzip-master/configure.ac
+
+        cd ${BUILD_WORK}/libfragmentzip-master
+        ./autogen.sh \
+          ${CONFIGURE_FLAGS}
+
         make -j$(nproc)
-        make install DESTDIR="${ROOT}"
+        make install
 
     - name: build tsschecker
       run: |
-        ./autogen.sh --host=${TRIPLE} --enable-static --disable-shared
-
         if [ "${OS}" = "win" ]; then
-          export LDFLAGS="${LDFLAGS} -lws2_32"
-          export LIBS="-lws2_32 -lcrypt32"
+          # because case-sensitive
+          sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libimobiledevice-glue-1.0.la
+          sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libirecovery-1.0.la
         fi
 
-        make LDFLAGS="-all-static ${LDFLAGS}"
+        ./autogen.sh \
+          ${CONFIGURE_FLAGS} \
+          --without-libcrypto \
+          --with-wolfssl
+
+        make -j$(nproc) \
+          LDFLAGS="-all-static -static ${LDFLAGS}"
         ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
 
     - uses: actions/upload-artifact@v1
+      if: ${{ !env.ACT }}
       with:
         name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
         path: tsschecker/tsschecker${{ env.EXE_SUFFIX }}
@@ -313,6 +325,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [build-win-lin]
+    if: github.ref == 'refs/heads/master' && ${{ !env.ACT }}
     steps:
       - uses: actions/checkout@v1
 
