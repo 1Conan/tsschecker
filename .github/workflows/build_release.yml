@@ -202,7 +202,8 @@ jobs:
         cd ${BUILD_WORK}/libirecovery-master
         ./autogen.sh \
           ${CONFIGURE_FLAGS} \
-          --with-dummy
+          --with-dummy \
+          --without-udev
 
         make -j$(nproc)
         make install
