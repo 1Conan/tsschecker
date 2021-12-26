@@ -59,11 +59,36 @@ AC_ARG_WITH(
     ]
 )
 
+AC_ARG_WITH(
+    [wolfssl],
+    [AS_HELP_STRING([--with-wolfssl], [build with wolfssl])],
+    [],
+    [with_wolfssl=no]
+)
+
 PKG_CHECK_MODULES(libplist, libplist-2.0 >= 2.2.0)
 PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
 PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 48)
-AS_IF([test "x$with_libcrypto" != xno],
-    [PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)]
+
+AS_IF([test "x$with_wolfssl" = xyes], [
+        PKG_CHECK_MODULES(wolfssl, wolfssl >= 1.0)
+        AC_DEFINE(USE_WOLFSSL, 1, [Define if we want to use WolfSSL])
+        with_libcrypto=false
+    ],
+    [
+        AS_IF([test "x$with_libcrypto" = xyes], [
+                PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)
+            ],[
+                case "${host_os}" in
+                    darwin*)
+                    ;;
+                    *)
+                        AC_MSG_ERROR("No crypto library selected!", 1)
+                    ;;
+                esac
+            ]
+        )
+    ]
 )
 PKG_CHECK_MODULES(libirecovery, libirecovery-1.0 >= 1.0.0)
 

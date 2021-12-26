@@ -14,6 +14,7 @@
 #include <time.h>
 #include <stdio.h>
 
+#include "../config.h"
 #include "tsschecker.h"
 #include "debug.h"
 #include "download.h"
@@ -26,6 +27,10 @@
 #   include <CommonCrypto/CommonDigest.h>
 #   define SHA1(d, n, md) CC_SHA1(d, n, md)
 #   define SHA384(d, n, md) CC_SHA384(d, n, md)
+#elif USE_WOLFSSL
+#   include <wolfssl/options.h>
+#   include <wolfssl/wolfcrypt/sha.h>
+#   include <wolfssl/wolfcrypt/sha512.h>
 #else
 #   include <openssl/sha.h>
 #endif // __APPLE__
@@ -823,7 +828,14 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             getRandNum((char*)zz, 8, 256);
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha1:
-            SHA1(zz, 8, (unsigned char*)devVals->apnonce);
+            #ifdef USE_WOLFSSL
+                wc_Sha sha;
+                wc_InitSha(&sha);
+                wc_ShaUpdate(&sha, zz, 8);
+                wc_ShaFinal(&sha, (unsigned char*)devVals->apnonce);
+            #else
+                SHA1(zz, 8, (unsigned char*)devVals->apnonce);
+            #endif
         }else if (nonceLen == 32){
             unsigned char zz[9] = {0};
             unsigned char genHash[48]; //SHA384 digest length
@@ -842,7 +854,14 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             getRandNum((char*)zz, 8, 256);
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha384:
-            SHA384(zz, 8, genHash);
+            #ifdef USE_WOLFSSL
+                wc_Sha384 sha;
+                wc_InitSha384(&sha);
+                wc_Sha384Update(&sha, zz, 8);
+                wc_Sha384Final(&sha, genHash);
+            #else
+                SHA384(zz, 8, genHash);
+            #endif
             memcpy(devVals->apnonce, genHash, 32);
         }else{
             return error("[TSSR] Automatic generator->nonce calculation failed. Unknown device with noncelen=%u\n",(unsigned int)nonceLen),-1;
