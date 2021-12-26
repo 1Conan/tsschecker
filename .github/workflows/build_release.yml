@@ -19,7 +19,7 @@ jobs:
         - i486-linux-musl
         - arm-linux-musleabi
         - aarch64-linux-musl
-        - mips-linux-muslsf
+        - mipsel-linux-musl
         - riscv32-linux-musl
         - riscv64-linux-musl
         - x86_64-w64-mingw32
