@@ -27,7 +27,7 @@
 #   include <CommonCrypto/CommonDigest.h>
 #   define SHA1(d, n, md) CC_SHA1(d, n, md)
 #   define SHA384(d, n, md) CC_SHA384(d, n, md)
-#elif USE_WOLFSSL
+#elif defined(USE_WOLFSSL)
 #   include <wolfssl/options.h>
 #   include <wolfssl/wolfcrypt/sha.h>
 #   include <wolfssl/wolfcrypt/sha512.h>
