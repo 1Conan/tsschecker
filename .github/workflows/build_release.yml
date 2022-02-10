@@ -209,6 +209,7 @@ jobs:
         make install
 
     - name: build wolfssl
+      if: ${{ env.OS != "win" }}
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
           https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
@@ -306,12 +307,14 @@ jobs:
           # because case-sensitive
           sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libimobiledevice-glue-1.0.la
           sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libirecovery-1.0.la
+        else
+          export TSSCHECKER_FLAGS="--with-wolfssl"
         fi
 
         ./autogen.sh \
           ${CONFIGURE_FLAGS} \
           --without-libcrypto \
-          --with-wolfssl
+          ${TSSCHECKER_FLAGS}
 
         make -j$(nproc) \
           LDFLAGS="-all-static -static ${LDFLAGS}"

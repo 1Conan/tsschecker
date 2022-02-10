@@ -82,6 +82,8 @@ AS_IF([test "x$with_wolfssl" = xyes], [
                 case "${host_os}" in
                     darwin*)
                     ;;
+                    cygwin*|mingw*)
+                    ;;
                     *)
                         AC_MSG_ERROR("No crypto library selected!", 1)
                     ;;
