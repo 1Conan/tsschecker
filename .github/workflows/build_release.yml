@@ -209,7 +209,7 @@ jobs:
         make install
 
     - name: build wolfssl
-      if: ${{ env.OS != "win" }}
+      if: ${{ env.OS != 'win' }}
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
           https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
@@ -377,4 +377,4 @@ jobs:
           files: artifacts/bins/tsschecker_*
           body: ${{ env.COMMIT_MSG }}
           draft: false
-          prerelease: true
+          prerelease: false
