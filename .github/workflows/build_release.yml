@@ -1,10 +1,12 @@
 name: Build & Release
 on: [push]
 env:
+  SSL_LIBRARY: openssl
   LIBPLIST_VERSION: 2.2.0
   ZLIB_VERSION: 1.2.11
   LIBZIP_VERSION: 1.8.0
   WOLFSSL_VERSION: 5.1.1
+  OPENSSL_VERSION: 1.1.1m
   LIBCURL_VERSION: 7.79.1
   SCCACHE_VERSION: 0.2.15
 
@@ -16,14 +18,6 @@ jobs:
       matrix:
         triple:
         - x86_64-linux-musl
-        - i486-linux-musl
-        - arm-linux-musleabi
-        - aarch64-linux-musl
-        - mipsel-linux-musl
-        - riscv32-linux-musl
-        - riscv64-linux-musl
-        - x86_64-w64-mingw32
-        - i686-w64-mingw32
     env:
       TRIPLE: ${{ matrix.triple }}
       TOOLCHAIN: ${{ matrix.triple }}-cross
@@ -209,7 +203,7 @@ jobs:
         make install
 
     - name: build wolfssl
-      if: ${{ env.OS != 'win' }}
+      if: ${{ env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl' }}
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
           https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
@@ -231,10 +225,41 @@ jobs:
             --disable-sha512 \
             --enable-ipv6 \
             --enable-ocsp \
+            --enable-sni \
+            --enable-altcertchains \
             --enable-opensslextra
 
         make -j$(nproc)
         make install
+
+    - name: build openssl
+      if: ${{ env.OS != 'win' && env.SSL_LIBRARY == 'openssl' }}
+        wget -q -nc -P ${DOWNLOAD_PATH} \
+          https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
+        tar xf ${DOWNLOAD_PATH}/openssl-${OPENSSL_VERSION}.tar.gz -C ${DEP_PATH}
+
+        if [ "${OS}" = "linux" ]; then
+          export PLATFORM="linux-${ARCH}"
+          case ${ARCH} in
+            i486)
+              export PLATFORM="linux-x86"
+              ;;
+            mips)
+              export PLATFORM="linux-mips32"
+              ;;
+            riscv64)
+              export PLATFORM="linux64-riscv64"
+              ;;
+            arm|riscv32)
+              export PLATFORM="linux-generic32"
+              ;;
+          esac
+        fi
+
+        cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
+        CC= CXX= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=/usr --static -static ${PLATFORM}
+        make -j$(nproc) CC="${CC}" CXX="${CXX}"
+        make install_sw DESTDIR="${ROOT}"
 
     - name: build tiny-curl
       run: |
@@ -251,8 +276,12 @@ jobs:
 
         if [ "${OS}" = "win" ]; then
           CURL_FLAGS="--with-schannel"
-        else
-          CURL_FLAGS="--without-libcrypto --with-wolfssl"
+        elif [ "${OS}" = "linux"]; then
+          if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
+            CURL_FLAGS="--without-libcrypto --with-wolfssl"
+          else
+            CURL_FLAGS="--with-libcrypto --with-ca-fallback --with-ca-path=/etc/ssl/certs --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+          fi
         fi
 
         cd ${BUILD_WORK}/tiny-curl-${LIBCURL_VERSION}
@@ -308,7 +337,11 @@ jobs:
           sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libimobiledevice-glue-1.0.la
           sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libirecovery-1.0.la
         else
-          export TSSCHECKER_FLAGS="--with-wolfssl"
+          if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
+            TSSCHECKER_FLAGS="--without-libcrypto --with-wolfssl"
+          else
+            TSSCHECKER_FLAGS="--with-libcrypto"
+          fi
         fi
 
         ./autogen.sh \
