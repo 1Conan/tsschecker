@@ -40,6 +40,7 @@
 #endif // __APPLE__
 
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
+#define FIRMWARE_BETA_JSON_URL "https://api.m1sta.xyz/betas/"
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
 
 /* for KTRR devices this value - 32 */
@@ -97,6 +98,7 @@ static const char *win_path_get(enum paths path){
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
 #define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
 #define FIRMWARE_JSON_PATH "/tmp/firmwares.json"
+#define FIRMWARE_BETA_JSON_PATH "/tmp/betas_"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
@@ -423,6 +425,28 @@ char *getFirmwareJson(){
     return fJson;
 }
 
+char *getBetaFirmwareJson(const char *device){
+    char url[50], path[50];
+    strcat(url, FIRMWARE_BETA_JSON_URL);
+    strcat(url, device);
+    strcat(path, FIRMWARE_BETA_JSON_PATH);
+    strcat(path, device);
+    strcat(path, ".json");
+    info("[TSSC] opening %s\n", path);
+    FILE *f = fopen(path, "rb");
+    if (!f || nocache){
+        downloadFile(url, path);
+        f = fopen(path, "rb");
+    }
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *fJson = malloc(fsize + 1);
+    fread(fJson, fsize, 1, f);
+    fclose(f);
+    return fJson;
+}
+
 char *getOtaJson(){
     info("[TSSC] opening ota.json\n");
     FILE *f = fopen(FIRMWARE_OTA_JSON_PATH, "rb");
@@ -664,8 +688,12 @@ int downloadPartialzip(const char *url, const char *file, const char *dst){
 
 char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta){
     struct stat st = {0};
-    
-    size_t len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + strlen(version) +1;
+    size_t len = 0;
+    if(version) {
+        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + strlen(version) + 1;
+    } else {
+        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + 1;
+    }
     if (buildID) len += strlen(buildID);
     if (isOta) len += strlen("ota");
     char *fileDir = malloc(len);
@@ -674,8 +702,10 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     strcat(fileDir, MANIFEST_SAVE_PATH);
     strcat(fileDir, DIRECTORY_DELIMITER_STR);
     strcat(fileDir, device);
-    strcat(fileDir, "_");
-    strcat(fileDir, version);
+    if(version) {
+        strcat(fileDir, "_");
+        strcat(fileDir, version);
+    }
     if (buildID){
         strcat(fileDir, "_");
         strcat(fileDir, buildID);
@@ -1395,7 +1425,7 @@ char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, i
     
     jssytok_t *tmp = firmwares->subval;
     for (int i=0; i<firmwares->size; tmp = tmp->next,i++) {
-        
+
         jssytok_t *ios = jssy_dictGetValueForKey(tmp, "version");
         
         int isBeta = 0;
@@ -1413,6 +1443,62 @@ char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, i
     qsort(versions, versionsCnt, sizeof(char *), &cmpfunc);
     if (versionCntt) *versionCntt = versionsCnt;
     return versions;
+}
+
+char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, int buildid){
+    //requires free(versions[versionsCnt-1]); and free(versions); after use
+    jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
+
+    if (!firmwares)
+        return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
+
+    int versionsCnt = (int)firmwares->size;
+    char **versions = (char**)malloc(versionsCnt * sizeof(char *));
+
+    jssytok_t *tmp = firmwares->subval;
+    for (int i=0; i<firmwares->size; tmp = tmp->next,i++) {
+
+        const char *type = buildid ? "buildid" : "version";
+        jssytok_t *ios = jssy_dictGetValueForKey(tmp, type);
+
+        int isBeta = 0;
+        jssytok_t *releaseType = NULL;
+        if ((releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) {
+            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0);
+        }
+
+        versions[--versionsCnt] = (char*)malloc((ios->size+1 + isBeta * strlen("[B]")) * sizeof(char));
+        strncpy(versions[versionsCnt], ios->value, ios->size);
+        if (isBeta) strncpy(&versions[versionsCnt][ios->size], "[B]", strlen("[B]"));
+        versions[versionsCnt][ios->size + isBeta * strlen("[B]")] = '\0';
+    }
+    versionsCnt = (int)firmwares->size;
+    qsort(versions, versionsCnt, sizeof(char *), &cmpfunc);
+    if (versionCntt) *versionCntt = versionsCnt;
+    return versions;
+}
+
+char *getBetaURLForDevice(jssytok_t *tokens, const char *buildid) {
+    if (!tokens)
+        return error("[TSSC] beta tokens empty\n"),NULL;
+    jssytok_t *tmp = tokens->subval;
+    for (int i=0; i<tokens->size; tmp = tmp->next,i++) {
+
+        jssytok_t *url = jssy_dictGetValueForKey(tmp, "url");
+        jssytok_t *beta_buildid = jssy_dictGetValueForKey(tmp, "buildid");
+        char *beta_buildid_str = calloc(1, beta_buildid->size + 1);
+        char *url_str = calloc(1, url->size + 1);
+        strncpy(beta_buildid_str, beta_buildid->value, beta_buildid->size);
+        strncpy(url_str, url->value, url->size);
+        memset(beta_buildid_str + beta_buildid->size, 0, 1);
+        memset(url_str + url->size, 0, 1);
+        if(strlen(buildid) == beta_buildid->size) {
+            if ((strncmp(buildid, beta_buildid_str, beta_buildid->size) == 0)) {
+                return url_str;
+            }
+        }
+    }
+    return NULL;
 }
 
 int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
