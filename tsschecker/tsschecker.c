@@ -425,8 +425,10 @@ char *getFirmwareJson(){
     return fJson;
 }
 
-char *getBetaFirmwareJson(const char *device){
+char *getBetaFirmwareJson(const char *device) {
     char url[50], path[50];
+    memset(url, 0, 50);
+    memset(path, 0, 50);
     strcat(url, FIRMWARE_BETA_JSON_URL);
     strcat(url, device);
     strcat(path, FIRMWARE_BETA_JSON_PATH);
@@ -441,7 +443,7 @@ char *getBetaFirmwareJson(const char *device){
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
-    char *fJson = malloc(fsize + 1);
+    char *fJson = calloc(1, fsize + 1);
     fread(fJson, fsize, 1, f);
     fclose(f);
     return fJson;
@@ -576,7 +578,7 @@ long parseTokens(const char *json, jssytok_t **tokens){
     
     log("[JSON] counting elements\n");
     long tokensCnt = jssy_parse(json, strlen(json), NULL, 0);
-    *tokens = (jssytok_t*)malloc(sizeof(jssytok_t) * tokensCnt);
+    *tokens = (jssytok_t*)calloc(1, sizeof(jssytok_t) * tokensCnt);
     
     log("[JSON] parsing elements\n");
     return jssy_parse(json, strlen(json), *tokens, sizeof(jssytok_t) * tokensCnt);
