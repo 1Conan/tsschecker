@@ -14,7 +14,9 @@
 #include <time.h>
 #include <stdio.h>
 
+#ifndef TSSCHECKER_NOMAIN
 #include "../config.h"
+#endif
 #include "tsschecker.h"
 #include "debug.h"
 #include "download.h"

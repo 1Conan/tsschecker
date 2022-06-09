@@ -76,6 +76,7 @@ void debug_plist(plist_t plist) {
     free(data);
 }
 #endif
+#ifndef TSSCHECKER_NOMAIN
 #ifndef NO_GENERATE_GUID
 char *generate_guid()
 {
@@ -223,7 +224,6 @@ uint8_t _plist_dict_get_bool(plist_t dict, const char *key)
     }
     return bval;
 }
-
 
 int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 {
@@ -1523,6 +1523,7 @@ int tss_request_add_veridian_tags(plist_t request, plist_t parameters, plist_t o
 
 	return 0;
 }
+#endif
 
 static size_t tss_write_callback(char* data, size_t size, size_t nmemb, tss_response* response) {
 	size_t total = size * nmemb;
