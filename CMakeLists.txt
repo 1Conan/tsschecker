@@ -63,5 +63,8 @@ endif()
 add_definitions(-DTSSCHECKER_NOMAIN=1)
 project(tsschecker)
 add_subdirectory(external)
-install(TARGETS tsschecker
-        DESTINATION ${CMAKE_INSTALL_PREFIX})
+if(NOT DEFINED SUBPROJECT_BUILD)
+	install(TARGETS tsschecker
+		DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
+
