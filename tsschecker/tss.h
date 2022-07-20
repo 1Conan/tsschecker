@@ -28,6 +28,7 @@
 extern "C" {
 #endif
 
+#include <libfragmentzip/libfragmentzip.h>
 #include <plist/plist.h>
 
 #include "debug.h"
@@ -35,7 +36,7 @@ extern "C" {
 extern int print_tss_request;
 
 /* parameters */
-int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity);
+int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity, bool include_manifest);
 
 /* request */
 plist_t tss_request_new_ota(plist_t overrides);

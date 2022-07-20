@@ -802,7 +802,7 @@ void getRandNum(char *dst, size_t size, int base){
 int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t nonce_size, char *sep_nonce, size_t sep_nonce_size, int image4supported){
     plist_dict_set_item(tssreq, "ApECID", plist_new_uint(ecid)); //0000000000000000
     if (nonce) {
-        plist_dict_set_item(tssreq, "ApNonce", plist_new_data(nonce, nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
+        plist_dict_set_item(tssreq, "ApNonce", plist_new_data((const char*)nonce, (int)nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
     }
     
     if (sep_nonce) {//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
@@ -987,10 +987,12 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     
     if (devVals->apnonce) devVals->apnonce[nonceLen] = '\0';
     devVals->sepnonce[NONCELEN_SEP] = '\0';
-    
+
+#ifndef TSSCHECKER_NOMAIN
     debug("[TSSR] ecid=%llu\n",devVals->ecid);
     debug("[TSSR] ApNonce=%s\n",devVals->apnonce);
     debug("[TSSR] SepNonce=%s\n",devVals->sepnonce);
+#endif
     
     int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, is64bit);
     return rt;
@@ -1029,7 +1031,7 @@ getID0:
     if (tss_populate_random(tssparameter,is64Bit,devVals))
         reterror("[TSSR] failed to populate tss request\n");
     
-    tss_parameters_add_from_manifest(tssparameter, id0);
+    tss_parameters_add_from_manifest(tssparameter, id0, true);
     if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
         reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
     }
