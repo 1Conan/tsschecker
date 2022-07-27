@@ -34,7 +34,7 @@ struct bbdevice{
 };
 
 typedef struct bbdevice* t_bbdevice;
-    
+
 typedef enum{
     kInstallTypeDefault = 0, //default is always erase install
     kInstallTypeUpdate = 1,

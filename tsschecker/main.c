@@ -422,7 +422,7 @@ int main(int argc, const char * argv[]) {
             free((char*)versVals.version);
             if (--versionCnt == 0) reterror(-9, "[TSSC] automatic firmware selection couldn't find non-beta firmware\n");
         }
-        info("[TSSC] selecting latest version of firmware: %s\n",versVals.version);
+        debug("[TSSC] selecting latest version of firmware: %s\n",versVals.version);
         if (bpos) *bpos= '\0';
         if (versions) free(versions[versionCnt-1]),free(versions);
     }

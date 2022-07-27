@@ -412,7 +412,7 @@ void sha384(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
 }
 
 char *getFirmwareJson(){
-    info("[TSSC] opening firmwares.json\n");
+    debug("[TSSC] opening firmwares.json\n");
     FILE *f = fopen(FIRMWARE_JSON_PATH, "rb");
     if (!f || nocache){
         downloadFile(FIRMWARE_JSON_URL, FIRMWARE_JSON_PATH);
@@ -436,7 +436,7 @@ char *getBetaFirmwareJson(const char *device) {
     strcat(path, FIRMWARE_BETA_JSON_PATH);
     strcat(path, device);
     strcat(path, ".json");
-    info("[TSSC] opening %s\n", path);
+    debug("[TSSC] opening %s\n", path);
     FILE *f = fopen(path, "rb");
     if (!f || nocache){
         downloadFile(url, path);
@@ -452,7 +452,7 @@ char *getBetaFirmwareJson(const char *device) {
 }
 
 char *getOtaJson(){
-    info("[TSSC] opening ota.json\n");
+    debug("[TSSC] opening ota.json\n");
     FILE *f = fopen(FIRMWARE_OTA_JSON_PATH, "rb");
     if (!f || nocache){
         downloadFile(FIRMWARE_OTA_JSON_URL, FIRMWARE_OTA_JSON_PATH);
@@ -517,22 +517,22 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
     }
     
     for (int i = 0; i < plist_array_get_size(buildidentities); i++) {
-        info("[TSSR] Checking BuildIdentity %d\n", i);
+        debug("[TSSR] Checking BuildIdentity %d\n", i);
         plist_t build_identity = plist_array_get_item(buildidentities, i);
         if (!build_identity || plist_get_node_type(build_identity) != PLIST_DICT){
-            warning("[TSSR] Could not get BuildIdentity\n");
+            debug("[TSSR] Could not get BuildIdentity\n");
             continue;
         }
         plist_t infodict = plist_dict_get_item(build_identity, "Info");
         if (!infodict || plist_get_node_type(infodict) != PLIST_DICT){
-            warning("[TSSR] Could not get info dictionary\n");
+            debug("[TSSR] Could not get info dictionary\n");
             continue;
         }
         plist_t RestoreBehavior = plist_dict_get_item(infodict, "RestoreBehavior");
         // certain buildidentities (eg: Research Developer Erase Install) in some manifests
         // don't contain a RestoreBehavior
         if (!RestoreBehavior || plist_get_node_type(RestoreBehavior) != PLIST_STRING){
-            warning("[TSSR] Could not get RestoreBehavior\n");
+            debug("[TSSR] Could not get RestoreBehavior\n");
             continue;
         }
         char *string = NULL;
@@ -547,12 +547,12 @@ plist_t getBuildidentityWithBoardconfig(plist_t buildManifest, const char *board
         
         plist_t DeviceClass = plist_dict_get_item(infodict, "DeviceClass");
         if (!DeviceClass || plist_get_node_type(DeviceClass) != PLIST_STRING){
-            warning("[TSSR] Could not get DeviceClass\n");
+            debug("[TSSR] Could not get DeviceClass\n");
         }
         plist_get_string_val(DeviceClass, &string);
         if (strcasecmp(string, boardconfig) == 0)
         {
-            info("[TSSR] Selected BuildIdentity for request\n");
+            debug("[TSSR] Selected BuildIdentity for request\n");
             selected_build_identity = build_identity;
             break;
         }
@@ -637,7 +637,7 @@ malloc_rets:
                     }
                 }
                 
-                info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",(int)i_vers->size, i_vers->value,(int)i_build->size, i_build->value);
+                debug("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",(int)i_vers->size, i_vers->value,(int)i_build->size, i_build->value);
                 rets->version = (char*)malloc(i_vers->size+1);
                 memcpy(rets->version, i_vers->value, i_vers->size);
                 rets->version[i_vers->size] = '\0';
@@ -729,8 +729,8 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     FILE *f = fopen(fileDir, "rb");
     if (!url) {
         if (!f || nocache) return NULL;
-        info("[TSSC] using cached Buildmanifest for %s\n",name);
-    }else info("[TSSC] opening Buildmanifest for %s\n",name);
+        debug("[TSSC] using cached Buildmanifest for %s\n",name);
+    }else debug("[TSSC] opening Buildmanifest for %s\n",name);
     
     if (!f || nocache){
         //download if it isn't there
@@ -1089,7 +1089,7 @@ getID0:
             log("[TSSR] LOG: device %s doesn't need a baseband ticket, continuing without requesting a Baseband ticket\n",devVals->deviceModel);
         }
     }else{
-        info("[TSSR] User specified to not request a baseband ticket.\n");
+        debug("[TSSR] User specified to not request a baseband ticket.\n");
     }
     
     *tssreqret = tssreq;
@@ -1233,8 +1233,8 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     plist_t SupportedProductTypes = NULL;
     plist_t mDevice = NULL;
     char *bufManifest = NULL;
-    
-    info("[TSSC] opening %s\n",buildManifestPath);
+
+    debug("[TSSC] opening %s\n",buildManifestPath);
     //filehandling
     FILE *fmanifest = fopen(buildManifestPath, "r");
     if (!fmanifest) reterror("[TSSC] ERROR: file %s not found!\n",buildManifestPath);

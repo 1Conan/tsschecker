@@ -43,8 +43,7 @@ set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_C_STANDARD 17)
 add_library(tsschecker
         tsschecker/tsschecker.c
-        tsschecker/download.c
-		tsschecker/common.c)
+        tsschecker/download.c)
 target_include_directories(tsschecker PRIVATE
         "${CMAKE_SOURCE_DIR}/dep_root/include/"
         tsschecker

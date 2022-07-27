@@ -1,12 +1,12 @@
 name: Build & Release
-on: [push, pull_request, workflow_dispatch]
+on: [push]
 env:
   SSL_LIBRARY: openssl
   LIBPLIST_VERSION: 2.2.0
-  ZLIB_VERSION: 1.2.12
+  ZLIB_VERSION: 1.2.11
   LIBZIP_VERSION: 1.8.0
   WOLFSSL_VERSION: 5.1.1
-  OPENSSL_VERSION: 3.0.5
+  OPENSSL_VERSION: 1.1.1m
   LIBCURL_VERSION: 7.79.1
   SCCACHE_VERSION: 0.2.15
 
@@ -259,8 +259,7 @@ jobs:
         cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
         CC= CXX= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=/usr --static -static ${PLATFORM}
         make -j$(nproc) CC="${CC}" CXX="${CXX}"
-        make install_dev DESTDIR="${ROOT}"
-        cp -RpP ${ROOT}/usr/lib64/* ${ROOT}/usr/lib/
+        make install_sw DESTDIR="${ROOT}"
 
     - name: build tiny-curl
       run: |

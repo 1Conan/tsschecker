@@ -1,10 +1,11 @@
 name: build
-on: [push, pull_request, workflow_dispatch]
+on: [push]
+
 env:
   LIBPLIST_VERSION: 2.2.0
-  OPENSSL_VERSION: 3.0.5
+  OPENSSL_VERSION: 1.1.1k
   LIBCURL_VERSION: 7.78.0
-  ZLIB_VERSION: 1.2.12
+  ZLIB_VERSION: 1.2.11
   LIBZIP_VERSION: 1.7.3
   LIBGENERAL_VERSION: 56
   LIBFRAGMENTZIP_VERSION: 60
@@ -62,7 +63,7 @@ jobs:
           tar xf ${DOWNLOAD_PATH}/libplist-${LIBPLIST_VERSION}.tar.bz2 -C ${DEP_PATH}
           cd ${DEP_PATH}/libplist-${LIBPLIST_VERSION}
           ./configure --host=${TRIPLE} --prefix=/usr --without-cython --enable-static --disable-shared
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build libirecovery
@@ -78,7 +79,7 @@ jobs:
           automake --add-missing
           autoconf
           ./configure --host=${TRIPLE} --prefix=/usr --enable-static --disable-shared --with-dummy
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build zlib
@@ -87,7 +88,7 @@ jobs:
           tar xf ${DOWNLOAD_PATH}/zlib-${ZLIB_VERSION}.tar.gz -C ${DEP_PATH}
           cd ${DEP_PATH}/zlib-${ZLIB_VERSION}
           ./configure --static --prefix=/usr
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build openssl
@@ -96,9 +97,8 @@ jobs:
           tar xf ${DOWNLOAD_PATH}/openssl-${OPENSSL_VERSION}.tar.gz -C ${DEP_PATH}
           cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
           ./config --prefix=/usr --openssldir=/etc/ssl --static -static
-          make -j$(nproc) -l$(nproc)
-          make install_dev DESTDIR="${ROOT}"
-          cp -RpP ${ROOT}/usr/lib64/* ${ROOT}/usr/lib/
+          make -j$(nproc)
+          make install_sw DESTDIR="${ROOT}"
 
       - name: build libcurl
         run: |
@@ -114,7 +114,7 @@ jobs:
             --disable-dependency-tracking \
             --with-zlib=${ROOT}/usr \
             --with-ssl=${ROOT}/usr
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build libzip
@@ -134,7 +134,7 @@ jobs:
             -DZLIB_INCLUDE_DIR=${ROOT}/usr/include \
             -DOPENSSL_CRYPTO_LIBRARY=${ROOT}/usr/lib/libcrypto.a \
             -DOPENSSL_SSL_LIBRARY=${ROOT}/usr/lib/libssl.a
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build libgeneral
@@ -142,9 +142,9 @@ jobs:
           rm -rf ${DEP_PATH}/libgeneral
           git clone https://github.com/tihmstar/libgeneral ${DEP_PATH}/libgeneral
           cd ${DEP_PATH}/libgeneral
-          git checkout e0d98cbeedece5d62e3e9432c3ed37cd87da5338
+          git checkout f571dc2949c4ca4c9b5db72fff35878717e5ce0b
           ./autogen.sh --enable-static --disable-shared --host=${TRIPLE} --prefix=/usr
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
       - name: build libfragmentzip
         run: |
@@ -156,7 +156,7 @@ jobs:
             --host=${TRIPLE} \
             --enable-static \
             --disable-shared
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
       - name: configure
         run: ./autogen.sh --host=${TRIPLE} --enable-static --disable-shared
@@ -223,7 +223,7 @@ jobs:
           tar xf ${DOWNLOAD_PATH}/libplist-${LIBPLIST_VERSION}.tar.bz2 -C ${DEP_PATH}
           cd ${DEP_PATH}/libplist-${LIBPLIST_VERSION}
           ./configure --host=${TRIPLE} --prefix=/usr --without-cython --enable-static --disable-shared
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build libirecovery
@@ -239,7 +239,7 @@ jobs:
           automake --add-missing
           autoconf
           ./configure --host=${TRIPLE} --prefix=/usr --enable-static --disable-shared --with-dummy
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build zlib
@@ -248,7 +248,7 @@ jobs:
           tar xf ${DOWNLOAD_PATH}/zlib-${ZLIB_VERSION}.tar.gz -C ${DEP_PATH}
           cd ${DEP_PATH}/zlib-${ZLIB_VERSION}
           ./configure --static --prefix=/usr
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build libcurl
@@ -266,7 +266,7 @@ jobs:
             --with-zlib=${ROOT}/usr \
             --with-winssl \
             --with-schannel
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build openssl
@@ -275,7 +275,8 @@ jobs:
           tar xf ${DOWNLOAD_PATH}/openssl-${OPENSSL_VERSION}.tar.gz -C ${DEP_PATH}
           cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
           CC= CXX= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=/usr --static -static mingw64
-          make -j$(nproc) -l$(nproc) CC="${CC}" CXX="${CXX}" install_dev DESTDIR="${ROOT}" 
+          make -j$(nproc) CC="${CC}" CXX="${CXX}"
+          make install_sw DESTDIR="${ROOT}"
 
       - name: build libzip
         run: |
@@ -298,7 +299,7 @@ jobs:
             -DSKIP_BUILD_RPATH=TRUE \
             -DZLIB_LIBRARY=${ROOT}/usr/lib/libz.a \
             -DZLIB_INCLUDE_DIR=${ROOT}/usr/include
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build libgeneral
@@ -306,7 +307,7 @@ jobs:
           rm -rf ${DEP_PATH}/libgeneral
           git clone https://github.com/tihmstar/libgeneral ${DEP_PATH}/libgeneral
           cd ${DEP_PATH}/libgeneral
-          git checkout e0d98cbeedece5d62e3e9432c3ed37cd87da5338
+          git checkout f571dc2949c4ca4c9b5db72fff35878717e5ce0b
           sed -i '/using namespace tihmstar/a \
           int vasprintf(char **s, const char *fmt, va_list ap) {\
           \n\tva_list ap2;\n\tva_copy(ap2, ap);\
@@ -315,7 +316,7 @@ jobs:
           \n\treturn vsnprintf(*s, l+1U, fmt, ap);\
           \n}' ${DEP_PATH}/libgeneral/libgeneral/exception.cpp
           ./autogen.sh --enable-static --disable-shared --host=${TRIPLE} --prefix=/usr
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: build libfragmentzip
@@ -328,7 +329,7 @@ jobs:
             --host=${TRIPLE} \
             --enable-static \
             --disable-shared
-          make -j$(nproc) -l$(nproc)
+          make -j$(nproc)
           make install DESTDIR="${ROOT}"
 
       - name: configure
@@ -407,14 +408,6 @@ jobs:
           make
           make install DESTDIR="${ROOT}"
 
-      - name: build openssl
-        run: |
-          wget -q -nc -P ${DOWNLOAD_PATH} https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
-          tar xf ${DOWNLOAD_PATH}/openssl-${OPENSSL_VERSION}.tar.gz -C ${DEP_PATH}
-          cd ${DEP_PATH}/openssl-${OPENSSL_VERSION}
-          ./config --prefix=/usr --openssldir=/etc/ssl -static
-          make -j$(nproc) -l$(nproc) install_dev DESTDIR="${ROOT}"
-
       - name: build libcurl
         run: |
           wget -q -nc -P ${DOWNLOAD_PATH} https://curl.haxx.se/download/curl-${LIBCURL_VERSION}.tar.gz
@@ -427,7 +420,7 @@ jobs:
             --enable-ipv6 \
             --disable-dependency-tracking \
             --with-zlib=${ROOT}/usr \
-            --with-ssl=${ROOT}/usr \
+            --with-darwinssl \
             --with-secure-transport \
             --without-ca-bundle \
             --without-ca-path \

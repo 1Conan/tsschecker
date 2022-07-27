@@ -11,11 +11,21 @@
 
 // idevicerestore flags
 extern int idevicerestore_debug;
-#define info(a ...) printf(a)
+#ifndef log
 #define log(a ...) if (dbglog) printf(a)
+#endif
+#ifndef info
+#define info(a ...) printf(a)
+#endif
+#ifndef warning
 #define warning(a ...) if (dbglog) printf("[WARNING] "), printf(a)
+#endif
+#ifndef debug
 #define debug(a ...) if (idevicerestore_debug) printf(a)
+#endif
+#ifndef error
 #define error(a ...) printf("[Error] "),printf(a)
+#endif
 
 // statis assert
 #define CASSERT(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
