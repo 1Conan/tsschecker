@@ -18,6 +18,15 @@ jobs:
       matrix:
         triple:
         - x86_64-linux-musl
+        - i486-linux-musl
+        - arm-linux-musleabi
+        - aarch64-linux-musl
+        - mips-linux-musl
+        - mipsel-linux-musl
+        - riscv32-linux-musl
+        - riscv64-linux-musl
+        - x86_64-w64-mingw32
+        - i686-w64-mingw32
     env:
       TRIPLE: ${{ matrix.triple }}
       TOOLCHAIN: ${{ matrix.triple }}-cross
