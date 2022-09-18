@@ -234,6 +234,7 @@ jobs:
 
     - name: build openssl
       if: ${{ env.OS != 'win' && env.SSL_LIBRARY == 'openssl' }}
+      run: |
         wget -q -nc -P ${DOWNLOAD_PATH} \
           https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
         tar xf ${DOWNLOAD_PATH}/openssl-${OPENSSL_VERSION}.tar.gz -C ${DEP_PATH}
