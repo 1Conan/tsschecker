@@ -1,5 +1,8 @@
 name: Build & Release
-on: [push]
+on:
+  push:
+  workflow_dispatch:
+
 env:
   SSL_LIBRARY: openssl
   LIBPLIST_VERSION: 2.2.0
