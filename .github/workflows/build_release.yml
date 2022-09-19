@@ -261,7 +261,7 @@ jobs:
             i486)
               export PLATFORM="linux-x86"
               ;;
-            mips)
+            mips|mipsel)
               export PLATFORM="linux-mips32"
               ;;
             riscv64)
