@@ -19,10 +19,10 @@
 */.libs
 */all.h*
 */futurerestore*
-*/tsschecker*
+tsschecker/tsschecker
 *Makefile
 *Makefile.in
-*~
+
 .DS_Store
 .build_complete
 .idea
@@ -63,3 +63,5 @@ src/idevicerestore
 stamp-h1
 swig/*
 xcuserdata
+!tsschecker/*.h
+!tsschecker/*.c

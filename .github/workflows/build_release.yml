@@ -10,8 +10,8 @@ env:
   LIBZIP_VERSION: 1.9.2
   WOLFSSL_VERSION: 5.5.0
   OPENSSL_VERSION: 1.1.1q
-  LIBCURL_VERSION: 7.85.0
-  SCCACHE_VERSION: 0.2.15
+  LIBCURL_VERSION: 7.79.1
+  SCCACHE_VERSION: 0.3.0
 
 jobs:
 
@@ -21,15 +21,15 @@ jobs:
       matrix:
         triple:
         - x86_64-linux-musl
-        - i486-linux-musl
-        - arm-linux-musleabi
-        - aarch64-linux-musl
-        - mips-linux-musl
-        - mipsel-linux-musl
-        - riscv32-linux-musl
-        - riscv64-linux-musl
-        - x86_64-w64-mingw32
-        - i686-w64-mingw32
+#        - i486-linux-musl
+#        - arm-linux-musleabi
+#        - aarch64-linux-musl
+#        - mips-linux-musl
+#        - mipsel-linux-musl
+#        - riscv32-linux-musl
+#        - riscv64-linux-musl
+#        - x86_64-w64-mingw32
+#        - i686-w64-mingw32
     env:
       TRIPLE: ${{ matrix.triple }}
       TOOLCHAIN: ${{ matrix.triple }}-cross
@@ -270,8 +270,8 @@ jobs:
         fi
 
         cd ${BUILD_WORK}/openssl-${OPENSSL_VERSION}
-        CC= CXX= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=${BUILD_BASE} --static -static ${PLATFORM}
-        make -j$(nproc) CC="${CC}" CXX="${CXX}"
+        CC= CXX= AR= RANLIB= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=${BUILD_BASE} --static -static ${PLATFORM}
+        make -j$(nproc) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
         make install_sw DESTDIR="${ROOT}"
 
     - name: build tiny-curl
@@ -289,11 +289,11 @@ jobs:
 
         if [ "${OS}" = "win" ]; then
           CURL_FLAGS="--with-schannel"
-        elif [ "${OS}" = "linux"]; then
+        elif [ "${OS}" = "linux" ]; then
           if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
             CURL_FLAGS="--without-libcrypto --with-wolfssl"
           else
-            CURL_FLAGS="--with-libcrypto --with-ca-fallback --with-ca-path=/etc/ssl/certs --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+            CURL_FLAGS="--with-libcrypto --with-openssl --with-ca-fallback --with-ca-path=/etc/ssl/certs --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
           fi
         fi
 
