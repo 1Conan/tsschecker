@@ -26,9 +26,9 @@
 #include <libirecovery.h>
 
 #ifdef WIN32
-#include <windows.h>
-#include <bcrypt.h>
-#include <ntstatus.h>
+#   include <windows.h>
+#   include <bcrypt.h>
+#   include <ntstatus.h>
 #elif defined(__APPLE__)
 #   include <CommonCrypto/CommonDigest.h>
 #   define SHA1(d, n, md) CC_SHA1(d, n, md)
@@ -60,6 +60,7 @@ static const char *win_paths[4];
 enum paths{
     kWINPathTSSCHECKER,
     kWINPathOTA,
+    kWINPathBeta,
     kWINPathFIRMWARE
 };
 
@@ -72,7 +73,7 @@ static const char *win_pathvars[]={
 static const char *win_path_get(enum paths path){
     if (!win_path_didinit) memset(win_paths, 0, sizeof(win_paths));
     if (win_paths[path]) return win_paths[path];
-    
+
     const char *tmp = getenv("TMP");
     if (tmp && *tmp){
         size_t len = strlen(tmp) + strlen(win_pathvars[path]) + 1;
@@ -82,7 +83,7 @@ static const char *win_path_get(enum paths path){
         strcat((char*)win_paths[path], win_pathvars[path]);
         return win_paths[path];
     }
-    
+
     error("DEBUG: tmp=%s win_paths[path]=%s\n",tmp,win_paths[path]);
     error("FATAL could not get TMP path. exiting!\n");
     exit(123);
@@ -90,17 +91,18 @@ static const char *win_path_get(enum paths path){
 }
 
 #define MANIFEST_SAVE_PATH win_path_get(kWINPathTSSCHECKER)
-#define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
+#define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
+#define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBeta)
 #define DIRECTORY_DELIMITER_STR "\\"
 #define DIRECTORY_DELIMITER_CHR '\\'
 
 #else
 
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
-#define FIRMWARE_OTA_JSON_PATH "/tmp/ota.json"
 #define FIRMWARE_JSON_PATH "/tmp/firmwares.json"
-#define FIRMWARE_BETA_JSON_PATH "/tmp/betas_"
+#define FIRMWARE_OTA_JSON_PATH "/tmp/firmwares_ota.json"
+#define FIRMWARE_BETA_JSON_PATH "/tmp/firmwares_betas.json"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
