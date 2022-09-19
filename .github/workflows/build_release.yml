@@ -5,7 +5,7 @@ on:
 
 env:
   SSL_LIBRARY: openssl
-  LIBPLIST_VERSION: 2.2.0
+  LIBPLIST_VERSION: c3af449543795ad4d3ab178120ff69e90fdd2cc8
   ZLIB_VERSION: 1.2.12
   LIBZIP_VERSION: 1.9.2
   WOLFSSL_VERSION: 5.5.0
@@ -21,15 +21,15 @@ jobs:
       matrix:
         triple:
         - x86_64-linux-musl
-#        - i486-linux-musl
-#        - arm-linux-musleabi
-#        - aarch64-linux-musl
-#        - mips-linux-musl
-#        - mipsel-linux-musl
-#        - riscv32-linux-musl
-#        - riscv64-linux-musl
-#        - x86_64-w64-mingw32
-#        - i686-w64-mingw32
+        - i486-linux-musl
+        - arm-linux-musleabi
+        - aarch64-linux-musl
+        - mips-linux-musl
+        - mipsel-linux-musl
+        - riscv32-linux-musl
+        - riscv64-linux-musl
+        - x86_64-w64-mingw32
+        - i686-w64-mingw32
     env:
       TRIPLE: ${{ matrix.triple }}
       TOOLCHAIN: ${{ matrix.triple }}-cross
@@ -167,13 +167,17 @@ jobs:
     - name: build libplist
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
-          https://github.com/libimobiledevice/libplist/releases/download/${LIBPLIST_VERSION}/libplist-${LIBPLIST_VERSION}.tar.bz2
-        tar xf ${BUILD_SOURCE}/libplist-${LIBPLIST_VERSION}.tar.bz2 -C ${BUILD_WORK}
+          https://github.com/libimobiledevice/libplist/archive/${LIBPLIST_VERSION}.tar.gz
+        tar xf ${BUILD_SOURCE}/${LIBPLIST_VERSION}.tar.gz -C ${BUILD_WORK}
+
+        echo "2.3.0" > ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}/.tarball-version
 
         cd ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}
-        ./configure \
+        PACKAGE_VERSION=${LIBPLIST_VERSION} ./autogen.sh \
           ${CONFIGURE_FLAGS} \
           --without-cython
+
+        sed -i 's/tools//g' Makefile
 
         make -j$(nproc)
         make install
