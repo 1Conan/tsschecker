@@ -60,14 +60,15 @@ static const char *win_paths[4];
 enum paths{
     kWINPathTSSCHECKER,
     kWINPathOTA,
-    kWINPathBeta,
-    kWINPathFIRMWARE
+    kWINPathFIRMWARE,
+    kWINPathBetaFIRMWARE
 };
 
 static const char *win_pathvars[]={
     "\\tsschecker",
     "\\ota.json",
-    "\\firmwares.json"
+    "\\firmwares.json",
+    "\\betas_"
 };
 
 static const char *win_path_get(enum paths path){
@@ -94,6 +95,7 @@ static const char *win_path_get(enum paths path){
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
 #define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
 #define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBeta)
+#define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBetaFIRMWARE)
 #define DIRECTORY_DELIMITER_STR "\\"
 #define DIRECTORY_DELIMITER_CHR '\\'
 
@@ -745,7 +747,6 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
                     index = i;
                 }
             }
-
             char *buildmanifest_url = malloc(strlen(url));
             buildmanifest_url = strncpy(buildmanifest_url, url, index);
             buildmanifest_url[index] = '\0';
@@ -934,7 +935,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         else if (devVals->parsedApnonceLen != nonceLen)
             return error("[TSSR] parsed APNoncelen != requiredAPNoncelen (%u != %u)\n",(unsigned int)devVals->parsedApnonceLen,(unsigned int)nonceLen),-1;
     }else{
-        devVals->apnonce = (char*)malloc((devVals->parsedApnonceLen = nonceLen)+1);
+        devVals->apnonce = (char*)calloc(1, (devVals->parsedApnonceLen = nonceLen)+1);
         //nonce is derived from generator with SHA1
         if (nonceLen == 20) {
             unsigned char zz[9] = {0};
@@ -983,7 +984,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         if (devVals->parsedSepnonceLen != NONCELEN_SEP)
             return error("[TSSR] parsed SEPNoncelen != requiredSEPNoncelen (%u != %u)",(unsigned int)devVals->parsedSepnonceLen,(unsigned int)NONCELEN_SEP),-1;
     }else{
-        devVals->sepnonce = (char*)malloc((devVals->parsedSepnonceLen = NONCELEN_SEP) +1);
+        devVals->sepnonce = (char*)calloc(1, (devVals->parsedSepnonceLen = NONCELEN_SEP) +1);
         getRandNum(devVals->sepnonce, devVals->parsedSepnonceLen, 256);
     }
     
