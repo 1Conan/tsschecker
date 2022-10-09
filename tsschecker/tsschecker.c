@@ -1066,7 +1066,7 @@ getID0:
         if (plist_dict_get_item(tssreq, "@APTicket"))
             plist_dict_set_item(tssreq, "@APTicket", plist_new_bool(0));
         //TODO: don't use .shsh2 ending and don't save generator when saving only baseband
-        info("[TSSR] User specified to request only a Baseband ticket.\n");
+        debug("[TSSR] User specified to request only a Baseband ticket.\n");
     }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
@@ -1075,7 +1075,7 @@ getID0:
         int64_t BbGoldCertId = devVals->bbgcid ? devVals->bbgcid : bbinfo->bbgcid;
         size_t bbsnumSize = devVals->bbsnumSize ? devVals->bbsnumSize : bbinfo->bbsnumSize;
         if (BbGoldCertId != bbinfo->bbgcid || bbsnumSize != bbinfo->bbsnumSize) {
-            info("\n[TSSR] Found undocumented baseband\n\n",
+            debug("\n[TSSR] Found undocumented baseband\n\n",
                  devVals->deviceBoard, devVals->deviceModel, BbGoldCertId, bbsnumSize);
         }
         
