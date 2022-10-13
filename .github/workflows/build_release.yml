@@ -11,7 +11,6 @@ env:
   WOLFSSL_VERSION: 5.5.0
   OPENSSL_VERSION: 1.1.1q
   LIBCURL_VERSION: 7.79.1
-  SCCACHE_VERSION: 0.3.0
 
 jobs:
 
@@ -126,7 +125,6 @@ jobs:
           -DCMAKE_C_FLAGS="${CFLAGS}" \
           -DCMAKE_FIND_ROOT_PATH="${BUILD_BASE}" \
           -DCMAKE_C_COMPILER=gcc \
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache \
           -DCMAKE_AR=${AR} \
           -DCMAKE_RANLIB=${RANLIB} \
           -DCMAKE_INSTALL_PREFIX=${BUILD_BASE} \
