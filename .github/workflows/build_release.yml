@@ -71,13 +71,13 @@ jobs:
       run: |
         echo "/${TRIPLE}/bin" >> $GITHUB_PATH
         chown root:root /bin/*
-        echo "CC=gcc" >> $GITHUB_ENV
-        echo "CXX=g++" >> $GITHUB_ENV
-        echo "LD=ld" >> $GITHUB_ENV
-        echo "STRIP=strip" >> $GITHUB_ENV
-        echo "AR=gcc-ar" >> $GITHUB_ENV
-        echo "NM=gcc-nm" >> $GITHUB_ENV
-        echo "RANLIB=gcc-ranlib" >> $GITHUB_ENV
+        echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
+        echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
+        echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
+        echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
+        echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
+        echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
+        echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
 
         echo "CFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
         echo "CXXFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
