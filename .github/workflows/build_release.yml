@@ -67,7 +67,7 @@ jobs:
 
     - name: Setup toolchain
       run: |
-        echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
+        echo "/${TRIPLE}/bin" >> $GITHUB_PATH
 
         echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
         echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
@@ -77,8 +77,8 @@ jobs:
         echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
         echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
 
-        echo "CFLAGS=-Os -static -ffunction-sections -fdata-sections -flto -Wno-error=all" >> $GITHUB_ENV
-        echo "CXXFLAGS=-Os -static -ffunction-sections -fdata-sections -flto -Wno-error=all" >> $GITHUB_ENV
+        echo "CFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+        echo "CXXFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
         echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
         echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
         echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
