@@ -67,6 +67,8 @@ jobs:
 
     - name: Setup toolchain
       run: |
+        apk add wget build-base automake autoconf libtool
+        ls -lath "${HOME}"
         echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
 
         echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
@@ -95,7 +97,9 @@ jobs:
         cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
         ./configure \
           --prefix=${BUILD_BASE} \
-          --static
+          --static || true
+        cat configure.log
+        return 1
         make -j $(nproc)
         make install
 
