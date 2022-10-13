@@ -30,6 +30,7 @@ jobs:
         - riscv64-linux-musl
         - x86_64-w64-mingw32
         - i686-w64-mingw32
+    container: muslcc/x86_64:${{ matrix.triple }}
     env:
       TRIPLE: ${{ matrix.triple }}
       TOOLCHAIN: ${{ matrix.triple }}-cross
@@ -75,11 +76,8 @@ jobs:
         fi
         echo "ARCH=${ARCH}" >> $GITHUB_ENV
 
-    - name: Download and setup toolchain
+    - name: Setup toolchain
       run: |
-        wget -nc -P ${BUILD_SOURCE} https://musl.cc/${TOOLCHAIN}.tgz
-        tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
-
         # Download sccache
         wget -nc -P ${BUILD_SOURCE} \
           https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz
