@@ -89,6 +89,8 @@ jobs:
 
         echo "CONFIGURE_FLAGS=--host=${TRIPLE} --prefix=${BUILD_BASE} --enable-static --disable-shared" >> $GITHUB_ENV
 
+        apk add make m4 autoconf autoconf-archive automake libtool pkgconfig
+
     - name: build zlib
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
