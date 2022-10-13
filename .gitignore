@@ -65,3 +65,4 @@ swig/*
 xcuserdata
 !tsschecker/*.h
 !tsschecker/*.c
+*.zst
