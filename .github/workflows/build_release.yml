@@ -45,8 +45,8 @@ jobs:
       if: ${{ !env.ACT }}
       with:
         path: |
-          ~/.cache/sccache
-          ~/workspace
+          ${{ env.HOME }}/.cache/sccache
+          ${{ env.HOME }}/workspace
         key: build-win-linux-${{ matrix.triple }}-${ { env.GITHUB_SHA } }
         restore-keys: |
           build-win-linux-${{ matrix.triple }}
@@ -55,7 +55,7 @@ jobs:
       run: |
         export WORKSPACE=${HOME}/workspace
 
-        mkdir -p ${WORKSPACE}/build_{base,work,source}
+        mkdir -p ${WORKSPACE}/build_source ${WORKSPACE}/build_work ${WORKSPACE}/build_base
 
         echo "BUILD_SOURCE=${WORKSPACE}/build_source" >> $GITHUB_ENV
         echo "BUILD_WORK=${WORKSPACE}/build_work" >> $GITHUB_ENV
