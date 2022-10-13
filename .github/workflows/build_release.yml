@@ -30,7 +30,9 @@ jobs:
         - riscv64-linux-musl
         - x86_64-w64-mingw32
         - i686-w64-mingw32
-    container: muslcc/x86_64:${{ matrix.triple }}
+    container:
+      image: muslcc/x86_64:${{ matrix.triple }}
+      options: "--security-opt seccomp=unconfined"
     env:
       TRIPLE: ${{ matrix.triple }}
       TOOLCHAIN: ${{ matrix.triple }}-cross
@@ -42,6 +44,7 @@ jobs:
 
     - name: setup environment
       run: |
+        apk add git make cmake
         export WORKSPACE=${HOME}/workspace
 
         mkdir -p ${WORKSPACE}/build_source ${WORKSPACE}/build_work ${WORKSPACE}/build_base
@@ -67,17 +70,15 @@ jobs:
 
     - name: Setup toolchain
       run: |
-        apk add wget build-base automake autoconf libtool
-        ls -lath "${HOME}"
-        echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
-
-        echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
-        echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
-        echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
-        echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
-        echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
-        echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
-        echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
+        echo "/${TRIPLE}/bin" >> $GITHUB_PATH
+        chown root:root /bin/*
+        echo "CC=gcc" >> $GITHUB_ENV
+        echo "CXX=g++" >> $GITHUB_ENV
+        echo "LD=ld" >> $GITHUB_ENV
+        echo "STRIP=strip" >> $GITHUB_ENV
+        echo "AR=gcc-ar" >> $GITHUB_ENV
+        echo "NM=gcc-nm" >> $GITHUB_ENV
+        echo "RANLIB=gcc-ranlib" >> $GITHUB_ENV
 
         echo "CFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
         echo "CXXFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
@@ -95,6 +96,7 @@ jobs:
         tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
 
         cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
+        chown -R root:root .
         ./configure \
           --prefix=${BUILD_BASE} \
           --static || true
@@ -123,10 +125,10 @@ jobs:
           -DCMAKE_SYSTEM_PROCESSOR=${ARCH} \
           -DCMAKE_C_FLAGS="${CFLAGS}" \
           -DCMAKE_FIND_ROOT_PATH="${BUILD_BASE}" \
-          -DCMAKE_C_COMPILER=${TRIPLE}-gcc \
+          -DCMAKE_C_COMPILER=gcc \
           -DCMAKE_C_COMPILER_LAUNCHER=sccache \
-          -DCMAKE_AR=${HOME}/${TRIPLE}-cross/bin/${AR} \
-          -DCMAKE_RANLIB=${HOME}/${TRIPLE}-cross/bin/${RANLIB} \
+          -DCMAKE_AR=${AR} \
+          -DCMAKE_RANLIB=${RANLIB} \
           -DCMAKE_INSTALL_PREFIX=${BUILD_BASE} \
           -DCMAKE_EXE_LINKER_FLAGS="-static" \
           -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
