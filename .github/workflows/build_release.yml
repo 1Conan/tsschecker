@@ -101,9 +101,7 @@ jobs:
         chown -R root:root .
         ./configure \
           --prefix=${BUILD_BASE} \
-          --static || true
-        cat configure.log
-        return 1
+          --static
         make -j $(nproc)
         make install
 
