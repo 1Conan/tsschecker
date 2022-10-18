@@ -1473,7 +1473,7 @@ char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, 
         int isBeta = 0;
         jssytok_t *releaseType = NULL;
         if ((releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) {
-            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0 && !beta);
+            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0 && beta);
         }
 
         versions[--versionsCnt] = (char*)malloc((ios->size+1 + isBeta * strlen("[B]")) * sizeof(char));
