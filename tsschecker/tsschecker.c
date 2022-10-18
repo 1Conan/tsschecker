@@ -592,7 +592,7 @@ long parseTokens(const char *json, jssytok_t **tokens){
 
 #pragma mark get functions
 //returns NULL terminated array of t_versionURL objects
-t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
+t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta){
     t_versionURL *rets = NULL;
     const t_versionURL *rets_base = NULL;
     unsigned retcounter = 0;
@@ -618,7 +618,7 @@ malloc_rets:
                 jssytok_t *releaseType = NULL;
                 if (versVals->useBeta && !(releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) continue;
                 else if (!versVals->useBeta);
-                else if (strncmp(releaseType->value, "Beta", releaseType->size) != 0) continue;
+                else if (strncmp(releaseType->value, "Beta", releaseType->size) != 0 && !beta) continue;
             }
             
             jssytok_t *url = jssy_dictGetValueForKey(tmp, "url");
@@ -1295,7 +1295,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     int isSignedOne = 0;
     char *buildManifest = NULL;
     
-    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens);
+    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens, false);
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     int cursigned = 0;
@@ -1334,10 +1334,10 @@ error:
 }
 
 #pragma mark print functions
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta){
     warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
     t_versionURL *versions, *v;
-    versions = v = getFirmwareUrls(deviceModel, versVals, tokens);
+    versions = v = getFirmwareUrls(deviceModel, versVals, tokens, beta);
 
     if (!versions)
         return NULL;

@@ -96,7 +96,8 @@ char *getBetaURLForDevice(jssytok_t *tokens, const char *buildid);
 int printListOfDevices(jssytok_t *tokens);
 int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA);
     
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens);
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta);
+t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta);
 char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta);
 t_bbdevice getBBDeviceInfo(const char *deviceModel);
 
