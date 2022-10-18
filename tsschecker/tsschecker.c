@@ -1422,7 +1422,7 @@ int cmpfunc(const void * a, const void * b){
     }
 }
 
-char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt){
+char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, bool beta){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
     jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
     
@@ -1454,7 +1454,7 @@ char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, i
     return versions;
 }
 
-char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, int buildid){
+char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, int buildid, bool beta){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
     jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
 
@@ -1514,7 +1514,7 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 #define MAX_PER_LINE 10
     
     int versionsCnt;
-    char **versions = getListOfiOSForDevice(tokens, device, isOTA, &versionsCnt);
+    char **versions = getListOfiOSForDevice(tokens, device, isOTA, &versionsCnt, 0);
     
     int rspn = 0,
         currVer = 0,
