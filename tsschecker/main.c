@@ -414,7 +414,7 @@ int main(int argc, const char * argv[]) {
         int versionCnt = 0;
         int i = 0;
             
-        char **versions = getListOfiOSForDevice(firmwareTokens, devVals.deviceModel, versVals.isOta, &versionCnt);
+        char **versions = getListOfiOSForDevice(firmwareTokens, devVals.deviceModel, versVals.isOta, &versionCnt, versVals.useBeta);
         if (!versionCnt) reterror(-8, "[TSSC] failed finding latest firmware version. If you using --boardconfig, please also specify device model with -d ota=%d\n",versVals.isOta);
         char *bpos = NULL;
         while((bpos = strstr(versVals.version = strdup(versions[i++]),"[B]")) != 0){
