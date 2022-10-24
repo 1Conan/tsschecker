@@ -126,7 +126,7 @@ const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 // iPhone & iPod touch (1st generations) do not use SHSH or APTicket.
 static struct bbdevice bbdevices[] = {
     // Apple Silicon Macs
-    {"ADP3,2", 0, 0},         // Developer Transition Kit
+    {"ADP3,2", 0, 0},         // DTK (2020)
     {"iMac21,1", 0, 0},       // iMac (24-inch, M1, 2021)
     {"iMac21,2", 0, 0},       // iMac (24-inch, M1, 2021)
     {"Macmini9,1", 0, 0},     // Mac Mini (M1, 2020)
@@ -145,13 +145,13 @@ static struct bbdevice bbdevices[] = {
     {"AppleDisplay2,1", 0, 0}, // Studio Display
 
     // Apple T2 Coprocessor
-    {"iBridge2,1", 0, 0},  // Apple T2 iMacPro1,1 (j137)
-    {"iBridge2,3", 0, 0},  // Apple T2 MacBookPro15,1 (j680)
-    {"iBridge2,4", 0, 0},  // Apple T2 MacBookPro15,2 (j132)
-    {"iBridge2,5", 0, 0},  // Apple T2 Macmini8,1 (j174)
-    {"iBridge2,6", 0, 0},  // Apple T2 MacPro7,1 (j160)
-    {"iBridge2,7", 0, 0},  // Apple T2 MacBookPro15,3 (j780)
-    {"iBridge2,8", 0, 0},  // Apple T2 MacBookAir8,1 (j140k)
+    {"iBridge2,1",  0, 0}, // Apple T2 iMacPro1,1 (j137)
+    {"iBridge2,3",  0, 0}, // Apple T2 MacBookPro15,1 (j680)
+    {"iBridge2,4",  0, 0}, // Apple T2 MacBookPro15,2 (j132)
+    {"iBridge2,5",  0, 0}, // Apple T2 Macmini8,1 (j174)
+    {"iBridge2,6",  0, 0}, // Apple T2 MacPro7,1 (j160)
+    {"iBridge2,7",  0, 0}, // Apple T2 MacBookPro15,3 (j780)
+    {"iBridge2,8",  0, 0}, // Apple T2 MacBookAir8,1 (j140k)
     {"iBridge2,10", 0, 0}, // Apple T2 MacBookPro15,4 (j213)
     {"iBridge2,12", 0, 0}, // Apple T2 MacBookAir8,2 (j140a)
     {"iBridge2,14", 0, 0}, // Apple T2 MacBookPro16,1 (j152f)
@@ -171,48 +171,50 @@ static struct bbdevice bbdevices[] = {
     {"iPod9,1", 0, 0}, // 7th gen
 
     // iPhones
-    {"iPhone3,1",  257, 12},        // iPhone 4 GSM
-    {"iPhone3,2",  257, 12},        // iPhone 4 GSM (2012, Rev A)
-    {"iPhone3,3",  2, 4},           // iPhone 4 CDMA
-    {"iPhone4,1",  2, 4},           // iPhone 4s
-    {"iPhone5,1",  3255536192, 4},  // iPhone 5 (GSM)
-    {"iPhone5,2",  3255536192, 4},  // iPhone 5 (Global)
-    {"iPhone5,3",  3554301762, 4},  // iPhone 5c (GSM)
-    {"iPhone5,4",  3554301762, 4},  // iPhone 5c (Global)
-    {"iPhone6,1",  3554301762, 4},  // iPhone 5s (GSM)
-    {"iPhone6,2",  3554301762, 4},  // iPhone 5s (Global)
-    {"iPhone7,1",  3840149528, 4},  // iPhone 6 Plus
-    {"iPhone7,2",  3840149528, 4},  // iPhone 6
-    {"iPhone8,1",  3840149528, 4},  // iPhone 6s
-    {"iPhone8,2",  3840149528, 4},  // iPhone 6s Plus
-    {"iPhone8,4",  3840149528, 4},  // iPhone SE (1st gen)
-    {"iPhone9,1",  2315222105, 4},  // iPhone 7 (Global)
-    {"iPhone9,2",  2315222105, 4},  // iPhone 7 Plus (Global)
-    {"iPhone9,3",  1421084145, 12}, // iPhone 7 GSM
-    {"iPhone9,4",  1421084145, 12}, // iPhone 7 Plus (GSM)
-    {"iPhone10,1", 2315222105, 4},  // iPhone 8 (Global)
-    {"iPhone10,2", 2315222105, 4},  // iPhone 8 Plus (Global)
-    {"iPhone10,3", 2315222105, 4},  // iPhone X (Global)
-    {"iPhone10,4", 524245983, 12},  // iPhone 8 (GSM)
-    {"iPhone10,5", 524245983, 12},  // iPhone 8 Plus (GSM)
-    {"iPhone10,6", 524245983, 12},  // iPhone X GSM
-    {"iPhone11,2", 165673526, 12},  // iPhone XS
-    {"iPhone11,4", 165673526, 12},  // iPhone XS Max (China)
-    {"iPhone11,6", 165673526, 12},  // iPhone XS Max (Global)
-    {"iPhone11,8", 165673526, 12},  // iPhone XR
-    {"iPhone12,1", 524245983, 12},  // iPhone 11
-    {"iPhone12,3", 524245983, 12},  // iPhone 11 Pro
-    {"iPhone12,5", 524245983, 12},  // iPhone 11 Pro Max
-    {"iPhone12,8", 524245983, 12},  // iPhone SE (2nd gen)
-    {"iPhone13,1", 3095201109, 4},  // iPhone 12 mini
-    {"iPhone13,2", 3095201109, 4},  // iPhone 12
-    {"iPhone13,3", 3095201109, 4},  // iPhone 12 Pro
-    {"iPhone13,4", 3095201109, 4},  // iPhone 12 Pro Max
-    {"iPhone14,2", 495958265, 4},   // iPhone 13 Pro Max
-    {"iPhone14,3", 495958265, 4},   // iPhone 13 Pro
-    {"iPhone14,4", 495958265, 4},   // iPhone 13 mini
-    {"iPhone14,5", 495958265, 4},   // iPhone 13
-    {"iPhone14,6", 2241363181, 4},  // iPhone SE (3rd gen)
+    {"iPhone1,2",  0, 0},            // iPhone 3G
+    {"iPhone2,1",  0, 0},            // iPhone 3GS
+    {"iPhone3,1",  257, 12},         // iPhone 4 GSM
+    {"iPhone3,2",  257, 12},         // iPhone 4 GSM (2012, Rev A)
+    {"iPhone3,3",  2, 4},            // iPhone 4 CDMA
+    {"iPhone4,1",  2, 4},            // iPhone 4s
+    {"iPhone5,1",  3255536192, 4},   // iPhone 5 (GSM)
+    {"iPhone5,2",  3255536192, 4},   // iPhone 5 (Global)
+    {"iPhone5,3",  3554301762, 4},   // iPhone 5c (GSM)
+    {"iPhone5,4",  3554301762, 4},   // iPhone 5c (Global)
+    {"iPhone6,1",  3554301762, 4},   // iPhone 5s (GSM)
+    {"iPhone6,2",  3554301762, 4},   // iPhone 5s (Global)
+    {"iPhone7,1",  3840149528, 4},   // iPhone 6 Plus
+    {"iPhone7,2",  3840149528, 4},   // iPhone 6
+    {"iPhone8,1",  3840149528, 4},   // iPhone 6s
+    {"iPhone8,2",  3840149528, 4},   // iPhone 6s Plus
+    {"iPhone8,4",  3840149528, 4},   // iPhone SE (1st gen)
+    {"iPhone9,1",  2315222105, 4},   // iPhone 7 (Global)
+    {"iPhone9,2",  2315222105, 4},   // iPhone 7 Plus (Global)
+    {"iPhone9,3",  1421084145, 12},  // iPhone 7 GSM
+    {"iPhone9,4",  1421084145, 12},  // iPhone 7 Plus (GSM)
+    {"iPhone10,1", 2315222105, 4},   // iPhone 8 (Global)
+    {"iPhone10,2", 2315222105, 4},   // iPhone 8 Plus (Global)
+    {"iPhone10,3", 2315222105, 4},   // iPhone X (Global)
+    {"iPhone10,4", 524245983, 12},   // iPhone 8 (GSM)
+    {"iPhone10,5", 524245983, 12},   // iPhone 8 Plus (GSM)
+    {"iPhone10,6", 524245983, 12},   // iPhone X GSM
+    {"iPhone11,2", 165673526, 12},   // iPhone XS
+    {"iPhone11,4", 165673526, 12},   // iPhone XS Max (China)
+    {"iPhone11,6", 165673526, 12},   // iPhone XS Max (Global)
+    {"iPhone11,8", 165673526, 12},   // iPhone XR
+    {"iPhone12,1", 524245983, 12},   // iPhone 11
+    {"iPhone12,3", 524245983, 12},   // iPhone 11 Pro
+    {"iPhone12,5", 524245983, 12},   // iPhone 11 Pro Max
+    {"iPhone12,8", 524245983, 12},   // iPhone SE (2nd gen)
+    {"iPhone13,1", 3095201109, 4},   // iPhone 12 mini
+    {"iPhone13,2", 3095201109, 4},   // iPhone 12
+    {"iPhone13,3", 3095201109, 4},   // iPhone 12 Pro
+    {"iPhone13,4", 3095201109, 4},   // iPhone 12 Pro Max
+    {"iPhone14,2", 495958265, 4},    // iPhone 13 Pro Max
+    {"iPhone14,3", 495958265, 4},    // iPhone 13 Pro
+    {"iPhone14,4", 495958265, 4},    // iPhone 13 mini
+    {"iPhone14,5", 495958265, 4},    // iPhone 13
+    {"iPhone14,6", 2241363181, 4},   // iPhone SE (3rd gen)
     {"iPhone14,7", 3559316616, 4},   // iPhone 14
     {"iPhone14,8", 3559316616, 4},   // iPhone 14 Plus
     {"iPhone15,2", 3559316616, 4},   // iPhone 14 Pro
@@ -240,6 +242,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad11,7", 165673526, 12}, // iPad (8th gen, 2020, Cellular)
     {"iPad12,1", 0, 0},          // iPad (9th gen, 2021, Wi-Fi)
     {"iPad12,2", 165673526, 12}, // iPad (9th gen, 2021, Cellular)
+    {"iPad13,18", 0, 0},         // iPad (10th gen, 2022, Wi-Fi)
+    {"iPad13,19", 495958265, 4}, // iPad (10th gen, 2022, Cellular)
 
     // iPad minis
     {"iPad2,5",  0, 0},          // iPad mini (1st gen, Wi-Fi)
@@ -300,61 +304,66 @@ static struct bbdevice bbdevices[] = {
     {"iPad13,9",   0, 0},            // iPad Pro (12.9-inch, 5th gen, 2TB, Wi-Fi)
     {"iPad13,10",  3095201109, 4},   // iPad Pro (12.9-inch, 5th gen, Cellular)
     {"iPad13,11",  3095201109, 4},   // iPad Pro (12.9-inch, 5th gen, 2TB, Cellular)
+    {"iPad14,3",   0, 0},            // iPad Pro (11-inch, 4th gen, Wi-Fi)
+    {"iPad14,4",   3559316616, 4},   // iPad Pro (11-inch, 4th gen, Cellular)
+    {"iPad14,5",   0, 0},            // iPad Pro (12.9-inch, 6th gen, Wi-Fi)
+    {"iPad14,6",   3559316616, 4},   // iPad Pro (12.9-inch, 6th gen, Cellular)
 
     // Apple Watches
-    {"Watch1,1",  0, 0},          // Apple Watch 1st gen (38mm)
-    {"Watch1,2",  0, 0},          // Apple Watch 1st gen (42mm)
-    {"Watch2,6",  0, 0},          // Apple Watch Series 1 (38mm)
-    {"Watch2,7",  0, 0},          // Apple Watch Series 1 (42mm)
-    {"Watch2,3",  0, 0},          // Apple Watch Series 2 (38mm)
-    {"Watch2,4",  0, 0},          // Apple Watch Series 2 (42mm)
-    {"Watch3,1",  3840149528, 4}, // Apple Watch Series 3 (38mm, GPS + Cellular)
-    {"Watch3,2",  3840149528, 4}, // Apple Watch Series 3 (42mm, GPS + Cellular)
-    {"Watch3,3",  0, 0},          // Apple Watch Series 3 (38mm, GPS)
-    {"Watch3,4",  0, 0},          // Apple Watch Series 3 (42mm, GPS)
-    {"Watch4,1",  0, 0},          // Apple Watch Series 4 (40mm, GPS)
-    {"Watch4,2",  0, 0},          // Apple Watch Series 4 (44mm, GPS)
-    {"Watch4,3",  744114402, 12}, // Apple Watch Series 4 (40mm, GPS + Cellular)
-    {"Watch4,4",  744114402, 12}, // Apple Watch Series 4 (44mm, GPS + Cellular)
-    {"Watch5,1",  0, 0},          // Apple Watch Series 5 (40mm, GPS)
-    {"Watch5,2",  0, 0},          // Apple Watch Series 5 (44mm, GPS)
-    {"Watch5,3",  744114402, 12}, // Apple Watch Series 5 (40mm, GPS + Cellular)
-    {"Watch5,4",  744114402, 12}, // Apple Watch Series 5 (44mm, GPS + Cellular)
-    {"Watch5,9",  0, 0},          // Apple Watch SE (40mm, GPS)
-    {"Watch5,10", 0, 0},          // Apple Watch SE (44mm, GPS)
-    {"Watch5,11", 744114402, 12}, // Apple Watch SE (40mm, GPS + Cellular)
-    {"Watch5,12", 744114402, 12}, // Apple Watch SE (44mm, GPS + Cellular)
-    {"Watch6,1",  0, 0},          // Apple Watch Series 6 (40mm, GPS)
-    {"Watch6,2",  0, 0},          // Apple Watch Series 6 (44mm, GPS)
-    {"Watch6,3",  744114402, 12}, // Apple Watch Series 6 (40mm, GPS + Cellular)
-    {"Watch6,4",  744114402, 12}, // Apple Watch Series 6 (44mm, GPS + Cellular)
-    {"Watch6,6",  0, 0},          // Apple Watch Series 7 (41mm, GPS)
-    {"Watch6,7",  0, 0},          // Apple Watch Series 7 (45mm, GPS)
-    {"Watch6,8",  744114402, 12}, // Apple Watch Series 7 (41mm, GPS + Cellular)
-    {"Watch6,9",  744114402, 12}, // Apple Watch Series 7 (45mm, GPS + Cellular)
-    {"Watch6,10",  0, 0},          // Apple Watch SE (2nd gen, 40mm, GPS)
-    {"Watch6,11",  0, 0},          // Apple Watch SE (2nd gen, 44mm, GPS)
-    {"Watch6,12",  744114402, 12}, // Apple Watch SE (2nd gen, 40mm, GPS + Cellular)
-    {"Watch6,13",  744114402, 12}, // Apple Watch SE (2nd gen, 44mm, GPS + Cellular)
-    {"Watch6,14",  0, 0},          // Apple Watch Series 8 (41mm, GPS)
-    {"Watch6,15",  0, 0},          // Apple Watch Series 8 (45mm, GPS)
-    {"Watch6,16",  744114402, 12}, // Apple Watch Series 8 (41mm, GPS + Cellular)
-    {"Watch6,17",  744114402, 12}, // Apple Watch Series 8 (45mm, GPS + Cellular)
-    {"Watch6,18",  744114402, 12}, // Apple Watch Ultra (49mm, GPS + Cellular)
+    {"Watch1,1",   0, 0},            // Apple Watch 1st gen (38mm)
+    {"Watch1,2",   0, 0},            // Apple Watch 1st gen (42mm)
+    {"Watch2,6",   0, 0},            // Apple Watch Series 1 (38mm)
+    {"Watch2,7",   0, 0},            // Apple Watch Series 1 (42mm)
+    {"Watch2,3",   0, 0},            // Apple Watch Series 2 (38mm)
+    {"Watch2,4",   0, 0},            // Apple Watch Series 2 (42mm)
+    {"Watch3,1",   3840149528, 4},   // Apple Watch Series 3 (38mm, GPS + Cellular)
+    {"Watch3,2",   3840149528, 4},   // Apple Watch Series 3 (42mm, GPS + Cellular)
+    {"Watch3,3",   0, 0},            // Apple Watch Series 3 (38mm, GPS)
+    {"Watch3,4",   0, 0},            // Apple Watch Series 3 (42mm, GPS)
+    {"Watch4,1",   0, 0},            // Apple Watch Series 4 (40mm, GPS)
+    {"Watch4,2",   0, 0},            // Apple Watch Series 4 (44mm, GPS)
+    {"Watch4,3",   744114402, 12},   // Apple Watch Series 4 (40mm, GPS + Cellular)
+    {"Watch4,4",   744114402, 12},   // Apple Watch Series 4 (44mm, GPS + Cellular)
+    {"Watch5,1",   0, 0},            // Apple Watch Series 5 (40mm, GPS)
+    {"Watch5,2",   0, 0},            // Apple Watch Series 5 (44mm, GPS)
+    {"Watch5,3",   744114402, 12},   // Apple Watch Series 5 (40mm, GPS + Cellular)
+    {"Watch5,4",   744114402, 12},   // Apple Watch Series 5 (44mm, GPS + Cellular)
+    {"Watch5,9",   0, 0},            // Apple Watch SE (40mm, GPS)
+    {"Watch5,10",  0, 0},            // Apple Watch SE (44mm, GPS)
+    {"Watch5,11",  744114402, 12},   // Apple Watch SE (40mm, GPS + Cellular)
+    {"Watch5,12",  744114402, 12},   // Apple Watch SE (44mm, GPS + Cellular)
+    {"Watch6,1",   0, 0},            // Apple Watch Series 6 (40mm, GPS)
+    {"Watch6,2",   0, 0},            // Apple Watch Series 6 (44mm, GPS)
+    {"Watch6,3",   744114402, 12},   // Apple Watch Series 6 (40mm, GPS + Cellular)
+    {"Watch6,4",   744114402, 12},   // Apple Watch Series 6 (44mm, GPS + Cellular)
+    {"Watch6,6",   0, 0},            // Apple Watch Series 7 (41mm, GPS)
+    {"Watch6,7",   0, 0},            // Apple Watch Series 7 (45mm, GPS)
+    {"Watch6,8",   744114402, 12},   // Apple Watch Series 7 (41mm, GPS + Cellular)
+    {"Watch6,9",   744114402, 12},   // Apple Watch Series 7 (45mm, GPS + Cellular)
+    {"Watch6,10",  0, 0},            // Apple Watch SE (2nd gen, 40mm, GPS)
+    {"Watch6,11",  0, 0},            // Apple Watch SE (2nd gen, 44mm, GPS)
+    {"Watch6,12",  744114402, 12},   // Apple Watch SE (2nd gen, 40mm, GPS + Cellular)
+    {"Watch6,13",  744114402, 12},   // Apple Watch SE (2nd gen, 44mm, GPS + Cellular)
+    {"Watch6,14",  0, 0},            // Apple Watch Series 8 (41mm, GPS)
+    {"Watch6,15",  0, 0},            // Apple Watch Series 8 (45mm, GPS)
+    {"Watch6,16",  744114402, 12},   // Apple Watch Series 8 (41mm, GPS + Cellular)
+    {"Watch6,17",  744114402, 12},   // Apple Watch Series 8 (45mm, GPS + Cellular)
+    {"Watch6,18",  744114402, 12},   // Apple Watch Ultra (49mm, GPS + Cellular)
 
     // HomePods
-    {"AudioAccessory1,1", 0, 0}, // HomePod 1st gen
-    {"AudioAccessory1,2", 0, 0}, // HomePod 1st gen (2018)
-    {"AudioAccessory5,1", 0, 0}, // HomePod mini
+    {"AudioAccessory1,1",   0, 0},   // HomePod 1st gen
+    {"AudioAccessory1,2",   0, 0},   // HomePod 1st gen (2018)
+    {"AudioAccessory5,1",   0, 0},   // HomePod mini
     
     // Apple TVs
-    {"AppleTV1,1",  0, 0}, // 1st gen
-    {"AppleTV2,1",  0, 0}, // 2nd gen
-    {"AppleTV3,1",  0, 0}, // 3rd gen
-    {"AppleTV3,2",  0, 0}, // 3rd gen (2013)
-    {"AppleTV5,3",  0, 0}, // 4th gen
-    {"AppleTV6,2",  0, 0}, // 4K
-    {"AppleTV11,1", 0, 0}, // 4K 2nd gen
+    {"AppleTV1,1",   0, 0},  // 1st gen
+    {"AppleTV2,1",   0, 0},  // 2nd gen
+    {"AppleTV3,1",   0, 0},  // 3rd gen
+    {"AppleTV3,2",   0, 0},  // 3rd gen (2013)
+    {"AppleTV5,3",   0, 0},  // 4th gen
+    {"AppleTV6,2",   0, 0},  // 4K
+    {"AppleTV11,1",  0, 0},  // 4K 2nd gen
+    {"AppleTV14,1",  0, 0},  // 4K 3rd gen
     {NULL, 0, 0}
 };
 
