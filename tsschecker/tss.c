@@ -267,7 +267,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 
     _plist_dict_copy_string(request, parameters, "Ap,OSLongVersion", NULL);
 
-    if (_plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
+    if (plist_dict_get_item(parameters, "ApNonce") && _plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
         tsserror("ERROR: Unable to find required ApNonce in parameters\n");
         return -1;
     }
