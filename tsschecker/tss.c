@@ -1466,7 +1466,7 @@ static size_t tss_write_callback(char* data, size_t size, size_t nmemb, tss_resp
 
 plist_t tss_request_send(plist_t tss_request, const char* server_url_string)
 {
-    if (print_tss_request) {
+    if (print_tss_request || idevicerestore_debug) {
         debug_plist2(tss_request);
     }
 
