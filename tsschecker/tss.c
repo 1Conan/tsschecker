@@ -459,7 +459,7 @@ int tss_request_add_ap_recovery_tags(plist_t request, plist_t parameters, plist_
             return -1;
         }
 
-        /* do not populate BaseBandFirmware, only in basebaseband request */
+        /* do not populate BaseBandFirmware, only in baseband request */
         if ((strcmp(key, "BasebandFirmware") == 0)) {
             continue;
         }
@@ -631,7 +631,7 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
             return -1;
         }
 
-        /* do not populate BaseBandFirmware, only in basebaseband request */
+        /* do not populate BaseBandFirmware, only in baseband request */
         if ((strcmp(key, "BasebandFirmware") == 0)) {
             continue;
         }
@@ -1466,8 +1466,8 @@ static size_t tss_write_callback(char* data, size_t size, size_t nmemb, tss_resp
 
 plist_t tss_request_send(plist_t tss_request, const char* server_url_string)
 {
-    if (idevicerestore_debug) {
-        debug_plist(tss_request);
+    if (print_tss_request) {
+        debug_plist2(tss_request);
     }
 
     char* request = NULL;
