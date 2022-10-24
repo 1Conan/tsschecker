@@ -59,6 +59,7 @@ plist_t tss_request_new(plist_t overrides)
 {
     plist_t request = plist_new_dict();
 
+//    plist_dict_set_item(request, "@Locality", plist_new_string("en_US"));
     plist_dict_set_item(request, "@HostPlatformInfo",
 #ifdef WIN32
             plist_new_string("windows")
@@ -266,7 +267,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 
     _plist_dict_copy_string(request, parameters, "Ap,OSLongVersion", NULL);
 
-    if (_plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
+    if (plist_dict_get_item(parameters, "ApNonce") && _plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
         tsserror("ERROR: Unable to find required ApNonce in parameters\n");
         return -1;
     }
@@ -458,7 +459,7 @@ int tss_request_add_ap_recovery_tags(plist_t request, plist_t parameters, plist_
             return -1;
         }
 
-        /* do not populate BaseBandFirmware, only in basebaseband request */
+        /* do not populate BaseBandFirmware, only in baseband request */
         if ((strcmp(key, "BasebandFirmware") == 0)) {
             continue;
         }
@@ -630,7 +631,7 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
             return -1;
         }
 
-        /* do not populate BaseBandFirmware, only in basebaseband request */
+        /* do not populate BaseBandFirmware, only in baseband request */
         if ((strcmp(key, "BasebandFirmware") == 0)) {
             continue;
         }
@@ -675,10 +676,10 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
         }
 
         /* skip components with IsFTAB:true */
-        if (_plist_dict_get_bool(info_dict, "IsFTAB")) {
-            debug("DEBUG: %s: Skipping FTAB component '%s'\n", __func__, key);
-            continue;
-        }
+//        if (_plist_dict_get_bool(info_dict, "IsFTAB")) {
+//            debug("DEBUG: %s: Skipping FTAB component '%s'\n", __func__, key);
+//            continue;
+//        }
 
         /* copy this entry */
         plist_t tss_entry = plist_copy(manifest_entry);
@@ -1465,8 +1466,8 @@ static size_t tss_write_callback(char* data, size_t size, size_t nmemb, tss_resp
 
 plist_t tss_request_send(plist_t tss_request, const char* server_url_string)
 {
-    if (idevicerestore_debug) {
-        debug_plist(tss_request);
+    if (print_tss_request || idevicerestore_debug) {
+        debug_plist2(tss_request);
     }
 
     char* request = NULL;

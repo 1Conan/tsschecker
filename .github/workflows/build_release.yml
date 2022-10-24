@@ -1,6 +1,5 @@
 name: Build & Release
 on:
-  push:
   workflow_dispatch:
 
 env:

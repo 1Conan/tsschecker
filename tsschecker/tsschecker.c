@@ -20,6 +20,7 @@
 #include "tsschecker.h"
 #include "debug.h"
 #include "download.h"
+#include "common.h"
 #include "tss.h"
 
 #include <libfragmentzip/libfragmentzip.h>
@@ -94,7 +95,6 @@ static const char *win_path_get(enum paths path){
 #define MANIFEST_SAVE_PATH win_path_get(kWINPathTSSCHECKER)
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
 #define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
-#define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBeta)
 #define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBetaFIRMWARE)
 #define DIRECTORY_DELIMITER_STR "\\"
 #define DIRECTORY_DELIMITER_CHR '\\'
@@ -132,15 +132,26 @@ static struct bbdevice bbdevices[] = {
     {"Macmini9,1", 0, 0},     // Mac Mini (M1, 2020)
     {"MacBookAir10,1", 0, 0}, // MacBook Air (M1, 2020)
     {"MacBookPro17,1", 0, 0}, // MacBook Pro (13-inch, M1, 2020)
-    
+    {"MacBookPro18,1", 0, 0}, // MacBook Pro (M1 Pro, 16-inch, 2021)
+    {"MacBookPro18,2", 0, 0}, // MacBook Pro (M1 Max, 16-inch, 2021)
+    {"MacBookPro18,3", 0, 0}, // MacBook Pro (M1 Pro, 14-inch, 2021)
+    {"MacBookPro18,4", 0, 0}, // MacBook Pro (M1 Max, 14-inch, 2021)
+    {"Mac13,1", 0, 0},        // Mac Studio (M1 Max, 2022)
+    {"Mac13,2", 0, 0},        // Mac Studio (M1 Ultra, 2022)
+    {"Mac14,2", 0, 0},        // MacBook Air (M2, 2022)
+    {"Mac14,7", 0, 0},        // MacBook Pro (13-inch, M2, 2022)
+
+    // Apple Displays
+    {"AppleDisplay2,1", 0, 0}, // Studio Display
+
     // Apple T2 Coprocessor
-    {"iBridge2,1", 0, 0}, // Apple T2 iMacPro1,1 (j137)
-    {"iBridge2,3", 0, 0}, // Apple T2 MacBookPro15,1 (j680)
-    {"iBridge2,4", 0, 0}, // Apple T2 MacBookPro15,2 (j132)
-    {"iBridge2,5", 0, 0}, // Apple T2 Macmini8,1 (j174)
-    {"iBridge2,6", 0, 0}, // Apple T2 MacPro7,1 (j160)
-    {"iBridge2,7", 0, 0}, // Apple T2 MacBookPro15,3 (j780)
-    {"iBridge2,8", 0, 0}, // Apple T2 MacBookAir8,1 (j140k)
+    {"iBridge2,1", 0, 0},  // Apple T2 iMacPro1,1 (j137)
+    {"iBridge2,3", 0, 0},  // Apple T2 MacBookPro15,1 (j680)
+    {"iBridge2,4", 0, 0},  // Apple T2 MacBookPro15,2 (j132)
+    {"iBridge2,5", 0, 0},  // Apple T2 Macmini8,1 (j174)
+    {"iBridge2,6", 0, 0},  // Apple T2 MacPro7,1 (j160)
+    {"iBridge2,7", 0, 0},  // Apple T2 MacBookPro15,3 (j780)
+    {"iBridge2,8", 0, 0},  // Apple T2 MacBookAir8,1 (j140k)
     {"iBridge2,10", 0, 0}, // Apple T2 MacBookPro15,4 (j213)
     {"iBridge2,12", 0, 0}, // Apple T2 MacBookAir8,2 (j140a)
     {"iBridge2,14", 0, 0}, // Apple T2 MacBookPro16,1 (j152f)
@@ -150,7 +161,7 @@ static struct bbdevice bbdevices[] = {
     {"iBridge2,20", 0, 0}, // Apple T2 iMac20,2 (j185f)
     {"iBridge2,21", 0, 0}, // Apple T2 MacBookPro16,3 (j223)
     {"iBridge2,22", 0, 0}, // Apple T2 MacBookPro16,4 (j215)
-    
+
     // iPod touches
     {"iPod2,1", 0, 0}, // 2nd gen
     {"iPod3,1", 0, 0}, // 3rd gen
@@ -158,7 +169,7 @@ static struct bbdevice bbdevices[] = {
     {"iPod5,1", 0, 0}, // 5th gen
     {"iPod7,1", 0, 0}, // 6th gen
     {"iPod9,1", 0, 0}, // 7th gen
-    
+
     // iPhones
     {"iPhone3,1",  257, 12},        // iPhone 4 GSM
     {"iPhone3,2",  257, 12},        // iPhone 4 GSM (2012, Rev A)
@@ -174,7 +185,7 @@ static struct bbdevice bbdevices[] = {
     {"iPhone7,2",  3840149528, 4},  // iPhone 6
     {"iPhone8,1",  3840149528, 4},  // iPhone 6s
     {"iPhone8,2",  3840149528, 4},  // iPhone 6s Plus
-    {"iPhone8,4",  3840149528, 4},  // iPhone SE
+    {"iPhone8,4",  3840149528, 4},  // iPhone SE (1st gen)
     {"iPhone9,1",  2315222105, 4},  // iPhone 7 (Global)
     {"iPhone9,2",  2315222105, 4},  // iPhone 7 Plus (Global)
     {"iPhone9,3",  1421084145, 12}, // iPhone 7 GSM
@@ -192,16 +203,21 @@ static struct bbdevice bbdevices[] = {
     {"iPhone12,1", 524245983, 12},  // iPhone 11
     {"iPhone12,3", 524245983, 12},  // iPhone 11 Pro
     {"iPhone12,5", 524245983, 12},  // iPhone 11 Pro Max
-    {"iPhone12,8", 524245983, 12},  // iPhone SE (2020)
+    {"iPhone12,8", 524245983, 12},  // iPhone SE (2nd gen)
     {"iPhone13,1", 3095201109, 4},  // iPhone 12 mini
     {"iPhone13,2", 3095201109, 4},  // iPhone 12
     {"iPhone13,3", 3095201109, 4},  // iPhone 12 Pro
     {"iPhone13,4", 3095201109, 4},  // iPhone 12 Pro Max
-    {"iPhone14,2", 495958265, 4},  // iPhone 13 Pro
-    {"iPhone14,3", 495958265, 4},  // iPhone 13 Pro Max
-    {"iPhone14,4", 495958265, 4},  // iPhone 13 mini
-    {"iPhone14,5", 495958265, 4},  // iPhone 13
-    
+    {"iPhone14,2", 495958265, 4},   // iPhone 13 Pro Max
+    {"iPhone14,3", 495958265, 4},   // iPhone 13 Pro
+    {"iPhone14,4", 495958265, 4},   // iPhone 13 mini
+    {"iPhone14,5", 495958265, 4},   // iPhone 13
+    {"iPhone14,6", 2241363181, 4},  // iPhone SE (3rd gen)
+    {"iPhone14,7", 3559316616, 4},   // iPhone 14
+    {"iPhone14,8", 3559316616, 4},   // iPhone 14 Plus
+    {"iPhone15,2", 3559316616, 4},   // iPhone 14 Pro
+    {"iPhone15,3", 3559316616, 4},   // iPhone 14 Pro Max
+
     // iPads
     {"iPad1,1",  0, 0},          // iPad (1st gen)
     {"iPad2,1",  0, 0},          // iPad 2 Wi-Fi
@@ -222,7 +238,9 @@ static struct bbdevice bbdevices[] = {
     {"iPad7,12", 165673526, 12}, // iPad (7th gen, 2019, Cellular)
     {"iPad11,6", 0, 0},          // iPad (8th gen, 2020, Wi-Fi)
     {"iPad11,7", 165673526, 12}, // iPad (8th gen, 2020, Cellular)
-    
+    {"iPad12,1", 0, 0},          // iPad (9th gen, 2021, Wi-Fi)
+    {"iPad12,2", 165673526, 12}, // iPad (9th gen, 2021, Cellular)
+
     // iPad minis
     {"iPad2,5",  0, 0},          // iPad mini (1st gen, Wi-Fi)
     {"iPad2,6",  3255536192, 4}, // iPad mini (1st gen, CDMA)
@@ -239,7 +257,7 @@ static struct bbdevice bbdevices[] = {
     {"iPad11,2", 165673526, 12}, // iPad mini (5th gen, Cellular)
     {"iPad14,1", 0, 0},          // iPad mini (6th gen, Wi-Fi)
     {"iPad14,2", 495958265, 4},  // iPad mini (6th gen, Cellular)
-    
+
     // iPad Airs
     {"iPad4,1",  0, 0},          // iPad Air (Wi-Fi)
     {"iPad4,2",  3554301762, 4}, // iPad Air (Cellular)
@@ -250,7 +268,9 @@ static struct bbdevice bbdevices[] = {
     {"iPad11,4", 165673526, 12}, // iPad Air (3rd gen, Cellular)
     {"iPad13,1", 0, 0},          // iPad Air (4th gen, Wi-Fi)
     {"iPad13,2", 524245983, 12}, // iPad Air (4th gen, Cellular)
-    
+    {"iPad13,16", 0, 0},         // iPad Air (5th gen, Wi-Fi)
+    {"iPad13,17", 495958265, 4}, // iPad Air (5th gen, Cellular)
+
     // iPad Pros
     {"iPad6,3",    0, 0},            // iPad Pro (9.7-inch, Wi-Fi)
     {"iPad6,4",    3840149528, 4},   // iPad Pro (9.7-inch, Cellular)
@@ -280,7 +300,7 @@ static struct bbdevice bbdevices[] = {
     {"iPad13,9",   0, 0},            // iPad Pro (12.9-inch, 5th gen, 2TB, Wi-Fi)
     {"iPad13,10",  3095201109, 4},   // iPad Pro (12.9-inch, 5th gen, Cellular)
     {"iPad13,11",  3095201109, 4},   // iPad Pro (12.9-inch, 5th gen, 2TB, Cellular)
-    
+
     // Apple Watches
     {"Watch1,1",  0, 0},          // Apple Watch 1st gen (38mm)
     {"Watch1,2",  0, 0},          // Apple Watch 1st gen (42mm)
@@ -288,27 +308,40 @@ static struct bbdevice bbdevices[] = {
     {"Watch2,7",  0, 0},          // Apple Watch Series 1 (42mm)
     {"Watch2,3",  0, 0},          // Apple Watch Series 2 (38mm)
     {"Watch2,4",  0, 0},          // Apple Watch Series 2 (42mm)
-    {"Watch3,1",  3840149528, 4}, // Apple Watch Series 3 (38mm GPS + Cellular)
-    {"Watch3,2",  3840149528, 4}, // Apple Watch Series 3 (42mm GPS + Cellular)
-    {"Watch3,3",  0, 0},          // Apple Watch Series 3 (38mm GPS)
-    {"Watch3,4",  0, 0},          // Apple Watch Series 3 (42mm GPS)
-    {"Watch4,1",  0, 0},          // Apple Watch Series 4 (40mm GPS)
-    {"Watch4,2",  0, 0},          // Apple Watch Series 4 (44mm GPS)
-    {"Watch4,3",  744114402, 12}, // Apple Watch Series 4 (40mm GPS + Cellular)
-    {"Watch4,4",  744114402, 12}, // Apple Watch Series 4 (44mm GPS + Cellular)
-    {"Watch5,1",  0, 0},          // Apple Watch Series 5 (40mm GPS)
-    {"Watch5,2",  0, 0},          // Apple Watch Series 5 (44mm GPS)
-    {"Watch5,3",  744114402, 12}, // Apple Watch Series 5 (40mm GPS + Cellular)
-    {"Watch5,4",  744114402, 12}, // Apple Watch Series 5 (44mm GPS + Cellular)
-    {"Watch5,9",  0, 0},          // Apple Watch SE (40mm GPS)
-    {"Watch5,10", 0, 0},          // Apple Watch SE (44mm GPS)
-    {"Watch5,11", 744114402, 12}, // Apple Watch SE (40mm GPS + Cellular)
-    {"Watch5,12", 744114402, 12}, // Apple Watch SE (44mm GPS + Cellular)
-    {"Watch6,1",  0, 0},          // Apple Watch Series 6 (40mm GPS)
-    {"Watch6,2",  0, 0},          // Apple Watch Series 6 (44mm GPS)
-    {"Watch6,3",  744114402, 12}, // Apple Watch Series 6 (40mm GPS + Cellular)
-    {"Watch6,4",  744114402, 12}, // Apple Watch Series 6 (44mm GPS + Cellular)
-    
+    {"Watch3,1",  3840149528, 4}, // Apple Watch Series 3 (38mm, GPS + Cellular)
+    {"Watch3,2",  3840149528, 4}, // Apple Watch Series 3 (42mm, GPS + Cellular)
+    {"Watch3,3",  0, 0},          // Apple Watch Series 3 (38mm, GPS)
+    {"Watch3,4",  0, 0},          // Apple Watch Series 3 (42mm, GPS)
+    {"Watch4,1",  0, 0},          // Apple Watch Series 4 (40mm, GPS)
+    {"Watch4,2",  0, 0},          // Apple Watch Series 4 (44mm, GPS)
+    {"Watch4,3",  744114402, 12}, // Apple Watch Series 4 (40mm, GPS + Cellular)
+    {"Watch4,4",  744114402, 12}, // Apple Watch Series 4 (44mm, GPS + Cellular)
+    {"Watch5,1",  0, 0},          // Apple Watch Series 5 (40mm, GPS)
+    {"Watch5,2",  0, 0},          // Apple Watch Series 5 (44mm, GPS)
+    {"Watch5,3",  744114402, 12}, // Apple Watch Series 5 (40mm, GPS + Cellular)
+    {"Watch5,4",  744114402, 12}, // Apple Watch Series 5 (44mm, GPS + Cellular)
+    {"Watch5,9",  0, 0},          // Apple Watch SE (40mm, GPS)
+    {"Watch5,10", 0, 0},          // Apple Watch SE (44mm, GPS)
+    {"Watch5,11", 744114402, 12}, // Apple Watch SE (40mm, GPS + Cellular)
+    {"Watch5,12", 744114402, 12}, // Apple Watch SE (44mm, GPS + Cellular)
+    {"Watch6,1",  0, 0},          // Apple Watch Series 6 (40mm, GPS)
+    {"Watch6,2",  0, 0},          // Apple Watch Series 6 (44mm, GPS)
+    {"Watch6,3",  744114402, 12}, // Apple Watch Series 6 (40mm, GPS + Cellular)
+    {"Watch6,4",  744114402, 12}, // Apple Watch Series 6 (44mm, GPS + Cellular)
+    {"Watch6,6",  0, 0},          // Apple Watch Series 7 (41mm, GPS)
+    {"Watch6,7",  0, 0},          // Apple Watch Series 7 (45mm, GPS)
+    {"Watch6,8",  744114402, 12}, // Apple Watch Series 7 (41mm, GPS + Cellular)
+    {"Watch6,9",  744114402, 12}, // Apple Watch Series 7 (45mm, GPS + Cellular)
+    {"Watch6,10",  0, 0},          // Apple Watch SE (2nd gen, 40mm, GPS)
+    {"Watch6,11",  0, 0},          // Apple Watch SE (2nd gen, 44mm, GPS)
+    {"Watch6,12",  744114402, 12}, // Apple Watch SE (2nd gen, 40mm, GPS + Cellular)
+    {"Watch6,13",  744114402, 12}, // Apple Watch SE (2nd gen, 44mm, GPS + Cellular)
+    {"Watch6,14",  0, 0},          // Apple Watch Series 8 (41mm, GPS)
+    {"Watch6,15",  0, 0},          // Apple Watch Series 8 (45mm, GPS)
+    {"Watch6,16",  744114402, 12}, // Apple Watch Series 8 (41mm, GPS + Cellular)
+    {"Watch6,17",  744114402, 12}, // Apple Watch Series 8 (45mm, GPS + Cellular)
+    {"Watch6,18",  744114402, 12}, // Apple Watch Ultra (49mm, GPS + Cellular)
+
     // HomePods
     {"AudioAccessory1,1", 0, 0}, // HomePod 1st gen
     {"AudioAccessory1,2", 0, 0}, // HomePod 1st gen (2018)
@@ -592,7 +625,7 @@ long parseTokens(const char *json, jssytok_t **tokens){
 
 #pragma mark get functions
 //returns NULL terminated array of t_versionURL objects
-t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
+t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta){
     t_versionURL *rets = NULL;
     const t_versionURL *rets_base = NULL;
     unsigned retcounter = 0;
@@ -618,7 +651,7 @@ malloc_rets:
                 jssytok_t *releaseType = NULL;
                 if (versVals->useBeta && !(releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) continue;
                 else if (!versVals->useBeta);
-                else if (strncmp(releaseType->value, "Beta", releaseType->size) != 0) continue;
+                else if (strncmp(releaseType->value, "Beta", releaseType->size) != 0 && !beta) continue;
             }
             
             jssytok_t *url = jssy_dictGetValueForKey(tmp, "url");
@@ -789,8 +822,6 @@ t_bbdevice getBBDeviceInfo(const char *deviceModel){
 
     return bbdevs;
 }
-
-void debug_plist(plist_t plist);
 
 void getRandNum(char *dst, size_t size, int base){
     srand((unsigned int)time(NULL));
@@ -987,7 +1018,6 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         devVals->sepnonce = (char*)calloc(1, (devVals->parsedSepnonceLen = NONCELEN_SEP) +1);
         getRandNum(devVals->sepnonce, devVals->parsedSepnonceLen, 256);
     }
-    
     if (devVals->apnonce) devVals->apnonce[nonceLen] = '\0';
     devVals->sepnonce[NONCELEN_SEP] = '\0';
 
@@ -1117,7 +1147,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
 
     isSigned = ((apticket = tss_request_send(tssreq, server_url_string)) > 0);
     
-    if (print_tss_response) debug_plist(apticket);
+    if (print_tss_response) debug_plist2(apticket);
     if (isSigned && save_shshblobs){
         if (!devVals->installType){
             plist_t tssreq2 = NULL;
@@ -1127,7 +1157,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                 warning("[TSSR] failed to build tssrequest for alternative installType\n");
             }else{
                 apticket2 = tss_request_send(tssreq2, server_url_string);
-                if (print_tss_response) debug_plist(apticket2);
+                if (print_tss_response) debug_plist2(apticket2);
             }
             if (tssreq2) plist_free(tssreq2);
             devVals->installType = kInstallTypeDefault;
@@ -1142,7 +1172,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->installType = kInstallTypeErase;
             if (!tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
                 apticket3 = tss_request_send(tssreq2, server_url_string);
-                if (print_tss_response) debug_plist(apticket3);
+                if (print_tss_response) debug_plist2(apticket3);
             }
             devVals->parsedApnonceLen = apnonceLen;
             devVals->apnonce = apnonce;
@@ -1295,7 +1325,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     int isSignedOne = 0;
     char *buildManifest = NULL;
     
-    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens);
+    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens, false);
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     int cursigned = 0;
@@ -1334,10 +1364,10 @@ error:
 }
 
 #pragma mark print functions
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens){
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta){
     warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
     t_versionURL *versions, *v;
-    versions = v = getFirmwareUrls(deviceModel, versVals, tokens);
+    versions = v = getFirmwareUrls(deviceModel, versVals, tokens, beta);
 
     if (!versions)
         return NULL;
@@ -1422,7 +1452,7 @@ int cmpfunc(const void * a, const void * b){
     }
 }
 
-char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt){
+char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, bool beta){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
     jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
     
@@ -1440,7 +1470,7 @@ char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, i
         int isBeta = 0;
         jssytok_t *releaseType = NULL;
         if ((releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) {
-            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0);
+            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0 && beta);
         }
         
         versions[--versionsCnt] = (char*)malloc((ios->size+1 + isBeta * strlen("[B]")) * sizeof(char));
@@ -1454,7 +1484,7 @@ char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, i
     return versions;
 }
 
-char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, int buildid){
+char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, int buildid, bool beta){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
     jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
 
@@ -1473,7 +1503,7 @@ char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, 
         int isBeta = 0;
         jssytok_t *releaseType = NULL;
         if ((releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) {
-            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0);
+            isBeta = (strncmp(releaseType->value, "Beta", releaseType->size) == 0 && beta);
         }
 
         versions[--versionsCnt] = (char*)malloc((ios->size+1 + isBeta * strlen("[B]")) * sizeof(char));
@@ -1514,7 +1544,7 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 #define MAX_PER_LINE 10
     
     int versionsCnt;
-    char **versions = getListOfiOSForDevice(tokens, device, isOTA, &versionsCnt);
+    char **versions = getListOfiOSForDevice(tokens, device, isOTA, &versionsCnt, 0);
     
     int rspn = 0,
         currVer = 0,

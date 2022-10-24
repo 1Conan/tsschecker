@@ -42,6 +42,19 @@ void debug_plist(plist_t plist) {
         debug("%s:supressed printing %i bytes plist...\n", __FILE__, size);
     free(data);
 }
+void debug_plist2(plist_t plist) {
+	uint32_t size = 0;
+	char* data = NULL;
+	if(plist_to_xml(plist, &data, &size) != PLIST_ERR_SUCCESS) {
+		info("Failed to convert plist data to xml!\n");
+		return;
+	}
+	if (size <= MAX_PRINT_LEN)
+		info("%s:printing %i bytes plist:\n%s", __FILE__, size, data);
+	else
+		info("%s:supressed printing %i bytes plist...\n", __FILE__, size);
+	free(data);
+}
 #endif
 
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)

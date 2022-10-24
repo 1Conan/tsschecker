@@ -54,6 +54,7 @@ extern "C" {
 #endif
 
 void debug_plist(plist_t plist);
+void debug_plist2(plist_t plist);
 char *generate_guid(void);
 uint8_t _plist_dict_get_bool(plist_t dict, const char *key);
 uint64_t _plist_dict_get_uint(plist_t dict, const char *key);
