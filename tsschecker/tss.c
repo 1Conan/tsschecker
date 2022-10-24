@@ -59,6 +59,7 @@ plist_t tss_request_new(plist_t overrides)
 {
     plist_t request = plist_new_dict();
 
+//    plist_dict_set_item(request, "@Locality", plist_new_string("en_US"));
     plist_dict_set_item(request, "@HostPlatformInfo",
 #ifdef WIN32
             plist_new_string("windows")
@@ -675,10 +676,10 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
         }
 
         /* skip components with IsFTAB:true */
-        if (_plist_dict_get_bool(info_dict, "IsFTAB")) {
-            debug("DEBUG: %s: Skipping FTAB component '%s'\n", __func__, key);
-            continue;
-        }
+//        if (_plist_dict_get_bool(info_dict, "IsFTAB")) {
+//            debug("DEBUG: %s: Skipping FTAB component '%s'\n", __func__, key);
+//            continue;
+//        }
 
         /* copy this entry */
         plist_t tss_entry = plist_copy(manifest_entry);
