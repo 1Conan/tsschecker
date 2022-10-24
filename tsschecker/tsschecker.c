@@ -94,7 +94,6 @@ static const char *win_path_get(enum paths path){
 #define MANIFEST_SAVE_PATH win_path_get(kWINPathTSSCHECKER)
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
 #define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
-#define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBeta)
 #define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBetaFIRMWARE)
 #define DIRECTORY_DELIMITER_STR "\\"
 #define DIRECTORY_DELIMITER_CHR '\\'
