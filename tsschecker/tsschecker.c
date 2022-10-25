@@ -634,16 +634,17 @@ long parseTokens(const char *json, jssytok_t **tokens){
 
 #pragma mark get functions
 //returns NULL terminated array of t_versionURL objects
-t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta){
+t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta, bool ota){
     t_versionURL *rets = NULL;
     const t_versionURL *rets_base = NULL;
     unsigned retcounter = 0;
     
-    jssytok_t *firmwares = getFirmwaresForDevice(deviceModel, tokens, versVals->isOta);
+    jssytok_t *firmwares = getFirmwaresForDevice(deviceModel, tokens, ota);
     const char *versstring = (versVals->buildID) ? versVals->buildID : versVals->version;
-    
-    if (!firmwares)
+
+    if (!firmwares) {
         return error("[TSSC] device '%s' could not be found in devicelist\n", deviceModel), NULL;
+    }
     
 malloc_rets:
     if (retcounter)
@@ -656,7 +657,7 @@ malloc_rets:
         
         if (ios->size == strlen(versstring) && strncmp(versstring, ios->value, ios->size) == 0) {
             
-            if (versVals->isOta) {
+            if (ota) {
                 jssytok_t *releaseType = NULL;
                 if (versVals->useBeta && !(releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) continue;
                 else if (!versVals->useBeta);
@@ -1334,7 +1335,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     int isSignedOne = 0;
     char *buildManifest = NULL;
     
-    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens, false);
+    t_versionURL *urls = getFirmwareUrls(devVals->deviceModel, versVals, firmwareTokens, false, versVals->isOta);
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     int cursigned = 0;
@@ -1373,13 +1374,14 @@ error:
 }
 
 #pragma mark print functions
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta){
+char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens, bool beta, bool ota){
     warning("FUNCTION IS DEPRECATED, USE getFirmwareUrls INSTEAD!\n");
     t_versionURL *versions, *v;
-    versions = v = getFirmwareUrls(deviceModel, versVals, tokens, beta);
+    versions = v = getFirmwareUrls(deviceModel, versVals, tokens, beta, ota);
 
-    if (!versions)
+    if (!versions) {
         return NULL;
+    }
     char *ret = versions->url;
     free(versions->buildID);
     free(versions->version);
@@ -1464,9 +1466,10 @@ int cmpfunc(const void * a, const void * b){
 char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, bool beta){
     //requires free(versions[versionsCnt-1]); and free(versions); after use
     jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
-    
-    if (!firmwares)
-        return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
+
+    if (!firmwares) {
+        return error("[TSSC] device %s could not be found in devicelist\n", device), NULL;
+    }
     
     int versionsCnt = (int)firmwares->size;
     char **versions = (char**)malloc(versionsCnt * sizeof(char *));
@@ -1497,8 +1500,9 @@ char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, 
     //requires free(versions[versionsCnt-1]); and free(versions); after use
     jssytok_t *firmwares = getFirmwaresForDevice(device, tokens, isOTA);
 
-    if (!firmwares)
-        return error("[TSSC] device %s could not be found in devicelist\n",device),NULL;
+    if (!firmwares) {
+        return error("[TSSC] device %s could not be found in devicelist\n", device), NULL;
+    }
 
     int versionsCnt = (int)firmwares->size;
     char **versions = (char**)malloc(versionsCnt * sizeof(char *));
@@ -1585,12 +1589,17 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 #pragma mark check functions
 jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta){
     jssytok_t *ctok = (isOta) ? tokens : jssy_dictGetValueForKey(tokens, "devices");
+    if(!ctok) {
+        return NULL;
+    }
     
     jssytok_t *tmp = ctok->subval;
-    for (int i=0; i<ctok->size; tmp = tmp->next,i++)
+    for (int i=0; i<ctok->size; tmp = tmp->next, i++) {
         if (strncasecmp(device, tmp->value, tmp->size) == 0
-            && strlen(device) == tmp->size)
+            && strlen(device) == tmp->size) {
             return jssy_dictGetValueForKey(tmp->subval, "firmwares");
+        }
+    }
     
     return NULL;
 }
