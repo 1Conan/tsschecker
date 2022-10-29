@@ -41,7 +41,6 @@ jobs:
 
     - name: setup environment
       run: |
-        apk add git make cmake
         export WORKSPACE=${HOME}/workspace
 
         mkdir -p ${WORKSPACE}/build_source ${WORKSPACE}/build_work ${WORKSPACE}/build_base
@@ -67,20 +66,14 @@ jobs:
 
     - name: Download and setup toolchain
       run: |
-        wget -nc -P ${BUILD_SOURCE} https://musl.cc/${TOOLCHAIN}.tgz
-        tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
-
-        # Download sccache
         wget -nc -P ${BUILD_SOURCE} \
-          https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz
-        tar xf ${BUILD_SOURCE}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz -C ${HOME}
-        mv ${HOME}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl/sccache ${HOME}/${TOOLCHAIN}/bin
-        chmod +x ${HOME}/${TOOLCHAIN}/bin/sccache
+          https://stor.tsssaver.1conan.com/toolchains/${TOOLCHAIN}.tgz
+        tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
 
         echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
 
-        echo "CC=sccache ${TRIPLE}-gcc" >> $GITHUB_ENV
-        echo "CXX=sccache ${TRIPLE}-g++" >> $GITHUB_ENV
+        echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
+        echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
         echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
         echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
         echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
