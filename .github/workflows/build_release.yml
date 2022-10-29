@@ -80,16 +80,14 @@ jobs:
         echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
         echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
 
-        echo "CFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
-        echo "CXXFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+        echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+        echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
         echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
         echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
         echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
         echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
 
         echo "CONFIGURE_FLAGS=--host=${TRIPLE} --prefix=${BUILD_BASE} --enable-static --disable-shared" >> $GITHUB_ENV
-
-        apk add make m4 autoconf autoconf-archive automake libtool pkgconfig
 
     - name: build zlib
       run: |
