@@ -123,9 +123,9 @@ jobs:
           -DCMAKE_SYSTEM_PROCESSOR=${ARCH} \
           -DCMAKE_C_FLAGS="${CFLAGS}" \
           -DCMAKE_FIND_ROOT_PATH="${BUILD_BASE}" \
-          -DCMAKE_C_COMPILER=gcc \
-          -DCMAKE_AR=${AR} \
-          -DCMAKE_RANLIB=${RANLIB} \
+          -DCMAKE_C_COMPILER=${TRIPLE}-gcc \
+          -DCMAKE_AR=${HOME}/${TRIPLE}-cross/bin/${AR} \
+          -DCMAKE_RANLIB=${HOME}/${TRIPLE}-cross/bin/${RANLIB} \
           -DCMAKE_INSTALL_PREFIX=${BUILD_BASE} \
           -DCMAKE_EXE_LINKER_FLAGS="-static" \
           -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
