@@ -49,9 +49,6 @@ jobs:
         echo "BUILD_WORK=${WORKSPACE}/build_work" >> $GITHUB_ENV
         echo "BUILD_BASE=${WORKSPACE}/build_base" >> $GITHUB_ENV
 
-        echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
         export ARCH=$(echo ${{ matrix.triple }} | cut -d- -f 1)
         export OS=$(echo ${{ matrix.triple }} | cut -d- -f 2)
 
