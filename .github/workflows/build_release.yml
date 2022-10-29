@@ -96,7 +96,7 @@ jobs:
         tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
 
         cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
-        chown -R root:root .
+
         ./configure \
           --prefix=${BUILD_BASE} \
           --static
