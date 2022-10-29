@@ -199,7 +199,7 @@ jobs:
         make install
 
     - name: build wolfssl
-      if: ${{ env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl' }}
+      if: env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl'
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
           https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
@@ -229,7 +229,7 @@ jobs:
         make install
 
     - name: build openssl
-      if: ${{ env.OS != 'win' && env.SSL_LIBRARY == 'openssl' }}
+      if: env.OS != 'win' && env.SSL_LIBRARY == 'openssl'
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
           https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
