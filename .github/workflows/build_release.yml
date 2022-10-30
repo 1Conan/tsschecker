@@ -5,12 +5,11 @@ on:
 env:
   SSL_LIBRARY: openssl
   LIBPLIST_VERSION: c3af449543795ad4d3ab178120ff69e90fdd2cc8
-  ZLIB_VERSION: 1.2.12
+  ZLIB_VERSION: 1.2.13
   LIBZIP_VERSION: 1.9.2
   WOLFSSL_VERSION: 5.5.0
   OPENSSL_VERSION: 1.1.1q
   LIBCURL_VERSION: 7.79.1
-  SCCACHE_VERSION: 0.3.0
 
 jobs:
 
@@ -20,7 +19,6 @@ jobs:
       matrix:
         triple:
         - x86_64-linux-musl
-        - i486-linux-musl
         - arm-linux-musleabi
         - aarch64-linux-musl
         - mips-linux-musl
@@ -28,7 +26,7 @@ jobs:
         - riscv32-linux-musl
         - riscv64-linux-musl
         - x86_64-w64-mingw32
-        - i686-w64-mingw32
+
     env:
       TRIPLE: ${{ matrix.triple }}
       TOOLCHAIN: ${{ matrix.triple }}-cross
@@ -38,29 +36,15 @@ jobs:
       with:
         submodules: recursive
 
-    - name: cache files
-      uses: actions/cache@v2
-      if: ${{ !env.ACT }}
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/workspace
-        key: build-win-linux-${{ matrix.triple }}-${ { env.GITHUB_SHA } }
-        restore-keys: |
-          build-win-linux-${{ matrix.triple }}
-
     - name: setup environment
       run: |
         export WORKSPACE=${HOME}/workspace
 
-        mkdir -p ${WORKSPACE}/build_{base,work,source}
+        mkdir -p ${WORKSPACE}/build_source ${WORKSPACE}/build_work ${WORKSPACE}/build_base
 
         echo "BUILD_SOURCE=${WORKSPACE}/build_source" >> $GITHUB_ENV
         echo "BUILD_WORK=${WORKSPACE}/build_work" >> $GITHUB_ENV
         echo "BUILD_BASE=${WORKSPACE}/build_base" >> $GITHUB_ENV
-
-        echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
         export ARCH=$(echo ${{ matrix.triple }} | cut -d- -f 1)
         export OS=$(echo ${{ matrix.triple }} | cut -d- -f 2)
@@ -76,28 +60,22 @@ jobs:
 
     - name: Download and setup toolchain
       run: |
-        wget -nc -P ${BUILD_SOURCE} https://musl.cc/${TOOLCHAIN}.tgz
-        tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
-
-        # Download sccache
         wget -nc -P ${BUILD_SOURCE} \
-          https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz
-        tar xf ${BUILD_SOURCE}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz -C ${HOME}
-        mv ${HOME}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl/sccache ${HOME}/${TOOLCHAIN}/bin
-        chmod +x ${HOME}/${TOOLCHAIN}/bin/sccache
+          https://stor.tsssaver.1conan.com/toolchains/${TOOLCHAIN}.tgz
+        tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
 
         echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
 
-        echo "CC=sccache ${TRIPLE}-gcc" >> $GITHUB_ENV
-        echo "CXX=sccache ${TRIPLE}-g++" >> $GITHUB_ENV
+        echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
+        echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
         echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
         echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
         echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
         echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
         echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
 
-        echo "CFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
-        echo "CXXFLAGS=-Os -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+        echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+        echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
         echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
         echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
         echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
@@ -112,6 +90,7 @@ jobs:
         tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
 
         cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
+
         ./configure \
           --prefix=${BUILD_BASE} \
           --static
@@ -139,7 +118,6 @@ jobs:
           -DCMAKE_C_FLAGS="${CFLAGS}" \
           -DCMAKE_FIND_ROOT_PATH="${BUILD_BASE}" \
           -DCMAKE_C_COMPILER=${TRIPLE}-gcc \
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache \
           -DCMAKE_AR=${HOME}/${TRIPLE}-cross/bin/${AR} \
           -DCMAKE_RANLIB=${HOME}/${TRIPLE}-cross/bin/${RANLIB} \
           -DCMAKE_INSTALL_PREFIX=${BUILD_BASE} \
@@ -218,7 +196,7 @@ jobs:
         make install
 
     - name: build wolfssl
-      if: ${{ env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl' }}
+      if: env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl'
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
           https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
@@ -248,7 +226,7 @@ jobs:
         make install
 
     - name: build openssl
-      if: ${{ env.OS != 'win' && env.SSL_LIBRARY == 'openssl' }}
+      if: env.OS != 'win' && env.SSL_LIBRARY == 'openssl'
       run: |
         wget -q -nc -P ${BUILD_SOURCE} \
           https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz

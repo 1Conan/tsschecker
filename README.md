@@ -1,4 +1,6 @@
-# tsschecker  
+# tsschecker
+[![CI Building](https://img.shields.io/github/workflow/status/1Conan/tsschecker/Build%20%26%20Release/main?style=for-the-badge)](https://github.com/1Conan/tsschecker/actions)
+
 tsschecker is a powerful tool to check TSS signing status on combinations of various apple devices and firmware versions.
 
 ## Features  
