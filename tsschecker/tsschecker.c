@@ -645,7 +645,7 @@ t_versionURL *getFirmwareUrls(const char *deviceModel, t_iosVersion *versVals, j
     if (!firmwares) {
         return error("[TSSC] device '%s' could not be found in devicelist\n", deviceModel), NULL;
     }
-    
+
 malloc_rets:
     if (retcounter)
         memset(rets = (t_versionURL*)malloc(sizeof(t_versionURL)*(retcounter+1)), 0, sizeof(t_versionURL)*(retcounter+1));
@@ -654,14 +654,25 @@ malloc_rets:
     jssytok_t *tmp = firmwares->subval;
     for (size_t i=0; i<firmwares->size; tmp=tmp->next, i++) {
         jssytok_t *ios = jssy_dictGetValueForKey(tmp, (versVals->buildID) ? "buildid" : "version");
-        
+
         if (ios->size == strlen(versstring) && strncmp(versstring, ios->value, ios->size) == 0) {
-            
+
             if (ota) {
                 jssytok_t *releaseType = NULL;
-                if (versVals->useBeta && !(releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) continue;
-                else if (!versVals->useBeta);
-                else if (strncmp(releaseType->value, "Beta", releaseType->size) != 0 && !beta) continue;
+                if (versVals->useBeta && !(releaseType = jssy_dictGetValueForKey(tmp, "releasetype"))) {
+                    continue;
+                }
+                else if (!versVals->useBeta) {
+//                    if (jssy_dictGetValueForKey(tmp, "prerequisitebuildid")) {
+//                        continue;
+//                    }
+                }
+                else if (strncmp(releaseType->value, "Beta", releaseType->size) != 0 && !beta) {
+                    continue;
+                }
+//                else if (jssy_dictGetValueForKey(tmp, "prerequisitebuildid")) {
+//                    continue;
+//                }
             }
             
             jssytok_t *url = jssy_dictGetValueForKey(tmp, "url");
@@ -678,7 +689,7 @@ malloc_rets:
             else{
                 for (int i=0; rets_base[i].buildID; i++) {
                     if (strncmp(rets_base[i].buildID, i_build->value, i_build->size) == 0){
-                        info("[TSSC] Marking duplicated buildid %s\n",rets_base[i].buildID);
+                        debug("[TSSC] Marking duplicated buildid %s\n",rets_base[i].buildID);
                         rets->isDupulicate = 1;
                         break;
                     }
