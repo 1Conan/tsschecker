@@ -299,7 +299,6 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
         // The logic here is missing why this value is expected to be 'false'
         plist_dict_set_item(request, "UID_MODE", plist_new_bool(0));
     }
-
     return 0;
 }
 

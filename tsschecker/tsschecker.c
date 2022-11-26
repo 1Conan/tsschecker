@@ -858,6 +858,8 @@ int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t n
     plist_dict_set_item(tssreq, "ApECID", plist_new_uint(ecid)); //0000000000000000
     if (nonce) {
         plist_dict_set_item(tssreq, "ApNonce", plist_new_data((const char*)nonce, (int)nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
+    } else {
+        plist_dict_set_item(tssreq, "ApNonce", plist_new_data(NULL, 0));
     }
     
     if (sep_nonce) {//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
@@ -1213,12 +1215,15 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         plist_get_uint_val(pecid, &devVals->ecid);
         char *cecid = ecid_to_string(devVals->ecid);
         
-        if (*devVals->generator)
+        if (*devVals->generator) {
             plist_dict_set_item(apticket, "generator", plist_new_string(devVals->generator));
-        if (apticket2)
+        }
+        if (apticket2) {
             plist_dict_set_item(apticket, "updateInstall", apticket2);
-        if (apticket3)
+        }
+        if (apticket3) {
             plist_dict_set_item(apticket, "noNonce", apticket3);
+        }
         
         uint32_t size = 0;
         char* data = NULL;
