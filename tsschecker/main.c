@@ -46,20 +46,20 @@ static struct option longopts[] = {
     { "update-install",     optional_argument, NULL, 'u' },
     { "boardconfig",        required_argument, NULL, 'B' },
     { "buildid",            required_argument, NULL, 'Z' },
-    { "debug",              no_argument,       NULL,  0  },
-    { "list-devices",       no_argument,       NULL,  1  },
-    { "list-ios",           no_argument,       NULL,  2  },
-    { "save-path",          required_argument, NULL,  3  },
-    { "print-tss-request",  no_argument,       NULL,  4  },
-    { "print-tss-response", no_argument,       NULL,  5  },
-    { "beta",               no_argument,       NULL,  6  },
-    { "nocache",            no_argument,       NULL,  7  },
-    { "apnonce",            required_argument, NULL,  8  },
-    { "sepnonce",           required_argument, NULL,  9  },
-    { "raw",                required_argument, NULL, 10  },
-    { "bbsnum",             required_argument, NULL, 11  },
-    { "server-url",         required_argument, NULL, 12  },
-    { "bplist",             no_argument,       NULL, 13  },
+    { "debug",              no_argument,       NULL,  '0'  },
+    { "list-devices",       no_argument,       NULL,  '1'  },
+    { "list-ios",           no_argument,       NULL,  '2'  },
+    { "save-path",          required_argument, NULL,  '3'  },
+    { "print-tss-request",  no_argument,       NULL,  '4'  },
+    { "print-tss-response", no_argument,       NULL,  '5'  },
+    { "beta",               no_argument,       NULL,  '6'  },
+    { "nocache",            no_argument,       NULL,  '7'  },
+    { "apnonce",            required_argument, NULL,  '8'  },
+    { "sepnonce",           required_argument, NULL,  '9'  },
+    { "raw",                required_argument, NULL, 'r'  },
+    { "bbsnum",             required_argument, NULL, 'c'  },
+    { "server-url",         required_argument, NULL, 'S'  },
+    { "bplist",             no_argument,       NULL, 'p'  },
     { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
@@ -82,19 +82,20 @@ void cmd_help(){
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \t\tECID must be either DEC or HEX eg. 5482657301265 or 0xab46efcbf71\n");
     printf("  -g, --generator GEN\t\tmanually specify generator in HEX format 16 in length (eg. 0x1111111111111111)\n\n");
-    printf("      --apnonce NONCE\t\tmanually specify ApNonce instead of using random ones\n\t\t\t\t(required for saving blobs for A12/S4 and newer devices with generator)\n\n");
-    printf("      --sepnonce NONCE\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
-    printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
-    printf("      --save-path PATH\t\tspecify output path for saving shsh blobs\n");
-    printf("      --bplist\t\t\tsave shsh blob as binary plist (used with --save)\n");
-    printf("      --server-url URL\t\tmanually specify TSS server url\n");
-    printf("      --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
-    printf("      --list-devices\t\tlist all known devices\n");
-    printf("      --list-ios\t\tlist all known firmware versions\n");
-    printf("      --nocache \t\tignore caches and re-download required files\n");
-    printf("      --print-tss-request\tprint the TSS request that will be sent to Apple\n");
-    printf("      --print-tss-response\tprint the TSS response that comes from Apple\n");
-    printf("      --raw\t\t\tsend raw file to Apple's TSS server (useful for debugging)\n\n");
+    printf("  -8  --apnonce NONCE\t\tmanually specify ApNonce instead of using random ones\n\t\t\t\t(required for saving blobs for A12/S4 and newer devices with generator)\n\n");
+    printf("  -9  --sepnonce NONCE\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
+    printf("  -c  --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
+    printf("  -3  --save-path PATH\t\tspecify output path for saving shsh blobs\n");
+    printf("  -p  --bplist\t\t\tsave shsh blob as binary plist (used with --save)\n");
+    printf("  -S  --server-url URL\t\tmanually specify TSS server url\n");
+    printf("  -6  --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
+    printf("  -1  --list-devices\t\tlist all known devices\n");
+    printf("  -2  --list-ios\t\tlist all known firmware versions\n");
+    printf("  -7  --nocache \t\tignore caches and re-download required files\n");
+    printf("  -4  --print-tss-request\tprint the TSS request that will be sent to Apple\n");
+    printf("  -5  --print-tss-response\tprint the TSS response that comes from Apple\n");
+    printf("  -r  --raw\t\t\tsend raw file to Apple's TSS server (useful for debugging)\n");
+    printf("  -0  --debug\t\t\tprint extra tss info(useful for debugging)\n\n");
 }
 
 int64_t parseECID(const char *ecid){
@@ -183,7 +184,7 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
 
-    while ((opt = getopt_long(argc, (char* const *)argv, "d:i:Z:e:m:B:hg:slbuo", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "hd:i:Z:B:e:g:b:u:m:3:8:9:r:c:S:lso0124567p", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -247,47 +248,47 @@ int main(int argc, const char * argv[]) {
                 flags |= FLAG_BUILDMANIFEST;
                 buildmanifest = optarg;
                 break;
-            case 0: // only long option: "debug"
+            case '0': // long option: "debug"; can be called as short option
                 idevicerestore_debug = 1;
                 break;
-            case 1: // only long option: "list-devices"
+            case '1': // long option: "list-devices"; can be called as short option
                 flags |= FLAG_LIST_DEVICES;
                 break;
-            case 2: // only long option: "list-ios"
+            case '2': // long option: "list-ios"; can be called as short option
                 flags |= FLAG_LIST_IOS;
                 break;
-            case 3: // only long option: "save-path"
+            case '3': // long option: "save-path"; can be called as short option
                 shshSavePath = optarg;
                 break;
-            case 4: // only long option: "print-tss-request"
+            case '4': // long option: "print-tss-request"; can be called as short option
                 print_tss_request = 1;
                 break;
-            case 5: // only long option: "print-tss-response"
+            case '5': // long option: "print-tss-response"; can be called as short option
                 print_tss_response = 1;
                 break;
-            case 6: // only long option: "beta"
+            case '6': // long option: "beta"; can be called as short option
                 versVals.useBeta = 1;
                 break;
-            case 7: // only long option: "nocache"
+            case '7': // long option: "nocache"; can be called as short option
                 nocache = 1;
                 break;
-            case 8: // only long option: "apnonce"
+            case '8': // long option: "apnonce"; can be called as short option
                 apnonce = optarg;
                 break;
-            case 9: // only long option: "sepnonce"
+            case '9': // long option: "sepnonce"; can be called as short option
                 sepnonce = optarg;
                 break;
-            case 10: // only long option: "raw"
+            case 'r': // long option: "raw"; can be called as short option
                 rawFilePath = optarg;
                 idevicerestore_debug = 1;
                 break;
-            case 11: // only long option: "bbsnum"
+            case 'c': // long option: "bbsnum"; can be called as short option
                 bbsnum = optarg;
                 break;
-            case 12: // only long option: "server-url"
+            case 'S': // long option: "server-url"; can be called as short option
                 serverUrl = optarg;
                 break;
-            case 13: // only long option: "bplist"
+            case 'p': // long option: "bplist"; can be called as short option
                 save_bplist = 1;
                 break;
             default:
