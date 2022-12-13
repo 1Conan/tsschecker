@@ -44,22 +44,23 @@ static struct option longopts[] = {
     { "save",               no_argument,       NULL, 's' },
     { "latest",             no_argument,       NULL, 'l' },
     { "update-install",     optional_argument, NULL, 'u' },
+    { "erase-install",      optional_argument, NULL, 'E' },
     { "boardconfig",        required_argument, NULL, 'B' },
     { "buildid",            required_argument, NULL, 'Z' },
-    { "debug",              no_argument,       NULL,  '0'  },
-    { "list-devices",       no_argument,       NULL,  '1'  },
-    { "list-ios",           no_argument,       NULL,  '2'  },
-    { "save-path",          required_argument, NULL,  '3'  },
-    { "print-tss-request",  no_argument,       NULL,  '4'  },
-    { "print-tss-response", no_argument,       NULL,  '5'  },
-    { "beta",               no_argument,       NULL,  '6'  },
-    { "nocache",            no_argument,       NULL,  '7'  },
-    { "apnonce",            required_argument, NULL,  '8'  },
-    { "sepnonce",           required_argument, NULL,  '9'  },
-    { "raw",                required_argument, NULL, 'r'  },
-    { "bbsnum",             required_argument, NULL, 'c'  },
-    { "server-url",         required_argument, NULL, 'S'  },
-    { "bplist",             no_argument,       NULL, 'p'  },
+    { "debug",              no_argument,       NULL, '0' },
+    { "list-devices",       no_argument,       NULL, '1' },
+    { "list-ios",           no_argument,       NULL, '2' },
+    { "save-path",          required_argument, NULL, '3' },
+    { "print-tss-request",  no_argument,       NULL, '4' },
+    { "print-tss-response", no_argument,       NULL, '5' },
+    { "beta",               no_argument,       NULL, '6' },
+    { "nocache",            no_argument,       NULL, '7' },
+    { "apnonce",            required_argument, NULL, '8' },
+    { "sepnonce",           required_argument, NULL, '9' },
+    { "raw",                required_argument, NULL, 'r' },
+    { "bbsnum",             required_argument, NULL, 'c' },
+    { "server-url",         required_argument, NULL, 'S' },
+    { "bplist",             no_argument,       NULL, 'p' },
     { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
@@ -76,13 +77,14 @@ void cmd_help(){
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request tickets without baseband\n");
     printf("  -m, --build-manifest\t\tmanually specify a BuildManifest (can be used with -d)\n");
     printf("  -s, --save\t\t\tsave fetched shsh blobs (mostly makes sense with -e)\n");
-    printf("  -u, --update-install\t\trequest update tickets instead of erase\n");
+    printf("  -u, --update-install\t\tonly request tickets for InstallType=Update\n");
+    printf("  -E, --erase-install\t\tonly request tickets for InstallType=Erase\n");
     printf("  -l, --latest\t\t\tuse the latest public firmware version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving shsh blobs\n");
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \t\tECID must be either DEC or HEX eg. 5482657301265 or 0xab46efcbf71\n");
     printf("  -g, --generator GEN\t\tmanually specify generator in HEX format 16 in length (eg. 0x1111111111111111)\n\n");
-    printf("  -8  --apnonce NONCE\t\tmanually specify ApNonce instead of using random ones\n\t\t\t\t(required for saving blobs for A12/S4 and newer devices with generator)\n\n");
+    printf("  -8  --apnonce NONCE\t\tmanually specify ApNonce instead of using random ones\n\t\t\t\t(required when saving blobs for arm64e devices with a matching generator)\n\n");
     printf("  -9  --sepnonce NONCE\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
     printf("  -c  --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
     printf("  -3  --save-path PATH\t\tspecify output path for saving shsh blobs\n");
@@ -154,7 +156,7 @@ char *parseNonce(const char *nonce, size_t *parsedLen){
 int main(int argc, const char * argv[]) {
     int err = 0;
     int isSigned = 0;
-    printf("tsschecker version: 0."TSSCHECKER_VERSION_COUNT"-"TSSCHECKER_VERSION_SHA"\n");
+    printf("tsschecker version: "TSSCHECKER_VERSION_MAJOR"."TSSCHECKER_VERSION_COUNT"."TSSCHECKER_VERSION_PATCH"-"TSSCHECKER_VERSION_SHA"-"TSSCHECKER_BUILD_TYPE"\n");
     printf("%s\n",fragmentzip_version());
     
     dbglog = 1;
@@ -225,15 +227,27 @@ int main(int argc, const char * argv[]) {
                 if (optarg) versVals.basebandMode = atoi(optarg);
                 else versVals.basebandMode = kBasebandModeWithoutBaseband;
                 break;
-            case 'u': // long option: "update"; can be called as short option
+            case 'u': // long option: "update-install"; can be called as short option
                 if (optarg) {
                     if ((devVals.installType = atoi(optarg)) > 2 || devVals.installType < 0){
-                        warning("unknown installType %d. Setting installType to default (%d)\n",devVals.installType,devVals.installType = kInstallTypeDefault);
+                        warning("Unknown installType %d. Setting installType to default (%d)\n",devVals.installType,devVals.installType = kInstallTypeDefault);
                     }
                 }else
                     devVals.installType = kInstallTypeUpdate;
+                    update_install = 1;
                 if (devVals.installType)
-                    printf("[TSSC] manually setting install type = %s\n",devVals.installType == kInstallTypeUpdate ? "Update" : "Erase");
+                    printf("[TSSC] Manually setting install type = %s\n",devVals.installType == kInstallTypeUpdate ? "Update" : "Erase");
+                break;
+            case 'E': // long option: "erase-install"; can be called as short option
+                if (optarg) {
+                    if ((devVals.installType = atoi(optarg)) > 2 || devVals.installType < 0){
+                        warning("Unknown installType %d. Setting installType to default (%d)\n",devVals.installType,devVals.installType = kInstallTypeDefault);
+                    }
+                }else
+                    devVals.installType = kInstallTypeErase;
+                    erase_install = 1;
+                if (devVals.installType)
+                    printf("[TSSC] Manually setting install type = %s\n",devVals.installType == kInstallTypeErase ? "Erase" : "Update");
                 break;
             case 'l': // long option: "latest"; can be called as short option
                 flags |= FLAG_LATEST_IOS;

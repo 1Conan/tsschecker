@@ -120,6 +120,8 @@ int print_tss_request = 0;
 int print_tss_response = 0;
 int nocache = 0;
 int save_shshblobs = 0;
+int update_install = 0;
+int erase_install = 0;
 int save_bplist = 0;
 const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
@@ -1174,7 +1176,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
     if (isSigned && save_shshblobs){
         if (!devVals->installType){
             plist_t tssreq2 = NULL;
-            info("also requesting APTicket for installType=Update\n");
+            info("[TSSC] Also requesting APTicket for installType=Update\n");
             devVals->installType = kInstallTypeUpdate;
             if (tssrequest(&tssreq2, buildManifestBuffer, devVals, basebandMode)){
                 warning("[TSSR] failed to build tssrequest for alternative installType\n");
@@ -1185,7 +1187,14 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             if (tssreq2) plist_free(tssreq2);
             devVals->installType = kInstallTypeDefault;
         }
-        {
+        if (update_install) {
+            plist_t tssreq2 = NULL;
+        }
+        else if (erase_install) {
+            plist_t tssreq2 = NULL;
+        }
+        else {
+            info("[TSSC] Also requesting APTicket without a nonce\n");
             plist_t tssreq2 = NULL;
             char *apnonce = devVals->apnonce;
             size_t apnonceLen = devVals->parsedApnonceLen;
