@@ -1193,7 +1193,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->parsedApnonceLen = 0;
             devVals->apnonce = (char *)0x1337;
             devVals->installType = kInstallTypeErase;
-            if (!tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
+            if (strcmp(devVals->deviceBoard, "d73ap") && strcmp(devVals->deviceBoard, "d74ap") /* Apple Tatsu moment */
+                && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
                 apticket3 = tss_request_send(tssreq2, server_url_string);
                 if (print_tss_response) debug_plist2(apticket3);
             }
