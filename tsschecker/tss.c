@@ -1521,6 +1521,7 @@ plist_t tss_request_send(plist_t tss_request, const char* server_url_string)
         curl_easy_setopt(handle, CURLOPT_POSTFIELDS, request);
         curl_easy_setopt(handle, CURLOPT_USERAGENT, USER_AGENT_STRING);
         curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, strlen(request));
+        curl_easy_setopt(handle, CURLOPT_TIMEOUT, 10L);
         if (server_url_string) {
             curl_easy_setopt(handle, CURLOPT_URL, server_url_string);
         } else {
