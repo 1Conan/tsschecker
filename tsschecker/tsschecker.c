@@ -44,6 +44,7 @@
 
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
 #define FIRMWARE_BETA_JSON_URL "https://api.m1sta.xyz/betas/"
+#define FIRMWARE_BETA_JSON_URL2 "https://api.appledb.dev/ios/"
 #define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
 
 /* for KTRR devices this value - 32 */
@@ -69,7 +70,7 @@ static const char *win_pathvars[]={
     "\\tsschecker",
     "\\ota.json",
     "\\firmwares.json",
-    "\\betas_"
+    "\\firmwares_betas.json"
 };
 
 static const char *win_path_get(enum paths path){
@@ -473,15 +474,16 @@ char *getFirmwareJson(){
     return fJson;
 }
 
-char *getBetaFirmwareJson(const char *device) {
-    char url[50], path[50];
-    memset(url, 0, 50);
-    memset(path, 0, 50);
-    strcat(url, FIRMWARE_BETA_JSON_URL);
-    strcat(url, device);
+char *getBetaFirmwareJson2(const char *type, const char *buildid) {
+    char url[256], path[256];
+    memset(url, 0, 256);
+    memset(path, 0, 256);
+    strcat(url, FIRMWARE_BETA_JSON_URL2);
+    strcat(url, type);
+    strcat(url, ";");
+    strcat(url, buildid);
+    strcat(url, ".json");
     strcat(path, FIRMWARE_BETA_JSON_PATH);
-    strcat(path, device);
-    strcat(path, ".json");
     debug("[TSSC] opening %s\n", path);
     FILE *f = fopen(path, "rb");
     if (!f || nocache){
@@ -495,6 +497,32 @@ char *getBetaFirmwareJson(const char *device) {
     fread(fJson, fsize, 1, f);
     fclose(f);
     return fJson;
+}
+
+char *getBetaFirmwareJson(const char *device) {
+    char url[50], path[50];
+    memset(url, 0, 50);
+    memset(path, 0, 50);
+    strcat(url, FIRMWARE_BETA_JSON_URL);
+    strcat(url, device);
+    strcat(path, FIRMWARE_BETA_JSON_PATH);
+    debug("[TSSC] opening %s\n", path);
+    FILE *f = fopen(path, "rb");
+    if (!f || nocache){
+        downloadFile(url, path);
+        f = fopen(path, "rb");
+    }
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    if(fsize < 1) {
+        return NULL;
+    } else {
+        fseek(f, 0, SEEK_SET);
+        char *fJson = calloc(1, fsize + 1);
+        fread(fJson, fsize, 1, f);
+        fclose(f);
+        return fJson;
+    }
 }
 
 char *getOtaJson(){
@@ -1545,6 +1573,25 @@ char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, 
     qsort(versions, versionsCnt, sizeof(char *), &cmpfunc);
     if (versionCntt) *versionCntt = versionsCnt;
     return versions;
+}
+
+char *getBetaURLForDevice2(jssytok_t *tokens, const char *deviceid) {
+    if (!tokens)
+        return error("[TSSC] beta tokens empty\n"),NULL;
+    jssytok_t *tmp = jssy_dictGetValueForKey(tokens, "devices");
+    if (!tmp)
+        return error("[TSSC] beta devices empty\n"),NULL;
+    tmp = jssy_dictGetValueForKey(tmp, deviceid);
+    if (!tmp)
+        return error("[TSSC] beta device not found\n"),NULL;
+    tmp = jssy_dictGetValueForKey(tmp, "ipsw");
+    if (!tmp)
+        return error("[TSSC] beta ipsw not found\n"),NULL;
+    if (!tmp->size)
+        return error("[TSSC] beta ipsw name is empty\n"),NULL;
+    char *url_str = calloc(1, tmp->size + 1);
+    strncpy(url_str, tmp->value, tmp->size);
+    return url_str;
 }
 
 char *getBetaURLForDevice(jssytok_t *tokens, const char *buildid) {

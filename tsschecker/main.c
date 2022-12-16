@@ -30,7 +30,7 @@
 #define FLAG_BUILDMANIFEST  (1 << 2)
 #define FLAG_LATEST_IOS     (1 << 3)
 
-int idevicerestore_debug;
+extern int idevicerestore_debug;
 #define reterror(code,a ...) {error(a); err = code; goto error;}
 
 static struct option longopts[] = {

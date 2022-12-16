@@ -27,6 +27,8 @@
 
 #include "common.h"
 
+int idevicerestore_debug;
+
 #define MAX_PRINT_LEN 64*1024
 #ifndef NO_DEBUG_PLIST
 void debug_plist(plist_t plist) {
