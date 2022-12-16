@@ -15,7 +15,7 @@ By using all of its customization possibilities, you might discover a combinatio
 # About Nonces:
 A [Nonce](https://wikipedia.org/wiki/Cryptographic_nonce) ("Number-used-ONCE") is a randomly generated value that is used to randomize apple's signed hash blobs.
 
-it is created by the device with a nonce seed (generator) and then hashes that seed to create the nonce.<br/>On arm64e devices the nonce is also encrypted with the device's UID Key, see "Nonce Entangling" for more details.
+it is created by the device with a nonce seed (generator) and then hashes that seed to create the nonce.<br/>On arm64e devices, nonce generation works a bit differently, see "Nonce Entangling" for more details.
 
 ## Recommended nonce-seeds (Generators) for saving tickets:
 * `0xbd34a880be0b53f3` // default on the [Electra](https://coolstar.org/electra/), [Chimera](https://chimera.coolstar.org/) and [Odyssey](https://theodyssey.dev/) jailbreak apps.
@@ -24,13 +24,15 @@ it is created by the device with a nonce seed (generator) and then hashes that s
 ## Nonce Entangling (arm64e devices)
 arm64e devices such as the iPhone XR, Apple Watch Series 4 and all newer devices have nonce-entangling.
 
-Nonce Entangling works by further randomizing the boot nonce by encrypting it with the device's [unique ID key](https://www.theiphonewiki.com/wiki/UID_key),<br/>
-making the nonce created from the generator specific to that device only.
+Nonce Entangling further randomizes the boot nonce by encrypting a constant value with the [UID key](https://www.theiphonewiki.com/wiki/UID_key) (using AES-256-CBC)<br/>It is then used to encrypt the "generator" value (using AES-128-CBC) before hashing it to become the boot nonce.
 
-To save reusable tickets for an arm64e device, you must get the boot nonce that the device creates from your generator,<br/>
+In short, nonce entangling makes the boot nonce unique to that device only.
+
+To save reusable tickets for any arm64e device, you must get the boot nonce that the device creates from your generator,<br/>
 the simpliest way to get a nonce/generator pair is to use airsquared's [blobsaver](https://github.com/airsquared/blobsaver) tool and read them from the device.
 
-if you need more information, [see this post on r/jailbreak](https://www.reddit.com/r/jailbreak/comments/cssh8f/tutorial_easiest_way_to_save_blobs_on_a12/).
+For more information, visit The iPhone Wiki:<br/>
+[The iPhone Wiki](https://www.theiphonewiki.com/) ([AES Keys](https://theiphonewiki.com/wiki/AES_Keys), [Nonce](https://theiphonewiki.com/wiki/Nonce))
 
 ## Nonce Collisions:
 
@@ -38,7 +40,7 @@ the Nonce Collision method only works on a few firmwares and devices, and is not
 
 Recovery Nonce Collisions only occur on a few iOS versions, like iOS 9.3.3 and iOS 10.1-10.2 on the iPhone 5s<br/>and is not reliable as once you update, your device will almost-certainly not collide nonces anymore.
 
-DFU Nonce Collisions on the other hand, very commonly occur on any device using A7 and A8 chipsets regardless of iOS version and is MUCH more reliable than using recovery collisions.
+DFU Nonce Collisions on the other hand, very commonly occur on any device using A7 and A8 chipsets regardless of iOS version,<br/> and is MUCH more reliable than using recovery collisions.
 
 # Build
 Install or Compile dependencies
