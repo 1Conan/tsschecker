@@ -780,9 +780,9 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     struct stat st = {0};
     size_t len = 0;
     if(version) {
-        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + strlen(version) + 1;
+        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + strlen(version) + 1 + strlen(".plist");
     } else {
-        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + 1;
+        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + 1 + strlen(".plist");
     }
     if (buildID) len += strlen(buildID);
     if (isOta) len += strlen("ota");
@@ -801,7 +801,11 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
         strcat(fileDir, buildID);
     }
     
-    if (isOta) strcat(fileDir, "ota");
+    if (isOta){
+        strcat(fileDir, "_");
+        strcat(fileDir, "OTA");
+    }
+    strcat(fileDir, ".plist");
     
     memset(&st, 0, sizeof(st));
     if (stat(MANIFEST_SAVE_PATH, &st) == -1) __mkdir(MANIFEST_SAVE_PATH, 0700);
@@ -815,8 +819,8 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     FILE *f = fopen(fileDir, "rb");
     if (!url) {
         if (!f || nocache) return NULL;
-        debug("[TSSC] using cached Buildmanifest for %s\n",name);
-    }else debug("[TSSC] opening Buildmanifest for %s\n",name);
+        debug("[TSSC] Using cached BuildManifest: %s\n",name);
+    }else debug("[TSSC] Opening BuildManifest: %s\n",name);
     
     if (!f || nocache){
         //download if it isn't there
