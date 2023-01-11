@@ -186,7 +186,7 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
 
-    while ((opt = getopt_long(argc, (char* const *)argv, "hd:i:Z:B:e:g:m:3:8:9:r:c:S:buElso0124567p", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "hd:i:Z:B:e:g:b:u:E:m:3:8:9:r:c:S:lso0124567p", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
