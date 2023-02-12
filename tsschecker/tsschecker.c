@@ -1253,7 +1253,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcmp(devVals->deviceModel, "iPad4,6") || !strcmp(devVals->deviceModel, "iPad4,7")
                                         || !strcmp(devVals->deviceModel, "iPad4,8") || !strcmp(devVals->deviceModel, "iPad4,9")
                                         || !strcmp(devVals->deviceModel, "iPad5,1") || !strcmp(devVals->deviceModel, "iPad5,2")
-                                        || !strcmp(devVals->deviceModel, "iPad9,1"))) {
+                                        || !strcmp(devVals->deviceModel, "iPod9,1"))) {
                 save_apticket3 = false;
             }
             if(save_apticket3 && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)) {
