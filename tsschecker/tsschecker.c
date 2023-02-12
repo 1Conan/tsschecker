@@ -1225,10 +1225,42 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->parsedApnonceLen = 0;
             devVals->apnonce = (char *)0x1337;
             devVals->installType = kInstallTypeErase;
-            if (strcmp(devVals->deviceBoard, "d73ap") && strcmp(devVals->deviceBoard, "d74ap") /* Apple Tatsu moment */
-                && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
+            bool save_apticket3 = true;
+            /*
+             * Apple Tatsu moment
+             * The apple Tatsu servers are wack
+            */
+            if(devVals->deviceBoard && (!strcmp(devVals->deviceBoard, "d73ap") || !strcmp(devVals->deviceBoard, "d74ap")
+                                        || !strcmp(devVals->deviceBoard, "n51ap") || !strcmp(devVals->deviceBoard, "n53ap")
+                                        || !strcmp(devVals->deviceBoard, "n56ap") || !strcmp(devVals->deviceBoard, "n61ap")
+                                        || !strcmp(devVals->deviceBoard, "j71ap") || !strcmp(devVals->deviceBoard, "j72ap")
+                                        || !strcmp(devVals->deviceBoard, "j73ap") || !strcmp(devVals->deviceBoard, "j81ap")
+                                        || !strcmp(devVals->deviceBoard, "j82ap") || !strcmp(devVals->deviceBoard, "n102ap")
+                                        || !strcmp(devVals->deviceBoard, "j85ap") || !strcmp(devVals->deviceBoard, "j86ap")
+                                        || !strcmp(devVals->deviceBoard, "j87ap") || !strcmp(devVals->deviceBoard, "j85map")
+                                        || !strcmp(devVals->deviceBoard, "j86map") || !strcmp(devVals->deviceBoard, "j87map")
+                                        || !strcmp(devVals->deviceBoard, "j96ap") || !strcmp(devVals->deviceBoard, "j97ap")
+                                        || !strcmp(devVals->deviceBoard, "n112ap"))) {
+                save_apticket3 = false;
+            }
+            if(devVals->deviceModel && (!strcmp(devVals->deviceModel, "iPhone15,2") || !strcmp(devVals->deviceModel, "iPhone15,3")
+                                        || !strcmp(devVals->deviceModel, "iPhone6,1") || !strcmp(devVals->deviceModel, "iPhone6,2")
+                                        || !strcmp(devVals->deviceModel, "iPhone7,1") || !strcmp(devVals->deviceModel, "iPhone7,2")
+                                        || !strcmp(devVals->deviceModel, "iPad4,1") || !strcmp(devVals->deviceModel, "iPad4,2")
+                                        || !strcmp(devVals->deviceModel, "iPad4,3") || !strcmp(devVals->deviceModel, "iPad5,3")
+                                        || !strcmp(devVals->deviceModel, "iPad5,4") || !strcmp(devVals->deviceModel, "iPod7,1")
+                                        || !strcmp(devVals->deviceModel, "iPad4,4") || !strcmp(devVals->deviceModel, "iPad4,5")
+                                        || !strcmp(devVals->deviceModel, "iPad4,6") || !strcmp(devVals->deviceModel, "iPad4,7")
+                                        || !strcmp(devVals->deviceModel, "iPad4,8") || !strcmp(devVals->deviceModel, "iPad4,9")
+                                        || !strcmp(devVals->deviceModel, "iPad5,1") || !strcmp(devVals->deviceModel, "iPad5,2")
+                                        || !strcmp(devVals->deviceModel, "iPad9,1"))) {
+                save_apticket3 = false;
+            }
+            if(save_apticket3 && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)) {
                 apticket3 = tss_request_send(tssreq2, server_url_string);
-                if (print_tss_response) debug_plist2(apticket3);
+                if (print_tss_response) {
+                    debug_plist2(apticket3);
+                }
             }
             devVals->parsedApnonceLen = apnonceLen;
             devVals->apnonce = apnonce;
