@@ -1240,7 +1240,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcmp(devVals->deviceBoard, "j87ap") || !strcmp(devVals->deviceBoard, "j85map")
                                         || !strcmp(devVals->deviceBoard, "j86map") || !strcmp(devVals->deviceBoard, "j87map")
                                         || !strcmp(devVals->deviceBoard, "j96ap") || !strcmp(devVals->deviceBoard, "j97ap")
-                                        || !strcmp(devVals->deviceBoard, "n112ap"))) {
+                                        || !strcmp(devVals->deviceBoard, "n112ap") || !strcmp(devVals->deviceBoard, "j42dap")
+                                        || !strcmp(devVals->deviceBoard, "j105aap" || !strcmp(devVals->deviceBoard, "j305ap"))) {
                 save_apticket3 = false;
             }
             if(devVals->deviceModel && (!strcmp(devVals->deviceModel, "iPhone15,2") || !strcmp(devVals->deviceModel, "iPhone15,3")
@@ -1253,7 +1254,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcmp(devVals->deviceModel, "iPad4,6") || !strcmp(devVals->deviceModel, "iPad4,7")
                                         || !strcmp(devVals->deviceModel, "iPad4,8") || !strcmp(devVals->deviceModel, "iPad4,9")
                                         || !strcmp(devVals->deviceModel, "iPad5,1") || !strcmp(devVals->deviceModel, "iPad5,2")
-                                        || !strcmp(devVals->deviceModel, "iPod9,1"))) {
+                                        || !strcmp(devVals->deviceModel, "iPod9,1") || !strcmp(devVals->deviceModel, "AppleTV5,3")
+                                        || !strcmp(devVals->deviceModel, "AppleTV6,2") || !strcmp(devVals->deviceModel, "AppleTV11,1"))) {
                 save_apticket3 = false;
             }
             if(save_apticket3 && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)) {
