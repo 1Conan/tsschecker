@@ -1241,7 +1241,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcmp(devVals->deviceBoard, "j86map") || !strcmp(devVals->deviceBoard, "j87map")
                                         || !strcmp(devVals->deviceBoard, "j96ap") || !strcmp(devVals->deviceBoard, "j97ap")
                                         || !strcmp(devVals->deviceBoard, "n112ap") || !strcmp(devVals->deviceBoard, "j42dap")
-                                        || !strcmp(devVals->deviceBoard, "j105aap" || !strcmp(devVals->deviceBoard, "j305ap"))) {
+                                        || !strcmp(devVals->deviceBoard, "j105aap") || !strcmp(devVals->deviceBoard, "j305ap"))) {
                 save_apticket3 = false;
             }
             if(devVals->deviceModel && (!strcmp(devVals->deviceModel, "iPhone15,2") || !strcmp(devVals->deviceModel, "iPhone15,3")
