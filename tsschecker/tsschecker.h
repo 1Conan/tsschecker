@@ -24,6 +24,8 @@ extern int dbglog;
 extern int print_tss_response;
 extern int nocache;
 extern int save_shshblobs;
+extern int update_install;
+extern int erase_install;
 extern int save_bplist;
 extern const char *shshSavePath;
 
