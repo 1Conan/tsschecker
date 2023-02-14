@@ -1,7 +1,14 @@
 name: Build & Release
 on:
   push:
+  pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 1 *'
+    - cron: '0 0 1 4 *'
+    - cron: '0 0 30 6 *'
+    - cron: '0 0 28 9 *'
+    - cron: '0 0 27 12 *'
 
 env:
   SSL_LIBRARY: openssl
