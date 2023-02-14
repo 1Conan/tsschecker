@@ -43,8 +43,8 @@ static struct option longopts[] = {
     { "ota",                no_argument,       NULL, 'o' },
     { "save",               no_argument,       NULL, 's' },
     { "latest",             no_argument,       NULL, 'l' },
-    { "update-install",     optional_argument, NULL, 'u' },
-    { "erase-install",      optional_argument, NULL, 'E' },
+    { "update-install",     no_argument,       NULL, 'u' },
+    { "erase-install",      no_argument,       NULL, 'E' },
     { "boardconfig",        required_argument, NULL, 'B' },
     { "buildid",            required_argument, NULL, 'Z' },
     { "debug",              no_argument,       NULL, '0' },
@@ -186,7 +186,7 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
 
-    while ((opt = getopt_long(argc, (char* const *)argv, "hd:i:Z:B:e:g:b:u:E:m:3:8:9:r:c:S:lso0124567p", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "hd:i:Z:B:e:g:b:m:3:8:9:r:c:S:uElso0124567p", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -228,26 +228,16 @@ int main(int argc, const char * argv[]) {
                 else versVals.basebandMode = kBasebandModeWithoutBaseband;
                 break;
             case 'u': // long option: "update-install"; can be called as short option
-                if (optarg) {
-                    if ((devVals.installType = atoi(optarg)) > 2 || devVals.installType < 0){
-                        warning("Unknown installType %d. Setting installType to default (%d)\n",devVals.installType,devVals.installType = kInstallTypeDefault);
-                    }
-                }else
-                    devVals.installType = kInstallTypeUpdate;
-                    update_install = 1;
+                devVals.installType = kInstallTypeUpdate;
+                update_install = 1;
                 if (devVals.installType)
-                    printf("[TSSC] Manually setting install type = %s\n",devVals.installType == kInstallTypeUpdate ? "Update" : "Erase");
+                    printf("[TSSC] Manually setting install type = Update\n");
                 break;
             case 'E': // long option: "erase-install"; can be called as short option
-                if (optarg) {
-                    if ((devVals.installType = atoi(optarg)) > 2 || devVals.installType < 0){
-                        warning("Unknown installType %d. Setting installType to default (%d)\n",devVals.installType,devVals.installType = kInstallTypeDefault);
-                    }
-                }else
-                    devVals.installType = kInstallTypeErase;
-                    erase_install = 1;
+                devVals.installType = kInstallTypeErase;
+                erase_install = 1;
                 if (devVals.installType)
-                    printf("[TSSC] Manually setting install type = %s\n",devVals.installType == kInstallTypeErase ? "Erase" : "Update");
+                    printf("[TSSC] Manually setting install type = Erase\n");
                 break;
             case 'l': // long option: "latest"; can be called as short option
                 flags |= FLAG_LATEST_IOS;
