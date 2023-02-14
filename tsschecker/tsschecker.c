@@ -1230,32 +1230,32 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
              * Apple Tatsu moment
              * The apple Tatsu servers are wack
             */
-            if(devVals->deviceBoard && (!strcmp(devVals->deviceBoard, "d73ap") || !strcmp(devVals->deviceBoard, "d74ap")
-                                        || !strcmp(devVals->deviceBoard, "n51ap") || !strcmp(devVals->deviceBoard, "n53ap")
-                                        || !strcmp(devVals->deviceBoard, "n56ap") || !strcmp(devVals->deviceBoard, "n61ap")
-                                        || !strcmp(devVals->deviceBoard, "j71ap") || !strcmp(devVals->deviceBoard, "j72ap")
-                                        || !strcmp(devVals->deviceBoard, "j73ap") || !strcmp(devVals->deviceBoard, "j81ap")
-                                        || !strcmp(devVals->deviceBoard, "j82ap") || !strcmp(devVals->deviceBoard, "n102ap")
-                                        || !strcmp(devVals->deviceBoard, "j85ap") || !strcmp(devVals->deviceBoard, "j86ap")
-                                        || !strcmp(devVals->deviceBoard, "j87ap") || !strcmp(devVals->deviceBoard, "j85map")
-                                        || !strcmp(devVals->deviceBoard, "j86map") || !strcmp(devVals->deviceBoard, "j87map")
-                                        || !strcmp(devVals->deviceBoard, "j96ap") || !strcmp(devVals->deviceBoard, "j97ap")
-                                        || !strcmp(devVals->deviceBoard, "n112ap") || !strcmp(devVals->deviceBoard, "j42dap")
-                                        || !strcmp(devVals->deviceBoard, "j105aap") || !strcmp(devVals->deviceBoard, "j305ap"))) {
+            if(devVals->deviceBoard && (!strcasecmp(devVals->deviceBoard, "d73ap") || !strcasecmp(devVals->deviceBoard, "d74ap")
+                                        || !strcasecmp(devVals->deviceBoard, "n51ap") || !strcasecmp(devVals->deviceBoard, "n53ap")
+                                        || !strcasecmp(devVals->deviceBoard, "n56ap") || !strcasecmp(devVals->deviceBoard, "n61ap")
+                                        || !strcasecmp(devVals->deviceBoard, "j71ap") || !strcasecmp(devVals->deviceBoard, "j72ap")
+                                        || !strcasecmp(devVals->deviceBoard, "j73ap") || !strcasecmp(devVals->deviceBoard, "j81ap")
+                                        || !strcasecmp(devVals->deviceBoard, "j82ap") || !strcasecmp(devVals->deviceBoard, "n102ap")
+                                        || !strcasecmp(devVals->deviceBoard, "j85ap") || !strcasecmp(devVals->deviceBoard, "j86ap")
+                                        || !strcasecmp(devVals->deviceBoard, "j87ap") || !strcasecmp(devVals->deviceBoard, "j85map")
+                                        || !strcasecmp(devVals->deviceBoard, "j86map") || !strcasecmp(devVals->deviceBoard, "j87map")
+                                        || !strcasecmp(devVals->deviceBoard, "j96ap") || !strcasecmp(devVals->deviceBoard, "j97ap")
+                                        || !strcasecmp(devVals->deviceBoard, "n112ap") || !strcasecmp(devVals->deviceBoard, "j42dap")
+                                        || !strcasecmp(devVals->deviceBoard, "j105aap") || !strcasecmp(devVals->deviceBoard, "j305ap"))) {
                 save_apticket3 = false;
             }
-            if(devVals->deviceModel && (!strcmp(devVals->deviceModel, "iPhone15,2") || !strcmp(devVals->deviceModel, "iPhone15,3")
-                                        || !strcmp(devVals->deviceModel, "iPhone6,1") || !strcmp(devVals->deviceModel, "iPhone6,2")
-                                        || !strcmp(devVals->deviceModel, "iPhone7,1") || !strcmp(devVals->deviceModel, "iPhone7,2")
-                                        || !strcmp(devVals->deviceModel, "iPad4,1") || !strcmp(devVals->deviceModel, "iPad4,2")
-                                        || !strcmp(devVals->deviceModel, "iPad4,3") || !strcmp(devVals->deviceModel, "iPad5,3")
-                                        || !strcmp(devVals->deviceModel, "iPad5,4") || !strcmp(devVals->deviceModel, "iPod7,1")
-                                        || !strcmp(devVals->deviceModel, "iPad4,4") || !strcmp(devVals->deviceModel, "iPad4,5")
-                                        || !strcmp(devVals->deviceModel, "iPad4,6") || !strcmp(devVals->deviceModel, "iPad4,7")
-                                        || !strcmp(devVals->deviceModel, "iPad4,8") || !strcmp(devVals->deviceModel, "iPad4,9")
-                                        || !strcmp(devVals->deviceModel, "iPad5,1") || !strcmp(devVals->deviceModel, "iPad5,2")
-                                        || !strcmp(devVals->deviceModel, "iPod9,1") || !strcmp(devVals->deviceModel, "Appletv5,3")
-                                        || !strcmp(devVals->deviceModel, "Appletv6,2") || !strcmp(devVals->deviceModel, "Appletv11,1"))) {
+            if(devVals->deviceModel && (!strcasecmp(devVals->deviceModel, "iPhone15,2") || !strcasecmp(devVals->deviceModel, "iPhone15,3")
+                                        || !strcasecmp(devVals->deviceModel, "iPhone6,1") || !strcasecmp(devVals->deviceModel, "iPhone6,2")
+                                        || !strcasecmp(devVals->deviceModel, "iPhone7,1") || !strcasecmp(devVals->deviceModel, "iPhone7,2")
+                                        || !strcasecmp(devVals->deviceModel, "iPad4,1") || !strcasecmp(devVals->deviceModel, "iPad4,2")
+                                        || !strcasecmp(devVals->deviceModel, "iPad4,3") || !strcasecmp(devVals->deviceModel, "iPad5,3")
+                                        || !strcasecmp(devVals->deviceModel, "iPad5,4") || !strcasecmp(devVals->deviceModel, "iPod7,1")
+                                        || !strcasecmp(devVals->deviceModel, "iPad4,4") || !strcasecmp(devVals->deviceModel, "iPad4,5")
+                                        || !strcasecmp(devVals->deviceModel, "iPad4,6") || !strcasecmp(devVals->deviceModel, "iPad4,7")
+                                        || !strcasecmp(devVals->deviceModel, "iPad4,8") || !strcasecmp(devVals->deviceModel, "iPad4,9")
+                                        || !strcasecmp(devVals->deviceModel, "iPad5,1") || !strcasecmp(devVals->deviceModel, "iPad5,2")
+                                        || !strcasecmp(devVals->deviceModel, "iPod9,1") || !strcasecmp(devVals->deviceModel, "Appletv5,3")
+                                        || !strcasecmp(devVals->deviceModel, "Appletv6,2") || !strcasecmp(devVals->deviceModel, "Appletv11,1"))) {
                 save_apticket3 = false;
             }
             if(save_apticket3 && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)) {
