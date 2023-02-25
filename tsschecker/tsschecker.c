@@ -15,7 +15,9 @@
 #include <stdio.h>
 
 #ifndef TSSCHECKER_NOMAIN
+#ifndef CMAKE_BUILD
 #include "../config.h"
+#endif
 #endif
 #include "tsschecker.h"
 #include "debug.h"
