@@ -1114,12 +1114,17 @@ getID0:
         reterror("[TSSR] Error: could not get BuildIdentity for installType=%s\n",devVals->isUpdateInstall ? "Update" : "Erase");
     }
     plist_t manifestdict = plist_dict_get_item(id0, "Manifest");
+    plist_t infodict = plist_dict_get_item(id0, "Info");
     if (!manifestdict || plist_get_node_type(manifestdict) != PLIST_DICT){
         reterror("[TSSR] Error: could not get manifest\n");
     }
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
+    plist_t virt = plist_dict_get_item(infodict, "VirtualMachineMinHostOS");
     int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
-    
+    if(virt) {
+        is64Bit = plist_get_node_type(virt) == PLIST_STRING;
+    }
+
     if (tss_populate_random(tssparameter,is64Bit,devVals))
         reterror("[TSSR] failed to populate tss request\n");
     
