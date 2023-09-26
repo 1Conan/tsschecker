@@ -298,12 +298,11 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
     } else if (_plist_dict_get_bool(parameters, "RequiresUIDMode")) {
         // The logic here is missing why this value is expected to be 'false'
         plist_dict_set_item(request, "UID_MODE", plist_new_bool(0));
+        plist_dict_set_item(request, "Ap,SikaFuse", plist_new_int(0));
     }
 
-    if (plist_dict_get_item(parameters, "Ap,SikaFuse")) {
+    if(plist_dict_get_item(parameters, "Ap,SikaFuse")) {
         _plist_dict_copy_item(request, parameters, "Ap,SikaFuse", NULL);
-    } else {//else if (_plist_dict_get_bool(parameters, "?")) {
-//        plist_dict_set_item(request, "Ap,SikaFuse", plist_new_int(0));
     }
     return 0;
 }
