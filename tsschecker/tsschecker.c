@@ -1255,7 +1255,9 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
              * Apple Tatsu moment
              * The apple Tatsu servers are wack
             */
-            if(devVals->deviceBoard && (!strcasecmp(devVals->deviceBoard, "d73ap") || !strcasecmp(devVals->deviceBoard, "d74ap")
+            if(devVals->deviceBoard && (!strcasecmp(devVals->deviceBoard, "d83ap") || !strcasecmp(devVals->deviceBoard, "d84ap")
+                                        || !strcasecmp(devVals->deviceBoard, "d73ap") || !strcasecmp(devVals->deviceBoard, "d74ap")
+                                        || !strcasecmp(devVals->deviceBoard, "d37ap") || !strcasecmp(devVals->deviceBoard, "d38ap")
                                         || !strcasecmp(devVals->deviceBoard, "n51ap") || !strcasecmp(devVals->deviceBoard, "n53ap")
                                         || !strcasecmp(devVals->deviceBoard, "n56ap") || !strcasecmp(devVals->deviceBoard, "n61ap")
                                         || !strcasecmp(devVals->deviceBoard, "j71ap") || !strcasecmp(devVals->deviceBoard, "j72ap")
@@ -1269,7 +1271,9 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceBoard, "j105aap") || !strcasecmp(devVals->deviceBoard, "j305ap"))) {
                 save_apticket3 = false;
             }
-            if(devVals->deviceModel && (!strcasecmp(devVals->deviceModel, "iPhone15,2") || !strcasecmp(devVals->deviceModel, "iPhone15,3")
+            if(devVals->deviceModel && (!strcasecmp(devVals->deviceModel, "iPhone16,1") || !strcasecmp(devVals->deviceModel, "iPhone16,2")
+                                        || !strcasecmp(devVals->deviceModel, "iPhone15,2") || !strcasecmp(devVals->deviceModel, "iPhone15,3")
+                                        || !strcasecmp(devVals->deviceModel, "iPhone15,4") || !strcasecmp(devVals->deviceModel, "iPhone15,5")
                                         || !strcasecmp(devVals->deviceModel, "iPhone6,1") || !strcasecmp(devVals->deviceModel, "iPhone6,2")
                                         || !strcasecmp(devVals->deviceModel, "iPhone7,1") || !strcasecmp(devVals->deviceModel, "iPhone7,2")
                                         || !strcasecmp(devVals->deviceModel, "iPad4,1") || !strcasecmp(devVals->deviceModel, "iPad4,2")
