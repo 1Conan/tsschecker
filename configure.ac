@@ -45,11 +45,14 @@ CFLAGS+=" -D TSSCHECKER_VERSION_SHA=\\\"$(git rev-parse HEAD | tr -d '\n')\\\""
 # Checks for libraries.
 AC_ARG_WITH(
     [libcrypto],
-    [AS_HELP_STRING([--with-libcrypto], [build with libcrypto (default for non-Mac)])],
+    [AS_HELP_STRING([--with-libcrypto], [build with libcrypto (default for non-Mac/Windows)])],
     [],
     [
         case "${host_os}" in
             darwin*)
+                with_libcrypto=no
+                ;;
+            cygwin*|mingw*)
                 with_libcrypto=no
                 ;;
             *)
