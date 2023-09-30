@@ -12,11 +12,13 @@ on:
 
 env:
   SSL_LIBRARY: openssl
-  LIBPLIST_VERSION: c3af449543795ad4d3ab178120ff69e90fdd2cc8
-  ZLIB_VERSION: 1.2.13
+  LIBPLIST_VERSION: 2.3.0
+  LIBIMOBILEDEVICE__GLUE_VERSION: 1.0.0
+  LIBIRECOVERY_VERSION: 1.1.0
+  ZLIB_VERSION: 1.3
   LIBZIP_VERSION: 1.9.2
-  WOLFSSL_VERSION: 5.5.0
-  OPENSSL_VERSION: 1.1.1q
+  WOLFSSL_VERSION: 5.6.3
+  OPENSSL_VERSION: 3.1.3
   LIBCURL_VERSION: 7.79.1
 
 jobs:
@@ -40,326 +42,336 @@ jobs:
       TOOLCHAIN: ${{ matrix.triple }}-cross
 
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v1
+        with:
+          submodules: recursive
 
-    - name: setup environment
-      run: |
-        export WORKSPACE=${HOME}/workspace
+      - name: setup environment
+        run: |
+          export WORKSPACE=${HOME}/workspace
 
-        mkdir -p ${WORKSPACE}/build_source ${WORKSPACE}/build_work ${WORKSPACE}/build_base
+          mkdir -p ${WORKSPACE}/build_source ${WORKSPACE}/build_work ${WORKSPACE}/build_base
 
-        echo "BUILD_SOURCE=${WORKSPACE}/build_source" >> $GITHUB_ENV
-        echo "BUILD_WORK=${WORKSPACE}/build_work" >> $GITHUB_ENV
-        echo "BUILD_BASE=${WORKSPACE}/build_base" >> $GITHUB_ENV
+          echo "BUILD_SOURCE=${WORKSPACE}/build_source" >> $GITHUB_ENV
+          echo "BUILD_WORK=${WORKSPACE}/build_work" >> $GITHUB_ENV
+          echo "BUILD_BASE=${WORKSPACE}/build_base" >> $GITHUB_ENV
 
-        export ARCH=$(echo ${{ matrix.triple }} | cut -d- -f 1)
-        export OS=$(echo ${{ matrix.triple }} | cut -d- -f 2)
+          export ARCH=$(echo ${{ matrix.triple }} | cut -d- -f 1)
+          export OS=$(echo ${{ matrix.triple }} | cut -d- -f 2)
 
-        if [ "${OS}" = "w64" ]; then
-          echo "OS=win" >> $GITHUB_ENV
-          echo "EXE_SUFFIX=.exe" >> $GITHUB_ENV
-        else
-          echo "OS=${OS}" >> $GITHUB_ENV
-          echo "EXE_SUFFIX=" >> $GITHUB_ENV
-        fi
-        echo "ARCH=${ARCH}" >> $GITHUB_ENV
+          if [ "${OS}" = "w64" ]; then
+            echo "OS=win" >> $GITHUB_ENV
+            echo "EXE_SUFFIX=.exe" >> $GITHUB_ENV
+          else
+            echo "OS=${OS}" >> $GITHUB_ENV
+            echo "EXE_SUFFIX=" >> $GITHUB_ENV
+          fi
+          echo "ARCH=${ARCH}" >> $GITHUB_ENV
 
-    - name: Download and setup toolchain
-      run: |
-        wget -nc -P ${BUILD_SOURCE} \
-          https://stor.tsssaver.1conan.com/toolchains/${TOOLCHAIN}.tgz
-        tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
+      - name: Download and setup toolchain
+        run: |
+          wget -nc -P ${BUILD_SOURCE} \
+            https://stor.tsssaver.1conan.com/toolchains/${TOOLCHAIN}.tgz
+          tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
 
-        echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
+          echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
 
-        echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
-        echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
-        echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
-        echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
-        echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
-        echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
-        echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
+          echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
+          echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
+          echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
+          echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
+          echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
+          echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
+          echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
 
-        echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
-        echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
-        echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
-        echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
-        echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
+          echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+          echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
 
-        echo "CONFIGURE_FLAGS=--host=${TRIPLE} --prefix=${BUILD_BASE} --enable-static --disable-shared" >> $GITHUB_ENV
+          echo "CONFIGURE_FLAGS=--host=${TRIPLE} --prefix=${BUILD_BASE} --enable-static --disable-shared" >> $GITHUB_ENV
 
-    - name: build zlib
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
-        tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
+      - name: build zlib
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
 
-        cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
+          cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
 
-        ./configure \
-          --prefix=${BUILD_BASE} \
-          --static
-        make -j $(nproc)
-        make install
+          ./configure \
+            --prefix=${BUILD_BASE} \
+            --static
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
 
-    - name: build libzip
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://libzip.org/download/libzip-${LIBZIP_VERSION}.tar.gz
-        tar xf ${BUILD_SOURCE}/libzip-${LIBZIP_VERSION}.tar.gz -C ${BUILD_WORK}
+      - name: build libzip
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://libzip.org/download/libzip-${LIBZIP_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/libzip-${LIBZIP_VERSION}.tar.gz -C ${BUILD_WORK}
 
-        if [ "${OS}" = "win" ]; then
-          CMAKE_SYSTEM_NAME="Windows"
-        elif [ "${OS}" = "linux" ]; then
-          CMAKE_SYSTEM_NAME="Linux"
-        fi
+          if [ "${OS}" = "win" ]; then
+            CMAKE_SYSTEM_NAME="Windows"
+          elif [ "${OS}" = "linux" ]; then
+            CMAKE_SYSTEM_NAME="Linux"
+          fi
 
-        cd ${BUILD_WORK}/libzip-${LIBZIP_VERSION}
-        cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_CROSSCOMPILING=true \
-          -DCMAKE_SYSTEM_NAME="${CMAKE_SYSTEM_NAME}" \
-          -DCMAKE_SYSTEM_PROCESSOR=${ARCH} \
-          -DCMAKE_C_FLAGS="${CFLAGS}" \
-          -DCMAKE_FIND_ROOT_PATH="${BUILD_BASE}" \
-          -DCMAKE_C_COMPILER=${TRIPLE}-gcc \
-          -DCMAKE_AR=${HOME}/${TRIPLE}-cross/bin/${AR} \
-          -DCMAKE_RANLIB=${HOME}/${TRIPLE}-cross/bin/${RANLIB} \
-          -DCMAKE_INSTALL_PREFIX=${BUILD_BASE} \
-          -DCMAKE_EXE_LINKER_FLAGS="-static" \
-          -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DENABLE_BZIP2=OFF \
-          -DENABLE_LZMA=OFF \
-          -DENABLE_ZSTD=OFF \
-          -DENABLE_GNUTLS=OFF \
-          -DENABLE_OPENSSL=OFF \
-          -DENABLE_MBEDTLS=OFF \
-          -DENABLE_COMMONCRYPTO=OFF \
-          -DENABLE_WINDOWS_CRYPTO=OFF \
-          -DBUILD_TOOLS=OFF \
-          -DBUILD_REGRESS=OFF \
-          -DBUILD_EXAMPLES=OFF \
-          -DBUILD_DOC=OFF
+          cd ${BUILD_WORK}/libzip-${LIBZIP_VERSION}
+          cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CROSSCOMPILING=true \
+            -DCMAKE_SYSTEM_NAME="${CMAKE_SYSTEM_NAME}" \
+            -DCMAKE_SYSTEM_PROCESSOR=${ARCH} \
+            -DCMAKE_C_FLAGS="${CFLAGS}" \
+            -DCMAKE_FIND_ROOT_PATH="${BUILD_BASE}" \
+            -DCMAKE_C_COMPILER=${TRIPLE}-gcc \
+            -DCMAKE_AR=${HOME}/${TRIPLE}-cross/bin/${AR} \
+            -DCMAKE_RANLIB=${HOME}/${TRIPLE}-cross/bin/${RANLIB} \
+            -DCMAKE_INSTALL_PREFIX=${BUILD_BASE} \
+            -DCMAKE_EXE_LINKER_FLAGS="-static" \
+            -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DENABLE_BZIP2=OFF \
+            -DENABLE_LZMA=OFF \
+            -DENABLE_ZSTD=OFF \
+            -DENABLE_GNUTLS=OFF \
+            -DENABLE_OPENSSL=OFF \
+            -DENABLE_MBEDTLS=OFF \
+            -DENABLE_COMMONCRYPTO=OFF \
+            -DENABLE_WINDOWS_CRYPTO=OFF \
+            -DBUILD_TOOLS=OFF \
+            -DBUILD_REGRESS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_DOC=OFF
 
-        make -j$(nproc)
-        make install
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
 
 
-    - name: build libplist
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://github.com/libimobiledevice/libplist/archive/${LIBPLIST_VERSION}.tar.gz
-        tar xf ${BUILD_SOURCE}/${LIBPLIST_VERSION}.tar.gz -C ${BUILD_WORK}
+      - name: build libplist
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libplist/archive/refs/heads/master.tar.gz
+          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libplist-master.tar.gz
+          tar xf ${BUILD_SOURCE}/libplist-master.tar.gz -C ${BUILD_WORK}
 
-        echo "2.3.0" > ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}/.tarball-version
+          echo "${LIBPLIST_VERSION}" > ${BUILD_WORK}/libplist-master/.tarball-version
 
-        cd ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}
-        PACKAGE_VERSION=${LIBPLIST_VERSION} ./autogen.sh \
-          ${CONFIGURE_FLAGS} \
-          --without-cython
+          cd ${BUILD_WORK}/libplist-master
+          PACKAGE_VERSION=${LIBPLIST_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS} \
+            --without-cython \
+            --without-tests
+          sed -i '78d' include/plist/plist.h
+          sed -i '79,91d' include/plist/plist.h
+          sed -i 's/tools//g' Makefile
 
-        sed -i 's/tools//g' Makefile
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
 
-        make -j$(nproc)
-        make install
+      - name: build libimobiledevice-glue
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libimobiledevice-glue/archive/refs/heads/master.tar.gz
+          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz
+          tar xf ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz -C ${BUILD_WORK}
 
-    - name: build libimobiledevice-glue
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://github.com/libimobiledevice/libimobiledevice-glue/archive/refs/heads/master.tar.gz
-        mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz
-        tar xf ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz -C ${BUILD_WORK}
+          echo "${LIBIMOBILEDEVICE__GLUE_VERSION}" > ${BUILD_WORK}/libimobiledevice-glue-master/.tarball-version
 
-        cd ${BUILD_WORK}/libimobiledevice-glue-master
-        ./autogen.sh \
-          ${CONFIGURE_FLAGS}
+          cd ${BUILD_WORK}/libimobiledevice-glue-master
+          PACKAGE_VERSION=${LIBIMOBILEDEVICE__GLUE_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS}
 
-        make -j$(nproc)
-        make install
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
 
-    - name: build libirecovery
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://github.com/libimobiledevice/libirecovery/archive/refs/heads/master.tar.gz
-        mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libirecovery-master.tar.gz
-        tar xf ${BUILD_SOURCE}/libirecovery-master.tar.gz -C ${BUILD_WORK}
+      - name: build libirecovery
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libirecovery/archive/refs/heads/master.tar.gz
+          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libirecovery-master.tar.gz
+          tar xf ${BUILD_SOURCE}/libirecovery-master.tar.gz -C ${BUILD_WORK}
 
-        # Remove readline requirement
-        sed -i '/readline/,+2d' ${BUILD_WORK}/libirecovery-master/configure.ac
-        # Disable tools building
-        sed -i '/tools/d' ${BUILD_WORK}/libirecovery-master/configure.ac
-        sed -i 's/ tools//' ${BUILD_WORK}/libirecovery-master/Makefile.am
+          # Remove readline requirement
+          sed -i '/readline/,+2d' ${BUILD_WORK}/libirecovery-master/configure.ac
+          # Disable tools building
+          sed -i '/tools/d' ${BUILD_WORK}/libirecovery-master/configure.ac
+          sed -i 's/ tools//' ${BUILD_WORK}/libirecovery-master/Makefile.am
 
-        cd ${BUILD_WORK}/libirecovery-master
-        ./autogen.sh \
-          ${CONFIGURE_FLAGS} \
-          --with-dummy \
-          --without-udev
+          echo "${LIBIRECOVERY_VERSION}" > ${BUILD_WORK}/libirecovery-master/.tarball-version
 
-        make -j$(nproc)
-        make install
+          cd ${BUILD_WORK}/libirecovery-master
+          PACKAGE_VERSION=${LIBIRECOVERY_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS} \
+            --with-dummy \
+            --without-udev
 
-    - name: build wolfssl
-      if: env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl'
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
-        mv \
-          ${BUILD_SOURCE}/v${WOLFSSL_VERSION}-stable.tar.gz \
-          ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz
-        tar xf ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz -C ${BUILD_WORK}
+          sed -i '30d' include/libirecovery.h
+          sed -i '31,43d' include/libirecovery.h
 
-        cd ${BUILD_WORK}/wolfssl-${WOLFSSL_VERSION}-stable
-        ./autogen.sh
-        ./configure \
-          ${CONFIGURE_FLAGS} \
-            --disable-examples \
-            --disable-crypttests \
-            --disable-tls13 \
-            --disable-aescbc \
-            --disable-sha224 \
-            --disable-sha3 \
-            --disable-sha512 \
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
+
+      - name: build wolfssl
+        if: env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl'
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
+          mv \
+            ${BUILD_SOURCE}/v${WOLFSSL_VERSION}-stable.tar.gz \
+            ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz
+          tar xf ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz -C ${BUILD_WORK}
+
+          cd ${BUILD_WORK}/wolfssl-${WOLFSSL_VERSION}-stable
+          ./autogen.sh
+          ./configure \
+            ${CONFIGURE_FLAGS} \
+              --disable-examples \
+              --disable-crypttests \
+              --disable-tls13 \
+              --disable-aescbc \
+              --disable-sha224 \
+              --disable-sha3 \
+              --disable-sha512 \
+              --enable-ipv6 \
+              --enable-ocsp \
+              --enable-sni \
+              --enable-altcertchains \
+              --enable-opensslextra
+
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
+
+      - name: build openssl
+        if: env.OS != 'win' && env.SSL_LIBRARY == 'openssl'
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/openssl-${OPENSSL_VERSION}.tar.gz -C ${BUILD_WORK}
+
+          if [ "${OS}" = "linux" ]; then
+            export PLATFORM="linux-${ARCH}"
+            case ${ARCH} in
+              i486)
+                export PLATFORM="linux-x86"
+                ;;
+              mips|mipsel)
+                export PLATFORM="linux-mips32"
+                ;;
+              riscv64)
+                export PLATFORM="linux64-riscv64"
+                ;;
+              arm|riscv32)
+                export PLATFORM="linux-generic32"
+                ;;
+            esac
+          fi
+
+          cd ${BUILD_WORK}/openssl-${OPENSSL_VERSION}
+          CC= CXX= AR= RANLIB= ./Configure no-shared no-tests --cross-compile-prefix=${TRIPLE}- --prefix=${BUILD_BASE} --static -static ${PLATFORM}
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
+          make install_sw DESTDIR="${ROOT}"
+
+      - name: build tiny-curl
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://curl.se/tiny/tiny-curl-${LIBCURL_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/tiny-curl-${LIBCURL_VERSION}.tar.gz -C ${BUILD_WORK}
+
+          # fix for musl
+          if [ "${OS}" = "linux" ]; then
+            sed \
+              -i '/#ifndef curl_fd_set_typedefed/a #include <sys/select.h>' \
+              ${BUILD_WORK}/tiny-curl-${LIBCURL_VERSION}/include/curl/system.h
+          fi
+
+          if [ "${OS}" = "win" ]; then
+            CURL_FLAGS="--with-schannel"
+          elif [ "${OS}" = "linux" ]; then
+            if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
+              CURL_FLAGS="--without-libcrypto --with-wolfssl"
+            else
+              CURL_FLAGS="--with-libcrypto --with-openssl --with-ca-fallback --with-ca-path=/etc/ssl/certs --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+            fi
+          fi
+
+          cd ${BUILD_WORK}/tiny-curl-${LIBCURL_VERSION}
+          ./configure \
+            ${CONFIGURE_FLAGS} \
+            --disable-debug \
+            --enable-http \
             --enable-ipv6 \
-            --enable-ocsp \
-            --enable-sni \
-            --enable-altcertchains \
-            --enable-opensslextra
+            --enable-libcurl-option \
+            ${CURL_FLAGS}
 
-        make -j$(nproc)
-        make install
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
 
-    - name: build openssl
-      if: env.OS != 'win' && env.SSL_LIBRARY == 'openssl'
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
-        tar xf ${BUILD_SOURCE}/openssl-${OPENSSL_VERSION}.tar.gz -C ${BUILD_WORK}
+      - name: (not) build libgeneral
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/tihmstar/libgeneral/raw/master/include/libgeneral/macros.h.in
+          mkdir -p ${BUILD_BASE}/include/libgeneral
+          m4 ${BUILD_SOURCE}/macros.h.in > ${BUILD_BASE}/include/libgeneral/macros.h
 
-        if [ "${OS}" = "linux" ]; then
-          export PLATFORM="linux-${ARCH}"
-          case ${ARCH} in
-            i486)
-              export PLATFORM="linux-x86"
-              ;;
-            mips|mipsel)
-              export PLATFORM="linux-mips32"
-              ;;
-            riscv64)
-              export PLATFORM="linux64-riscv64"
-              ;;
-            arm|riscv32)
-              export PLATFORM="linux-generic32"
-              ;;
-          esac
-        fi
+      - name: build libfragmentzip
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/tihmstar/libfragmentzip/archive/refs/heads/master.tar.gz
+          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libfragmentzip-master.tar.gz
+          tar xf ${BUILD_SOURCE}/libfragmentzip-master.tar.gz -C ${BUILD_WORK}
 
-        cd ${BUILD_WORK}/openssl-${OPENSSL_VERSION}
-        CC= CXX= AR= RANLIB= ./Configure --cross-compile-prefix=${TRIPLE}- --prefix=${BUILD_BASE} --static -static ${PLATFORM}
-        make -j$(nproc) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
-        make install_sw DESTDIR="${ROOT}"
-
-    - name: build tiny-curl
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://curl.se/tiny/tiny-curl-${LIBCURL_VERSION}.tar.gz
-        tar xf ${BUILD_SOURCE}/tiny-curl-${LIBCURL_VERSION}.tar.gz -C ${BUILD_WORK}
-
-        # fix for musl
-        if [ "${OS}" = "linux" ]; then
+          # Fix >=48 requirements
           sed \
-            -i '/#ifndef curl_fd_set_typedefed/a #include <sys/select.h>' \
-            ${BUILD_WORK}/tiny-curl-${LIBCURL_VERSION}/include/curl/system.h
-        fi
+            -i 's/@VERSION_COMMIT_COUNT@/48/' \
+            ${BUILD_WORK}/libfragmentzip-master/libfragmentzip.pc.in
 
-        if [ "${OS}" = "win" ]; then
-          CURL_FLAGS="--with-schannel"
-        elif [ "${OS}" = "linux" ]; then
-          if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
-            CURL_FLAGS="--without-libcrypto --with-wolfssl"
+          # remove libgeneral lib requirement
+          sed -i \
+            -e'/libgeneral/d' \
+            -e '/VERSION_COMMIT_COUNT/d' \
+            -e '/VERSION_COMMIT_SHA/d' \
+            -e 's/, m4_esyscmd.*,/, 48,/' \
+            ${BUILD_WORK}/libfragmentzip-master/configure.ac
+
+          cd ${BUILD_WORK}/libfragmentzip-master
+          ./autogen.sh \
+            ${CONFIGURE_FLAGS}
+
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make install
+
+      - name: build tsschecker
+        run: |
+          if [ "${OS}" = "win" ]; then
+            # because case-sensitive
+            sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libimobiledevice-glue-1.0.la
+            sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libirecovery-1.0.la
           else
-            CURL_FLAGS="--with-libcrypto --with-openssl --with-ca-fallback --with-ca-path=/etc/ssl/certs --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+            if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
+              TSSCHECKER_FLAGS="--without-libcrypto --with-wolfssl"
+            else
+              TSSCHECKER_FLAGS="--with-libcrypto"
+            fi
           fi
-        fi
 
-        cd ${BUILD_WORK}/tiny-curl-${LIBCURL_VERSION}
-        ./configure \
-          ${CONFIGURE_FLAGS} \
-          --disable-debug \
-          --enable-http \
-          --enable-ipv6 \
-          --enable-libcurl-option \
-          ${CURL_FLAGS}
+          ./autogen.sh \
+            ${CONFIGURE_FLAGS} \
+            --without-libcrypto \
+            ${TSSCHECKER_FLAGS}
 
-        make -j$(nproc)
-        make install
+          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2) \
+            LDFLAGS="-all-static -static ${LDFLAGS}"
+          ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
 
-    - name: (not) build libgeneral
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://github.com/tihmstar/libgeneral/raw/master/include/libgeneral/macros.h
-        mkdir -p ${BUILD_BASE}/include/libgeneral
-        mv ${BUILD_SOURCE}/macros.h ${BUILD_BASE}/include/libgeneral
-
-    - name: build libfragmentzip
-      run: |
-        wget -q -nc -P ${BUILD_SOURCE} \
-          https://github.com/tihmstar/libfragmentzip/archive/refs/heads/master.tar.gz
-        mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libfragmentzip-master.tar.gz
-        tar xf ${BUILD_SOURCE}/libfragmentzip-master.tar.gz -C ${BUILD_WORK}
-
-        # Fix >=48 requirements
-        sed \
-          -i 's/@VERSION_COMMIT_COUNT@/48/' \
-          ${BUILD_WORK}/libfragmentzip-master/libfragmentzip.pc.in
-
-        # remove libgeneral lib requirement
-        sed -i \
-          -e'/libgeneral/d' \
-          -e '/VERSION_COMMIT_COUNT/d' \
-          -e '/VERSION_COMMIT_SHA/d' \
-          -e 's/, m4_esyscmd.*,/, 48,/' \
-          ${BUILD_WORK}/libfragmentzip-master/configure.ac
-
-        cd ${BUILD_WORK}/libfragmentzip-master
-        ./autogen.sh \
-          ${CONFIGURE_FLAGS}
-
-        make -j$(nproc)
-        make install
-
-    - name: build tsschecker
-      run: |
-        if [ "${OS}" = "win" ]; then
-          # because case-sensitive
-          sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libimobiledevice-glue-1.0.la
-          sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libirecovery-1.0.la
-        else
-          if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
-            TSSCHECKER_FLAGS="--without-libcrypto --with-wolfssl"
-          else
-            TSSCHECKER_FLAGS="--with-libcrypto"
-          fi
-        fi
-
-        ./autogen.sh \
-          ${CONFIGURE_FLAGS} \
-          --without-libcrypto \
-          ${TSSCHECKER_FLAGS}
-
-        make -j$(nproc) \
-          LDFLAGS="-all-static -static ${LDFLAGS}"
-        ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
-
-    - uses: actions/upload-artifact@v1
-      if: ${{ !env.ACT }}
-      with:
-        name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
-        path: tsschecker/tsschecker${{ env.EXE_SUFFIX }}
+      - uses: actions/upload-artifact@v1
+        if: ${{ !env.ACT }}
+        with:
+          name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
+          path: tsschecker/tsschecker${{ env.EXE_SUFFIX }}
 
   release:
     runs-on: ubuntu-latest
