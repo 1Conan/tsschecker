@@ -104,7 +104,7 @@ jobs:
           ./configure \
             --prefix=${BUILD_BASE} \
             --static
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build libzip
@@ -147,7 +147,7 @@ jobs:
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_DOC=OFF
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
 
@@ -169,7 +169,7 @@ jobs:
           sed -i '79,91d' include/plist/plist.h
           sed -i 's/tools//g' Makefile
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build libimobiledevice-glue
@@ -185,7 +185,7 @@ jobs:
           PACKAGE_VERSION=${LIBIMOBILEDEVICE__GLUE_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build libirecovery
@@ -212,7 +212,7 @@ jobs:
           sed -i '30d' include/libirecovery.h
           sed -i '31,43d' include/libirecovery.h
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build wolfssl
@@ -242,7 +242,7 @@ jobs:
               --enable-altcertchains \
               --enable-opensslextra
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build openssl
@@ -272,7 +272,7 @@ jobs:
 
           cd ${BUILD_WORK}/openssl-${OPENSSL_VERSION}
           CC= CXX= AR= RANLIB= ./Configure no-shared no-tests --cross-compile-prefix=${TRIPLE}- --prefix=${BUILD_BASE} --static -static ${PLATFORM}
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
+          make -j$(nproc) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
           make install_sw DESTDIR="${ROOT}"
 
       - name: build tiny-curl
@@ -307,7 +307,7 @@ jobs:
             --enable-libcurl-option \
             ${CURL_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: (not) build libgeneral
@@ -341,7 +341,7 @@ jobs:
           ./autogen.sh \
             ${CONFIGURE_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build tsschecker
@@ -363,7 +363,7 @@ jobs:
             --without-libcrypto \
             ${TSSCHECKER_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2) \
+          make -j$(nproc) \
             LDFLAGS="-all-static -static ${LDFLAGS}"
           ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
 
