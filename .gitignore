@@ -66,6 +66,11 @@ xcuserdata
 !tsschecker/*.h
 !tsschecker/*.c
 *.zst
-BuildManifest.plist
 *.ipsw
 *.download
+*.shsh
+*.shsh2
+*.bshsh
+*.bshsh2
+*.bplist
+*.plist
