@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <curl/curl.h>
 #include <plist/plist.h>
-#define AUTH_VERSION "914.40.5"
+#define AUTH_VERSION "973.0.5"
 #ifdef WIN32
 #define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-"AUTH_VERSION""
 #else
@@ -85,7 +85,7 @@ plist_t tss_request_new(plist_t overrides)
 
 int tss_request_add_local_policy_tags(plist_t request, plist_t parameters)
 {
-    plist_dict_set_item(request, "@ApImg4Ticket", plist_new_bool(1));
+//    plist_dict_set_item(request, "@ApImg4Ticket", plist_new_bool(1));
 
     if (_plist_dict_copy_bool(request, parameters, "Ap,LocalBoot", NULL) < 0) {
         tsserror("ERROR: Unable to find required Ap,LocalBoot in parameters\n");
@@ -104,10 +104,11 @@ int tss_request_add_local_policy_tags(plist_t request, plist_t parameters)
 
     _plist_dict_copy_data(request, parameters, "Ap,RecoveryOSPolicyNonceHash", NULL);
     _plist_dict_copy_data(request, parameters, "Ap,VolumeUUID", NULL);
-    _plist_dict_copy_uint(request, parameters, "ApECID", NULL);
+//    _plist_dict_copy_uint(request, parameters, "ApECID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApChipID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApBoardID", NULL);
-    _plist_dict_copy_uint(request, parameters, "ApSecurityDomain", NULL);
+//    _plist_dict_copy_uint(request, parameters, "ApSecurityDomain", NULL);
+    plist_dict_set_item(request, "ApSecurityDomain", plist_new_string("0x01"));
 //    _plist_dict_copy_data(request, parameters, "ApNonce", NULL);
 
     if (!plist_dict_get_item(request, "ApSecurityMode")) {
@@ -149,7 +150,8 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
         return -1;
     }
 
-    _plist_dict_copy_uint(parameters, build_identity, "ApSecurityDomain", NULL);
+//    _plist_dict_copy_uint(parameters, build_identity, "ApSecurityDomain", NULL);
+    plist_dict_set_item(parameters, "ApSecurityDomain", plist_new_string("0x01"));
     _plist_dict_copy_uint(parameters, build_identity, "BMU,BoardID", NULL);
     _plist_dict_copy_uint(parameters, build_identity, "BMU,ChipID", NULL);
 
@@ -272,7 +274,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 //        return -1;
 //    }
 
-    plist_dict_set_item(request, "@ApImg4Ticket", plist_new_bool(1));
+//    plist_dict_set_item(request, "@ApImg4Ticket", plist_new_bool(1));
 
     if (!plist_dict_get_item(request, "ApSecurityMode")) {
         /* copy from parameters if available */
@@ -346,11 +348,15 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters)
 
 int tss_request_add_common_tags(plist_t request, plist_t parameters, plist_t overrides)
 {
-    _plist_dict_copy_uint(request, parameters, "ApECID", NULL);
+//    _plist_dict_copy_uint(request, parameters, "ApECID", NULL);
 //    _plist_dict_copy_data(request, parameters, "UniqueBuildID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApChipID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApBoardID", NULL);
-    _plist_dict_copy_uint(request, parameters, "ApSecurityDomain", NULL);
+//    _plist_dict_copy_uint(request, parameters, "ApSecurityDomain", NULL);
+    plist_dict_set_item(request, "ApSecurityDomain", plist_new_string("0x01"));
+    plist_dict_set_item(request, "@Locality", plist_new_string("en_US"));
+    plist_dict_set_item(request, "@BBTicket", plist_new_bool(1));
+    plist_dict_set_item(request, "Cryptex1,ProductionMode", plist_new_bool(1));
 
     /* apply overrides */
     if (overrides) {

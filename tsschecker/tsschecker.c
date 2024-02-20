@@ -1154,8 +1154,8 @@ getID0:
         plist_get_int_val(chipid_node, &chipid);
         chipid = __bswap_64(chipid);
     }
-//    uint64_t ecid = __bswap_64(devVals->ecid);
-    uint64_t ecid = __bswap_64(0);
+    uint64_t ecid = __bswap_64(devVals->ecid);
+//    uint64_t ecid = __bswap_64(0);
     uint64_t udid[2] = {chipid, ecid};
     uint64_t nonce[4] = {0xA3E5796653BA4F3F, 0xCDA1BC56E6F9B24C, 0x7F80200449C54C70, 0xE42296AD9826E810};
     plist_dict_set_item(tssreq, "Cryptex1,UDID", plist_new_data((const char *)&udid, 0x10));
