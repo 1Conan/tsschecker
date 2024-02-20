@@ -900,6 +900,7 @@ void getRandNum(char *dst, size_t size, int base){
 
 #pragma mark tss functions
 int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t nonce_size, char *sep_nonce, size_t sep_nonce_size, int image4supported){
+    debug_plist2(tssreq);
     plist_dict_set_item(tssreq, "ApECID", plist_new_uint(ecid)); //0000000000000000
     if (nonce) {
         plist_dict_set_item(tssreq, "ApNonce", plist_new_data((const char*)nonce, (int)nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
@@ -949,9 +950,9 @@ int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, int64_t BbG
     plist_dict_set_item(parameters, "BbSNUM", plist_new_data((char *)BbSNUM, bbsnumSize));
     
     /* BasebandFirmware */
-    if (tss_request_add_baseband_tags(tssreq, parameters, NULL) < 0) {
-        reterror("[TSSR] failed to add baseband tags to TSS request\n");
-    }
+//    if (tss_request_add_baseband_tags(tssreq, parameters, NULL) < 0) {
+//        reterror("[TSSR] failed to add baseband tags to TSS request\n");
+//    }
     
 error:
     if (did_malloc_bbsnum) {
@@ -1141,7 +1142,28 @@ getID0:
     if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
         reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
     }
-    
+
+    printf("Cryptex Magic...\n");
+    plist_t chipid_node = plist_dict_get_item(tssreq, "ApChipID");
+    char *chipid_str = NULL;
+    uint64_t chipid = 0;
+    if(plist_get_node_type(chipid_node) == PLIST_STRING) {
+        plist_get_string_val(chipid_node, &chipid_str);
+        chipid = __bswap_64(strtol(chipid_str, NULL, 0));
+    } else if(plist_get_node_type(chipid_node) == PLIST_INT) {
+        plist_get_int_val(chipid_node, &chipid);
+        chipid = __bswap_64(chipid);
+    }
+//    uint64_t ecid = __bswap_64(devVals->ecid);
+    uint64_t ecid = __bswap_64(0);
+    uint64_t udid[2] = {chipid, ecid};
+    uint64_t nonce[4] = {0xA3E5796653BA4F3F, 0xCDA1BC56E6F9B24C, 0x7F80200449C54C70, 0xE42296AD9826E810};
+    plist_dict_set_item(tssreq, "Cryptex1,UDID", plist_new_data((const char *)&udid, 0x10));
+    plist_dict_set_item(tssreq, "Cryptex1,Nonce", plist_new_data((const char *)&nonce, 0x20));
+    if (tss_request_add_cryptex_tags(tssreq, tssparameter, NULL) < 0){
+        reterror("[TSSR] ERROR: Unable to add Cryptex tags to TSS Request\n");
+    }
+
     if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
         reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
     }
@@ -1221,6 +1243,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
     isSigned = ((apticket = tss_request_send(tssreq, server_url_string)) > 0);
     
     if (print_tss_response) debug_plist2(apticket);
+    debug_plist2(apticket);
     if (isSigned && save_shshblobs){
         if (!devVals->installType){
             plist_t tssreq2 = NULL;

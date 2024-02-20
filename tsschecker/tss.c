@@ -108,7 +108,7 @@ int tss_request_add_local_policy_tags(plist_t request, plist_t parameters)
     _plist_dict_copy_uint(request, parameters, "ApChipID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApBoardID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApSecurityDomain", NULL);
-    _plist_dict_copy_data(request, parameters, "ApNonce", NULL);
+//    _plist_dict_copy_data(request, parameters, "ApNonce", NULL);
 
     if (!plist_dict_get_item(request, "ApSecurityMode")) {
         /* copy from parameters if available */
@@ -137,7 +137,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
         return -1;
     }
 
-    _plist_dict_copy_string(parameters, build_identity, "Ap,OSLongVersion", NULL);
+//    _plist_dict_copy_string(parameters, build_identity, "Ap,OSLongVersion", NULL);
 
     if (_plist_dict_copy_uint(parameters, build_identity, "ApChipID", NULL) < 0) {;
         tsserror("ERROR: Unable to find ApChipID node\n");
@@ -212,7 +212,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
     _plist_dict_copy_uint(parameters, build_identity, "eUICC,ChipID", NULL);
 
     _plist_dict_copy_uint(parameters, build_identity, "NeRDEpoch", NULL);
-    _plist_dict_copy_data(parameters, build_identity, "PearlCertificationRootPub", NULL);
+//    _plist_dict_copy_data(parameters, build_identity, "PearlCertificationRootPub", NULL);
 
     _plist_dict_copy_uint(parameters, build_identity, "Timer,BoardID,1", NULL);
     _plist_dict_copy_uint(parameters, build_identity, "Timer,BoardID,2", NULL);
@@ -267,10 +267,10 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 
     _plist_dict_copy_string(request, parameters, "Ap,OSLongVersion", NULL);
 
-    if (plist_dict_get_item(parameters, "ApNonce") && _plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
-        tsserror("ERROR: Unable to find required ApNonce in parameters\n");
-        return -1;
-    }
+//    if (plist_dict_get_item(parameters, "ApNonce") && _plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
+//        tsserror("ERROR: Unable to find required ApNonce in parameters\n");
+//        return -1;
+//    }
 
     plist_dict_set_item(request, "@ApImg4Ticket", plist_new_bool(1));
 
@@ -289,9 +289,9 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
         }
     }
 
-    _plist_dict_copy_data(request, parameters, "SepNonce", "ApSepNonce");
+//    _plist_dict_copy_data(request, parameters, "SepNonce", "ApSepNonce");
     _plist_dict_copy_uint(request, parameters, "NeRDEpoch", NULL);
-    _plist_dict_copy_data(request, parameters, "PearlCertificationRootPub", NULL);
+//    _plist_dict_copy_data(request, parameters, "PearlCertificationRootPub", NULL);
 
     if (plist_dict_get_item(parameters, "UID_MODE")) {
         _plist_dict_copy_item(request, parameters, "UID_MODE", NULL);
@@ -347,7 +347,7 @@ int tss_request_add_ap_img3_tags(plist_t request, plist_t parameters)
 int tss_request_add_common_tags(plist_t request, plist_t parameters, plist_t overrides)
 {
     _plist_dict_copy_uint(request, parameters, "ApECID", NULL);
-    _plist_dict_copy_data(request, parameters, "UniqueBuildID", NULL);
+//    _plist_dict_copy_data(request, parameters, "UniqueBuildID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApChipID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApBoardID", NULL);
     _plist_dict_copy_uint(request, parameters, "ApSecurityDomain", NULL);
@@ -635,6 +635,11 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
             return -1;
         }
 
+        if ((strstr(key, "Cryptex") == 0)) {
+            info("1337: %s\n", key);
+            continue;
+        }
+
         /* do not populate BaseBandFirmware, only in baseband request */
         if ((strcmp(key, "BasebandFirmware") == 0)) {
             continue;
@@ -692,11 +697,11 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
         plist_dict_remove_item(tss_entry, "Info");
 
         /* handle RestoreRequestRules */
-        plist_t rules = plist_access_path(manifest_entry, 2, "Info", "RestoreRequestRules");
-        if (rules) {
-            debug("DEBUG: Applying restore request rules for entry %s\n", key);
-            tss_entry_apply_restore_request_rules(tss_entry, parameters, rules);
-        }
+//        plist_t rules = plist_access_path(manifest_entry, 2, "Info", "RestoreRequestRules");
+//        if (rules) {
+//            debug("DEBUG: Applying restore request rules for entry %s\n", key);
+//            tss_entry_apply_restore_request_rules(tss_entry, parameters, rules);
+//        }
 
         /* Make sure we have a Digest key for Trusted items even if empty */
         if (_plist_dict_get_bool(manifest_entry, "Trusted") && !plist_dict_get_item(manifest_entry, "Digest")) {
