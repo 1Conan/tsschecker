@@ -13,6 +13,22 @@
 extern "C" {
 #endif
 
+#ifndef TSSCHECKER_VERSION_MAJOR
+#define TSSCHECKER_VERSION_MAJOR "0"
+#endif
+#ifndef TSSCHECKER_VERSION_COUNT
+#define TSSCHECKER_VERSION_COUNT "0"
+#endif
+#ifndef TSSCHECKER_VERSION_PATCH
+#define TSSCHECKER_VERSION_PATCH "0"
+#endif
+#ifndef TSSCHECKER_VERSION_SHA
+#define TSSCHECKER_VERSION_SHA "0"
+#endif
+#ifndef TSSCHECKER_BUILD_TYPE
+#define TSSCHECKER_BUILD_TYPE "0"
+#endif
+
 #include <stdio.h>
 #include <plist/plist.h>
 
