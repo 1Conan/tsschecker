@@ -295,6 +295,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad11,2",   165673526, 12},   // iPad mini (5th gen, Cellular)
     {"iPad14,1",   0, 0},            // iPad mini (6th gen, Wi-Fi)
     {"iPad14,2",   495958265, 4},    // iPad mini (6th gen, Cellular)
+    {"iPad16,1",   0, 0},            // iPad mini (A17 Pro, Wi-Fi)
+    {"iPad16,2",   3452763205, 4},   // iPad mini (A17 Pro, Cellular)
 
     // iPad Airs
     {"iPad4,1",    0, 0},            // iPad Air (Wi-Fi)
@@ -1327,6 +1329,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceModel, "iPad4,8") || !strcasecmp(devVals->deviceModel, "iPad4,9")
                                         || !strcasecmp(devVals->deviceModel, "iPad5,1") || !strcasecmp(devVals->deviceModel, "iPad5,2")
                                         || !strcasecmp(devVals->deviceModel, "iPad5,3") || !strcasecmp(devVals->deviceModel, "iPad5,4")
+                                        || !strcasecmp(devVals->deviceModel, "iPad16,1") || !strcasecmp(devVals->deviceModel, "iPad16,2")
                                         || !strcasecmp(devVals->deviceModel, "iPad16,3") || !strcasecmp(devVals->deviceModel, "iPad16,4")
                                         || !strcasecmp(devVals->deviceModel, "iPad16,5") || !strcasecmp(devVals->deviceModel, "iPad16,6")
                                         || !strcasecmp(devVals->deviceModel, "Appletv5,3") || !strcasecmp(devVals->deviceModel, "Appletv6,2")
