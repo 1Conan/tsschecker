@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <curl/curl.h>
 #include <plist/plist.h>
-#define AUTH_VERSION "914.40.5"
+#define AUTH_VERSION "1033.40.4"
 #ifdef WIN32
 #define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-"AUTH_VERSION""
 #else
