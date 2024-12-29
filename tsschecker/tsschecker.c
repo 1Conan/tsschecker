@@ -1154,12 +1154,21 @@ getID0:
         plist_get_int_val(chipid_node, &chipid);
         chipid = __bswap_64(chipid);
     }
+    extern char *parseNonce(const char *nonce, size_t *parsedLen);
+    char *cryptex_nonce_str = getenv("CRYPTEX_NONCE");
+    if(!cryptex_nonce_str) {
+      reterror("[TSSR] ERROR: Unable to save Cryptex1 blobs, CRYPTEX_NONCE not set!\n");
+    }
+    char *cryptex_nonce = NULL;
+    size_t cryptex_nonce_sz = 0;
+    if (!(cryptex_nonce = parseNonce(cryptex_nonce_str, &cryptex_nonce_sz))) {
+      reterror("[TSSR] ERROR: Unable to save Cryptex1 blobs, CRYPTEX_NONCE is invalid!\n");
+    }
     uint64_t ecid = __bswap_64(devVals->ecid);
-//    uint64_t ecid = __bswap_64(0);
     uint64_t udid[2] = {chipid, ecid};
-    uint64_t nonce[4] = {0xA3E5796653BA4F3F, 0xCDA1BC56E6F9B24C, 0x7F80200449C54C70, 0xE42296AD9826E810};
+//    uint64_t nonce[4] = {0x1111111111111111, 0x1111111111111111, 0x1111111111111111, 0x1111111111111111};
     plist_dict_set_item(tssreq, "Cryptex1,UDID", plist_new_data((const char *)&udid, 0x10));
-    plist_dict_set_item(tssreq, "Cryptex1,Nonce", plist_new_data((const char *)&nonce, 0x20));
+    plist_dict_set_item(tssreq, "Cryptex1,Nonce", plist_new_data((const char *)cryptex_nonce, 0x20));
     if (tss_request_add_cryptex_tags(tssreq, tssparameter, NULL) < 0){
         reterror("[TSSR] ERROR: Unable to add Cryptex tags to TSS Request\n");
     }
