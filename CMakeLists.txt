@@ -74,7 +74,6 @@ if(NOT SUBPROJECT_BUILD)
 			tsschecker/tsschecker.c
 			tsschecker/download.c
 			tsschecker/common.c
-			tsschecker/tss.c
 			tsschecker/main.c)
 else()
 	project(tsschecker VERSION 0.${VERSION_COMMIT_COUNT}.0 LANGUAGES C)
@@ -92,6 +91,7 @@ if(NOT NO_PKGCFG)
 	find_package(PkgConfig REQUIRED FATAL_ERROR)
 	pkg_check_modules(DEPS REQUIRED
 			libplist-2.0
+			libtatsu-1.0
 			libirecovery-1.0
 			libfragmentzip)
 	target_include_directories(tsschecker PRIVATE "${DEPS_INCLUDE_DIRS}")
@@ -101,6 +101,7 @@ else()
 	target_link_libraries(tsschecker PRIVATE
 			curl
 			plist-2.0
+			tatsu
 			irecovery-1.0
 			fragmentzip
 			usbmuxd-2.0

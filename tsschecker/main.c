@@ -254,6 +254,7 @@ int main(int argc, const char * argv[]) {
                 break;
             case '0': // long option: "debug"; can be called as short option
                 idevicerestore_debug = 1;
+                tss_set_debug_level(3);
                 break;
             case '1': // long option: "list-devices"; can be called as short option
                 flags |= FLAG_LIST_DEVICES;
@@ -285,6 +286,7 @@ int main(int argc, const char * argv[]) {
             case 'r': // long option: "raw"; can be called as short option
                 rawFilePath = optarg;
                 idevicerestore_debug = 1;
+                tss_set_debug_level(3);
                 break;
             case 'c': // long option: "bbsnum"; can be called as short option
                 bbsnum = optarg;

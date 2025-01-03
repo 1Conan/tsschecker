@@ -15,9 +15,9 @@ extern "C" {
 
 #include <stdio.h>
 #include <plist/plist.h>
+#include <libtatsu/tss.h>
 
 #include "jssy.h"
-#include "tss.h"
 #include "debug.h"
     
 extern int dbglog;
@@ -28,6 +28,7 @@ extern int update_install;
 extern int erase_install;
 extern int save_bplist;
 extern const char *shshSavePath;
+extern int print_tss_request;
 
 struct bbdevice{
     const char *deviceModel;

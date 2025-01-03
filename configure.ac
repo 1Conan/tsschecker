@@ -70,6 +70,7 @@ AC_ARG_WITH(
 )
 
 PKG_CHECK_MODULES(libplist, libplist-2.0 >= 2.2.0)
+PKG_CHECK_MODULES(libtatsu, libtatsu-1.0 >= 1.0.4)
 PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
 PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 48)
 
