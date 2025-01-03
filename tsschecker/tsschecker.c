@@ -23,7 +23,6 @@
 #include "debug.h"
 #include "download.h"
 #include "common.h"
-#include "tss.h"
 
 #include <libfragmentzip/libfragmentzip.h>
 #include <libirecovery.h>
@@ -381,11 +380,27 @@ static struct bbdevice bbdevices[] = {
     {NULL, 0, 0}
 };
 
+#define tsserror(a ...) if (idevicerestore_debug) printf(a)
+
+#define ECID_STRSIZE 0x20
+
+char* ecid_to_string(uint64_t ecid)
+{
+  char* ecid_string = malloc(ECID_STRSIZE);
+  memset(ecid_string, '\0', ECID_STRSIZE);
+  if (ecid == 0) {
+    tsserror("ERROR: Invalid ECID passed.\n");
+    return NULL;
+  }
+  snprintf(ecid_string, ECID_STRSIZE, FMT_qu, ecid);
+  return ecid_string;
+}
+
 inline static t_bbdevice bbdevices_get_all() {
     return bbdevices;
 }
 
-void sha1(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
+void sha1_wrapper(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
 #ifdef WIN32
     BCRYPT_ALG_HANDLE hAlg = NULL;
     BCRYPT_HASH_HANDLE hHash = NULL;
@@ -427,7 +442,8 @@ void sha1(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
     SHA1(buf, bufSz, (unsigned char*)dest);
 #endif
 }
-
+#undef sha1
+#define sha1 sha1_wrapper
 void sha384(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
 #ifdef WIN32
     BCRYPT_ALG_HANDLE hAlg = NULL;
