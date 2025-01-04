@@ -65,13 +65,16 @@ typedef struct{
     char *deviceBoard;
     char *apnonce;
     char *sepnonce;
+    char *cryptexnonce;
     uint64_t ecid;
     uint64_t bbgcid;
     size_t parsedApnonceLen;
     size_t parsedSepnonceLen;
+    size_t parsedCryptexnonceLen;
     uint8_t *bbsnum;
     size_t bbsnumSize;
     char generator[19];
+    char cryptexseed[36];
     union{
         t_installType installType : 2;
         union{

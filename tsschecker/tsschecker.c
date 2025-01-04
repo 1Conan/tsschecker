@@ -977,6 +977,158 @@ error:
 #undef reterror
 }
 
+
+int tss_request_add_custom_cryptex_tags(plist_t request, plist_t parameters)
+{
+  /* loop over components from build manifest */
+  plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
+  if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
+    error("ERROR: Unable to find restore manifest\n");
+    return -1;
+  }
+
+  /* add components to request */
+  char* key = NULL;
+  plist_t manifest_entry = NULL;
+  plist_dict_iter iter = NULL;
+  plist_dict_new_iter(manifest_node, &iter);
+  while (1) {
+    free(key);
+    key = NULL;
+    plist_dict_next_item(manifest_node, iter, &key, &manifest_entry);
+    if (key == NULL)
+      break;
+    if (!manifest_entry || plist_get_node_type(manifest_entry) != PLIST_DICT) {
+      error("ERROR: Unable to fetch BuildManifest entry\n");
+      free(key);
+      return -1;
+    }
+
+    if ((strstr(key, "Cryptex") == 0)) {
+      continue;
+    }
+
+    plist_t info_dict = plist_dict_get_item(manifest_entry, "Info");
+    if (!info_dict) {
+      continue;
+    }
+
+    uint8_t trusted = plist_dict_get_bool(manifest_entry, "Trusted");
+    uint8_t supports_img4 = plist_dict_get_bool(parameters, "ApSupportsImg4");
+    if (supports_img4) {
+      if (!plist_dict_get_item(info_dict, "RestoreRequestRules") && !trusted) {
+        debug("DEBUG: %s: Skipping '%s' as it doesn't have RestoreRequestRules and is not Trusted\n", __func__, key);
+        continue;
+      }
+    }
+
+    if (plist_dict_get_bool(parameters, "_OnlyFWComponents")) {
+      if (!trusted) {
+        debug("DEBUG: %s: Skipping '%s' as it is not trusted\n", __func__, key);
+        continue;
+      }
+      if (!(plist_dict_get_bool(info_dict, "IsFirmwarePayload")
+              || plist_dict_get_bool(info_dict, "IsSecondaryFirmwarePayload")
+              || plist_dict_get_bool(info_dict, "IsFUDFirmware")
+              || plist_dict_get_bool(info_dict, "IsLoadedByiBoot")
+              || plist_dict_get_bool(info_dict, "IsEarlyAccessFirmware")
+              || plist_dict_get_bool(info_dict, "IsiBootEANFirmware")
+              || plist_dict_get_bool(info_dict, "IsiBootNonEssentialFirmware"))) {
+        debug("DEBUG: %s: Skipping '%s' as it is not a firmware payload\n", __func__, key);
+        continue;
+      }
+    }
+
+    /* skip components with IsFTAB:true */
+    //		if (plist_dict_get_bool(info_dict, "IsFTAB")) {
+    //			debug("DEBUG: %s: Skipping FTAB component '%s'\n", __func__, key);
+    //			continue;
+    //		}
+
+    /* copy this entry */
+    plist_t tss_entry = plist_copy(manifest_entry);
+
+    /* remove obsolete Info node */
+    plist_dict_remove_item(tss_entry, "Info");
+
+    /* handle RestoreRequestRules */
+//    plist_t rules = plist_access_path(manifest_entry, 2, "Info", "RestoreRequestRules");
+//    if (rules) {
+//      debug("DEBUG: Applying restore request rules for entry %s\n", key);
+//      tss_entry_apply_restore_request_rules(tss_entry, parameters, rules);
+//    } else if (supports_img4) {
+//      plist_dict_copy_bool(tss_entry, parameters, "EPRO", "ApProductionMode");
+//      plist_dict_copy_bool(tss_entry, parameters, "ESEC", "ApSecurityMode");
+//    }
+
+    /* Make sure we have a Digest key for Trusted items even if empty */
+    if (trusted && !plist_dict_get_item(manifest_entry, "Digest")) {
+      debug("DEBUG: No Digest data, using empty value for entry %s\n", key);
+      plist_dict_set_item(tss_entry, "Digest", plist_new_data(NULL, 0));
+    }
+
+    /* empty entry is not needed */
+    if (plist_dict_get_size(tss_entry) == 0) {
+      continue;
+    }
+
+    /* finally add entry to request */
+    plist_dict_set_item(request, key, tss_entry);
+  }
+  free(key);
+  free(iter);
+
+  return 0;
+}
+
+
+int tss_populate_cryptexvals(plist_t tssreq, plist_t tssparameters, t_devicevals *devVals){
+#define reterror(a...) {error(a); ret = -1; goto error;}
+    int ret = 0;
+    size_t nonceLen = 32;
+    if (devVals->parsedCryptexnonceLen != nonceLen) {
+      return error("[TSSR] parsed CryptexnonceLen != requiredCryptexnonceLen (%u != %u)\n",
+                   (unsigned int)devVals->parsedCryptexnonceLen,
+                   (unsigned int)nonceLen),
+             -1;
+    }
+    plist_t parameters = plist_copy(tssparameters);
+    if (tss_request_add_custom_cryptex_tags(tssreq, parameters) < 0) {
+        reterror("[TSSR] failed to add all cryptex tags to cryptex TSS request\n");
+    }
+    if (tss_request_add_cryptex_tags(tssreq, parameters, NULL) < 0) {
+        reterror("[TSSR] failed to add cryptex tags to cryptex TSS request\n");
+    }
+    if(!devVals || !devVals->cryptexnonce || !devVals->parsedCryptexnonceLen) {
+      reterror("[TSSR] failed to to populate cryptex TSS request, missing devVals or cryptex nonce!\n");
+    }
+    plist_dict_remove_item(tssreq, "UniqueBuildID");
+    plist_dict_set_item(tssreq, "ApSecurityDomain", plist_new_string("0x01"));
+    plist_dict_set_item(tssreq, "@Locality", plist_new_string("en_US"));
+    plist_dict_set_item(tssreq, "@BBTicket", plist_new_bool(1));
+    plist_dict_set_item(tssreq, "ApSecurityMode", plist_new_bool(1));
+    plist_dict_set_item(tssreq, "Cryptex1,ProductionMode", plist_new_bool(1));
+    plist_t chipid_node = plist_dict_get_item(tssreq, "ApChipID");
+    char *chipid_str = NULL;
+    uint64_t chipid = 0;
+    if(plist_get_node_type(chipid_node) == PLIST_STRING) {
+      plist_get_string_val(chipid_node, &chipid_str);
+      chipid = __bswap_64(strtol(chipid_str, NULL, 0));
+    } else if(plist_get_node_type(chipid_node) == PLIST_INT) {
+      plist_get_int_val(chipid_node, &chipid);
+      chipid = __bswap_64(chipid);
+    }
+    uint64_t ecid = __bswap_64(devVals->ecid);
+    plist_dict_set_item(tssreq, "ApECID", plist_new_uint(devVals->ecid));
+    uint64_t udid[2] = {chipid, ecid};
+    plist_dict_set_item(tssreq, "Cryptex1,UDID", plist_new_data((const char *)&udid, 0x10));
+    plist_dict_set_item(tssreq, "Cryptex1,Nonce", plist_new_data(devVals->cryptexnonce, devVals->parsedCryptexnonceLen));
+
+error:
+    return ret;
+#undef reterror
+}
+
 int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
     size_t nonceLen = strlen(nonce);
     nonceLen = nonceLen/2 + nonceLen%2; //one byte more if len is odd
@@ -1223,14 +1375,66 @@ error:
 #undef reterror
 }
 
+int cryptextssrequest(plist_t *tssreqret, char *buildManifest, t_devicevals *devVals){
+#define reterror(a...) {error(a); error = -1; goto error;}
+    int error = 0;
+    plist_t manifest = NULL;
+    plist_t tssparameter = plist_new_dict();
+    plist_t tssreq = tss_request_new(NULL);
+    plist_t id0 = NULL;
+    plist_from_xml(buildManifest, (unsigned)strlen(buildManifest), &manifest);
+
+getID0:
+    id0 = (devVals->deviceBoard)
+                ? getBuildidentityWithBoardconfig(manifest, devVals->deviceBoard, devVals->isUpdateInstall)
+                : getBuildidentity(manifest, devVals->deviceModel, devVals->isUpdateInstall);
+    if (!id0 && !devVals->installType){
+        warning("[TSSC] could not get BuildIdentity for installType=Erase. Using fallback installType=Update since user did not specify installType manually\n");
+
+        devVals->installType = kInstallTypeUpdate;
+        goto getID0;
+    }
+
+    if (!id0 || plist_get_node_type(id0) != PLIST_DICT){
+        reterror("[TSSR] Error: could not get BuildIdentity for installType=%s\n",devVals->isUpdateInstall ? "Update" : "Erase");
+    }
+    plist_t manifestdict = plist_dict_get_item(id0, "Manifest");
+    plist_t infodict = plist_dict_get_item(id0, "Info");
+    if (!manifestdict || plist_get_node_type(manifestdict) != PLIST_DICT){
+        reterror("[TSSR] Error: could not get manifest\n");
+    }
+    plist_t sep = plist_dict_get_item(manifestdict, "SEP");
+    plist_t virt = plist_dict_get_item(infodict, "VirtualMachineMinHostOS");
+    int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
+    if(virt) {
+        is64Bit = plist_get_node_type(virt) == PLIST_STRING;
+    }
+    if(!is64Bit) {
+      reterror("[TSSR] failed to create cryptex tss request, 32bit device detected!\n");
+    }
+
+    if (tss_populate_cryptexvals(tssreq, id0, devVals))
+        reterror("[TSSR] failed to populate cryptex tss request\n");
+
+    *tssreqret = tssreq;
+error:
+    if (manifest) plist_free(manifest);
+    if (tssparameter) plist_free(tssparameter);
+    if (error) (void)(plist_free(tssreq)), *tssreqret = NULL;
+    return error;
+#undef reterror
+}
+
 int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVals, t_basebandMode basebandMode, const char* server_url_string){
 #define reterror(a ...) {error(a); isSigned = -1; goto error;}
     int isSigned = 0;
     plist_t tssreq = NULL;
+    plist_t cryptextssreq = NULL;
     plist_t apticket = NULL;
     plist_t apticket2 = NULL;
     plist_t apticket3 = NULL;
-    
+    plist_t cryptexticket = NULL;
+
     if (tssrequest(&tssreq, buildManifestBuffer, devVals, basebandMode))
         reterror("[TSSR] failed to build tss request\n");
 
@@ -1313,7 +1517,13 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->apnonce = apnonce;
             devVals->installType = installType;
         }
-            
+        if(devVals->cryptexnonce && devVals->parsedCryptexnonceLen && !cryptextssrequest(&cryptextssreq, buildManifestBuffer, devVals)) {
+          cryptexticket = tss_request_send(cryptextssreq, server_url_string);
+          if (print_tss_response) {
+            debug_plist2(cryptexticket);
+          }
+        }
+
         plist_t manifest = 0;
         plist_from_xml(buildManifestBuffer, (unsigned)strlen(buildManifestBuffer), &manifest);
         plist_t build = plist_dict_get_item(manifest, "ProductBuildVersion");
@@ -1335,6 +1545,10 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         }
         if (apticket3) {
             plist_dict_set_item(apticket, "noNonce", apticket3);
+        }
+        if (cryptexticket) {
+            plist_dict_set_item(apticket, "cryptexTicket", cryptexticket);
+            plist_dict_set_item(apticket, "cryptexSeed", plist_new_string(devVals->cryptexseed));
         }
         
         uint32_t size = 0;

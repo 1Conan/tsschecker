@@ -25,10 +25,12 @@
 #include "tsschecker.h"
 #include "all.h"
 
-#define FLAG_LIST_IOS       (1 << 0)
-#define FLAG_LIST_DEVICES   (1 << 1)
-#define FLAG_BUILDMANIFEST  (1 << 2)
-#define FLAG_LATEST_IOS     (1 << 3)
+#define FLAG_LIST_IOS             (1 << 0)
+#define FLAG_LIST_DEVICES         (1 << 1)
+#define FLAG_BUILDMANIFEST        (1 << 2)
+#define FLAG_LATEST_IOS           (1 << 3)
+#define FLAG_SAVE_CRYPTEX_SEED    (1 << 4)
+#define FLAG_SAVE_CRYPTEX_NONCE   (1 << 5)
 
 extern int idevicerestore_debug;
 #define reterror(code,a ...) {error(a); err = code; goto error;}
@@ -57,11 +59,13 @@ static struct option longopts[] = {
     { "nocache",            no_argument,       NULL, '7' },
     { "apnonce",            required_argument, NULL, '8' },
     { "sepnonce",           required_argument, NULL, '9' },
+    { "cryptexnonce",       required_argument, NULL, 't' },
     { "raw",                required_argument, NULL, 'r' },
     { "bbsnum",             required_argument, NULL, 'c' },
     { "server-url",         required_argument, NULL, 'S' },
     { "bplist",             no_argument,       NULL, 'p' },
     { "generator",          required_argument, NULL, 'g' },
+    { "cryptexseed",        required_argument, NULL, 'x' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -84,8 +88,10 @@ void cmd_help(){
     printf("  -e, --ecid ECID\t\tmanually specify ECID to be used for fetching blobs, instead of using random ones\n");
     printf("                 \t\tECID must be either DEC or HEX eg. 5482657301265 or 0xab46efcbf71\n");
     printf("  -g, --generator GEN\t\tmanually specify generator in HEX format 16 in length (eg. 0x1111111111111111)\n\n");
+    printf("  -x, --cryptexseed SEED\t\tspecify Cryptex1 seed in HEX format 32 in length (eg. 0x11111111111111111111111111111111)\n\n");
     printf("  -8  --apnonce NONCE\t\tmanually specify ApNonce instead of using random ones\n\t\t\t\t(required when saving blobs for arm64e devices with a matching generator)\n\n");
     printf("  -9  --sepnonce NONCE\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
+    printf("  -t  --cryptexnonce NONCE\t\tspecify Cryptex1 Nonce(required for saving cryptex blobs)\n");
     printf("  -c  --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
     printf("  -3  --save-path PATH\t\tspecify output path for saving shsh blobs\n");
     printf("  -p  --bplist\t\t\tsave shsh blob as binary plist (used with --save)\n");
@@ -172,6 +178,7 @@ int main(int argc, const char * argv[]) {
     
     char *apnonce = 0;
     char *sepnonce = 0;
+    char *cryptexnonce = 0;
     char *bbsnum = 0;
     t_devicevals devVals = {0};
     t_iosVersion versVals = {0};
@@ -186,7 +193,7 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
 
-    while ((opt = getopt_long(argc, (char* const *)argv, "hd:i:Z:B:e:g:b:m:3:8:9:r:c:S:uElso0124567p", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "hd:i:Z:B:e:g:x:b:m:3:8:9:t:r:c:S:uElso0124567p", longopts, &optindex)) > 0) {
         switch (opt) {
             case 'h': // long option: "help"; can be called as short option
                 cmd_help();
@@ -222,6 +229,23 @@ int main(int argc, const char * argv[]) {
 
                 }
                 info("[TSSC] manually specified generator \"%s\"\n",devVals.generator);
+                break;
+            case 'x': // long option: "cryptexseed"; can be called as short option
+                if (optarg[0] != '0' && optarg[1] != 'x')
+                    goto failparse_c;
+                devVals.cryptexseed[0] = '0';
+                devVals.cryptexseed[1] = 'x';
+                devVals.cryptexseed[sizeof(devVals.cryptexseed)-1] = '\0';
+                devVals.cryptexseed[0+2] = tolower(optarg[0+2]);
+                for (int i=0;i<32; i++){
+                    devVals.cryptexseed[i+2] = tolower(optarg[i+2]);
+                    if (!isdigit(optarg[i+2]) && ((int)devVals.cryptexseed[i+2] < 'a' || devVals.cryptexseed[i+2] > 'f'))
+                    failparse_c:
+                        reterror(-10, "[TSSC] parsing cryptex seed \"%s\" failed\n",optarg);
+
+                }
+                flags |= FLAG_SAVE_CRYPTEX_SEED;
+                info("[TSSC] specified cryptex seed \"%s\"\n",devVals.cryptexseed);
                 break;
             case 'b': // long option: "no-baseband"; can be called as short option
                 if (optarg) versVals.basebandMode = atoi(optarg);
@@ -282,6 +306,10 @@ int main(int argc, const char * argv[]) {
                 break;
             case '9': // long option: "sepnonce"; can be called as short option
                 sepnonce = optarg;
+                break;
+            case 't': // long option: "cryptexnonce"; can be called as short option
+                cryptexnonce = optarg;
+                flags |= FLAG_SAVE_CRYPTEX_NONCE;
                 break;
             case 'r': // long option: "raw"; can be called as short option
                 rawFilePath = optarg;
@@ -377,6 +405,26 @@ int main(int argc, const char * argv[]) {
             reterror(-7, "[TSSC] manually specified SepNonce=%s, but parsing failed\n",sepnonce);
         }
     }
+    if((flags & FLAG_SAVE_CRYPTEX_NONCE) == FLAG_SAVE_CRYPTEX_NONCE) {
+      if(!(flags & FLAG_SAVE_CRYPTEX_SEED)) {
+        reterror(-7, "[TSSC] Cryptex seed is required for saving Cryptex1 blobs\n");
+      }
+    }
+    if((flags & FLAG_SAVE_CRYPTEX_SEED) == FLAG_SAVE_CRYPTEX_SEED) {
+      if(!(flags & FLAG_SAVE_CRYPTEX_NONCE)) {
+        reterror(-7, "[TSSC] Cryptex nonce is required for saving Cryptex1 blobs\n");
+      }
+    }
+    if (cryptexnonce) {
+      if ((devVals.cryptexnonce = parseNonce(cryptexnonce,&devVals.parsedCryptexnonceLen)) ){
+        info("[TSSC] specified Cryptex Nonce to use, parsed \"%s\" to hex:",cryptexnonce);
+        unsigned char *tmp = (unsigned char*)devVals.cryptexnonce;
+        for (int i=0; i< devVals.parsedCryptexnonceLen; i++) info("%02x",*tmp++);
+        info("\n");
+      }else{
+        reterror(-7, "[TSSC] specified Cryptex Nonce=%s, but parsing failed\n",cryptexnonce);
+      }
+    }
     
     if (bbsnum) {
         t_bbdevice bbinfo = getBBDeviceInfo(devVals.deviceModel);
@@ -465,6 +513,7 @@ error:
     if (devVals.deviceModel) free(devVals.deviceModel);
     if (devVals.apnonce) free(devVals.apnonce);
     if (devVals.sepnonce) free(devVals.sepnonce);
+    if (devVals.cryptexnonce) free(devVals.cryptexnonce);
     if (devVals.bbsnum) free(devVals.bbsnum);
     if (firmwareJson) free(firmwareJson);
     if (firmwareTokens) free(firmwareTokens);
