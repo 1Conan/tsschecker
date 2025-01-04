@@ -29,10 +29,29 @@ Nonce Entangling further randomizes the boot nonce by encrypting a constant valu
 In short, nonce entangling makes the boot nonce unique to that device only.
 
 To save reusable tickets for any arm64e device, you must get the boot nonce that the device creates from your generator,<br/>
-the simpliest way to get a nonce/generator pair is to use airsquared's [blobsaver](https://github.com/airsquared/blobsaver) tool and read them from the device.
+the simpliest way to get a nonce/generator pair is to use airsquared's [blobsaver](https://github.com/airsquared/blobsaver) tool and read them from the device.<br/>
+If you are jailbroken, another tool than can do this is [x8A4](https://github.com/Cryptiiiic/x8A4). You dump the 0x8A3 key to encrypt the nonce generator.<br/>
+To encrypt the nonce generator, first dump the 0x8A3 key with `sudo x8A4 -k 0x8A3`. You can then use the [AES Nonce](https://github.com/Cryptiiiic/aes_nonce) tool to encrypt the generator.<br/>
+`python3 aes_nonce.py <Dumped 0x8A3 Key> <APNonce Generator>`<br/>
+`python3 aes_nonce.py C5DA157E11DE12664CD9C702C21B8ECC 1111111111111111` -> `04faa44b7c7826c840aebd9c9aaacbff948c90eb743e6118f6bb875178ca8b14`<br/>
+Then finally you can save valid arm64e blobs like so:<br/>
+`tsschecker --device iPhone11,8 --boardconfig n841ap --ecid 0x69 -g 0x1111111111111111 -8 04faa44b7c7826c840aebd9c9aaacbff948c90eb743e6118f6bb875178ca8b14 -l -E -s`<br/>
+
 
 For more information, visit The iPhone Wiki:<br/>
 [The iPhone Wiki](https://www.theiphonewiki.com/) ([AES Keys](https://theiphonewiki.com/wiki/AES_Keys), [Nonce](https://theiphonewiki.com/wiki/Nonce))
+
+## Cryptex1 Blobs
+iOS 16 added a new component with its own seed(generator) and nonce called Cryptex1. The seed gets entangled even on a10(X)/a11 devices using the 0x8A4 key.<br/>
+A jailbreak is **REQUIRED** to save and use cryptex blob. In fact, checkm8 need needed to even use cryptex blobs!<br/>
+If you are jailbroken, you can use the [x8A4](https://github.com/Cryptiiiic/x8A4) tool to encrypt the cryptex seed. You dump the 0x8A4 key to encrypt the cryptex seed.<br/>
+To encrypt the seed, first dump the 0x8A4 key with `sudo x8A4 -k 0x8A4`. You can then use the [AES Nonce](https://github.com/Cryptiiiic/aes_nonce) tool to encrypt the seed.<br/>
+Usage:<br/>
+`python3 aes_cryptex_nonce.py <Dumped 0x8A4 Key> <Cryptex Seed>`<br/>
+`python3 aes_cryptex_nonce.py aes_cryptex_nonce.py DF6A9324032C86159F0DE3A1D477B3F2 11111111111111111111111111111111` -> `f7cfa05f0207570426e6c96af9a8da73eeb15a17341a1d09244a3ea05b7b5077`<br/>
+Then finally you can save cryptex blobs like so:<br/>
+`tsschecker --device iPhone10,3 --boardconfig d22ap --ecid 0x69 -g 0x1111111111111111 -x 0x11111111111111111111111111111111 -t f7cfa05f0207570426e6c96af9a8da73eeb15a17341a1d09244a3ea05b7b5077 -l -E -s`<br/>
+
 
 ## Nonce Collisions:
 
