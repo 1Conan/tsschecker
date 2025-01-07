@@ -18,6 +18,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include <libfragmentzip/libfragmentzip.h>
 #include "download.h"
@@ -248,8 +249,15 @@ int main(int argc, const char * argv[]) {
                 info("[TSSC] specified cryptex seed \"%s\"\n",devVals.cryptexseed);
                 break;
             case 'b': // long option: "no-baseband"; can be called as short option
-                if (optarg) versVals.basebandMode = atoi(optarg);
-                else versVals.basebandMode = kBasebandModeWithoutBaseband;
+                if (optarg) {
+                  errno = 0;
+                  versVals.basebandMode = (int)strtol(optarg, NULL, 10);
+                  if(errno != 0) {
+                    versVals.basebandMode = kBasebandModeWithoutBaseband;
+                  }
+                } else {
+                  versVals.basebandMode = kBasebandModeWithoutBaseband;
+                }
                 break;
             case 'u': // long option: "update-install"; can be called as short option
                 devVals.installType = kInstallTypeUpdate;
