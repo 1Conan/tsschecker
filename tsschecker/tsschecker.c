@@ -1388,7 +1388,7 @@ getID0:
         //TODO: don't use .shsh2 ending and don't save generator when saving only baseband
         debug("[TSSR] User specified to request only a Baseband ticket.\n");
     }
-    
+
     if (basebandMode != kBasebandModeWithoutBaseband) {
         //TODO: verify that this being int64_t instead of uint64_t doesn't actually break something
         t_bbdevice bbinfo = getBBDeviceInfo(devVals->deviceModel);
@@ -1575,11 +1575,14 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->apnonce = apnonce;
             devVals->installType = installType;
         }
-        if(devVals->cryptexnonce && devVals->parsedCryptexnonceLen && !cryptextssrequest(&cryptextssreq, buildManifestBuffer, devVals)) {
+        if(devVals->cryptexnonce && devVals->parsedCryptexnonceLen) {
+          info("[TSSC] Also requesting Cryptex1 Ticket\n");
+          if(!cryptextssrequest(&cryptextssreq, buildManifestBuffer, devVals)) {
           cryptexticket = tss_request_send(cryptextssreq, server_url_string);
           if (print_tss_response) {
             debug_plist2(cryptexticket);
           }
+        }
         }
 
         plist_t manifest = 0;
