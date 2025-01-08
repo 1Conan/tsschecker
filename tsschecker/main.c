@@ -21,6 +21,7 @@
 #include <errno.h>
 
 #include <libfragmentzip/libfragmentzip.h>
+
 #include "download.h"
 #include "debug.h"
 #include "tsschecker.h"
@@ -34,6 +35,7 @@
 #define FLAG_SAVE_CRYPTEX_NONCE   (1 << 5)
 
 extern int idevicerestore_debug;
+extern unsigned char *base64decode(const char *buf, size_t *size);
 #define reterror(code,a ...) {error(a); err = code; goto error;}
 
 static struct option longopts[] = {
@@ -439,20 +441,27 @@ int main(int argc, const char * argv[]) {
         if (bbinfo->bbsnumSize == 0) {
             reterror(-8, "[TSSC] this device has no baseband, so it does not make sense to provide BbSNUM.\n");
         }
-        
-        if ((devVals.bbsnum = (uint8_t *)parseNonce(bbsnum, &devVals.bbsnumSize))) {
-            info("[TSSC] manually specified BbSNUM to use, parsed \"%s\" to hex:", bbsnum);
-            unsigned char *tmp = devVals.bbsnum;
-            for (int i=0; i< devVals.bbsnumSize; i++) info("%02x", *tmp++);
-            info("\n");
-            
-            if (bbinfo->bbsnumSize != devVals.bbsnumSize) {
-                reterror(-8, "[TSSC] BbSNUM length for this device should be %d, but you gave one of length %d\n", (int)bbinfo->bbsnumSize,
-                         (int)devVals.bbsnumSize);
-            }
-        } else {
+
+        devVals.bbsnumSize = 100;
+        if(!(devVals.bbsnum = (unsigned char *)base64decode(bbsnum, &devVals.bbsnumSize)) || (devVals.bbsnumSize > bbinfo->bbsnumSize) || !devVals.bbsnumSize || devVals.bbsnumSize == 100) {
+          if (!(devVals.bbsnum = (uint8_t *)parseNonce(bbsnum, &devVals.bbsnumSize))) {
             reterror(-7, "[TSSC] manually specified BbSNUM=%s, but parsing failed\n", bbsnum);
+          }
         }
+
+        info("[TSSC] manually specified BbSNUM to use, parsed \"%s\" to hex:", bbsnum);
+        unsigned char *tmp = devVals.bbsnum;
+        for (int i=0; i< devVals.bbsnumSize; i++) info("%02x", *tmp++);
+        info("\n");
+
+        if (bbinfo->bbsnumSize != devVals.bbsnumSize) {
+            reterror(-8, "[TSSC] BbSNUM length for this device should be %d, but you gave one of length %d\n", (int)bbinfo->bbsnumSize,
+                     (int)devVals.bbsnumSize);
+        }
+    } else {
+      if(versVals.basebandMode == kBasebandModeOnlyBaseband || versVals.basebandMode == kBasebandModeWithBaseband) {
+        reterror(-7, "[TSSC] No Baseband Serial Number was specified, refusing to save baseband blobs\n\nPlease run ideviceinfo -k \"BasebandSerialNumber\" to get Baseband Serial Number\n");
+      }
     }
     
     if (!buildmanifest) { //no need to get firmwares/ota json if specifying buildmanifest manually
