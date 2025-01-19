@@ -191,9 +191,6 @@ jobs:
             --without-udev \
             --without-tools
 
-          sed -i '30d' include/libirecovery.h
-          sed -i '31,43d' include/libirecovery.h
-
           make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
           make install
 
