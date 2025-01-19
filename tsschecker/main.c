@@ -342,24 +342,26 @@ int main(int argc, const char * argv[]) {
     }
     
     if (rawFilePath) {
-        char *buf = NULL;
-        size_t bufSize = 0;
-        FILE *f = fopen(rawFilePath, "rb");
-        if (!f)
-            reterror(-100, "[TSSC] failed to read rawfile at \"%s\"\n",rawFilePath);
-        fseek(f, 0, SEEK_END);
-        bufSize = ftell(f);
-        fseek(f, 0, SEEK_SET);
-        buf = (char*)malloc(bufSize+1);
-        fread(buf, 1, bufSize, f);
-        fclose(f);
+        printf("unsupported");
+        return 1;
+        // char *buf = NULL;
+        // size_t bufSize = 0;
+        // FILE *f = fopen(rawFilePath, "rb");
+        // if (!f)
+        //     reterror(-100, "[TSSC] failed to read rawfile at \"%s\"\n",rawFilePath);
+        // fseek(f, 0, SEEK_END);
+        // bufSize = ftell(f);
+        // fseek(f, 0, SEEK_SET);
+        // buf = (char*)malloc(bufSize+1);
+        // fread(buf, 1, bufSize, f);
+        // fclose(f);
         
-        printf("Sending TSS request:\n%s",buf);
-        char *rsp = tss_request_send_raw(buf, serverUrl, (int*)&bufSize);
+        // printf("Sending TSS request:\n%s",buf);
+        // char *rsp = tss_request_send_raw(buf, serverUrl, (int*)&bufSize);
 
-        printf("TSS server returned:\n%s\n",rsp);
-        free(rsp);
-        return 0;
+        // printf("TSS server returned:\n%s\n",rsp);
+        // free(rsp);
+        // return 0;
     }
 
     if (devVals.deviceBoard)
