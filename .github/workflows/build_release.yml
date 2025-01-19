@@ -3,23 +3,18 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 1 1 *'
-    - cron: '0 0 1 4 *'
-    - cron: '0 0 30 6 *'
-    - cron: '0 0 28 9 *'
-    - cron: '0 0 27 12 *'
 
 env:
   SSL_LIBRARY: openssl
-  LIBPLIST_VERSION: 2.3.0
-  LIBIMOBILEDEVICE__GLUE_VERSION: 1.0.0
+  LIBPLIST_VERSION: 2.6.0
+  LIBIMOBILEDEVICE__GLUE_VERSION: 1.3.1
   LIBIRECOVERY_VERSION: 1.1.0
-  ZLIB_VERSION: 1.3
+  ZLIB_VERSION: 1.3.1
   LIBZIP_VERSION: 1.9.2
   WOLFSSL_VERSION: 5.6.3
-  OPENSSL_VERSION: 3.1.3
+  OPENSSL_VERSION: 3.1.7
   LIBCURL_VERSION: 7.79.1
+  LIBTATSU_VERSION: 1.0.4
 
 jobs:
 
@@ -35,7 +30,7 @@ jobs:
         - mipsel-linux-musl
         - riscv32-linux-musl
         - riscv64-linux-musl
-        - x86_64-w64-mingw32
+        # - x86_64-w64-mingw32
 
     env:
       TRIPLE: ${{ matrix.triple }}
@@ -87,7 +82,7 @@ jobs:
           echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
           echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
           echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
-          echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
 
@@ -104,7 +99,7 @@ jobs:
           ./configure \
             --prefix=${BUILD_BASE} \
             --static
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc) -l$(nproc)
           make install
 
       - name: build libzip
@@ -147,29 +142,22 @@ jobs:
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_DOC=OFF
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc) -l$(nproc)
           make install
-
 
       - name: build libplist
         run: |
           wget -q -nc -P ${BUILD_SOURCE} \
-            https://github.com/libimobiledevice/libplist/archive/refs/heads/master.tar.gz
-          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libplist-master.tar.gz
-          tar xf ${BUILD_SOURCE}/libplist-master.tar.gz -C ${BUILD_WORK}
-
-          echo "${LIBPLIST_VERSION}" > ${BUILD_WORK}/libplist-master/.tarball-version
-
-          cd ${BUILD_WORK}/libplist-master
+            https://github.com/libimobiledevice/libplist/archive/${LIBPLIST_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/${LIBPLIST_VERSION}.tar.gz -C ${BUILD_WORK}
+          echo "2.6.0" > ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}/.tarball-version
+          cd ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}
           PACKAGE_VERSION=${LIBPLIST_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS} \
             --without-cython \
             --without-tests
-          sed -i '78d' include/plist/plist.h
-          sed -i '79,91d' include/plist/plist.h
           sed -i 's/tools//g' Makefile
-
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build libimobiledevice-glue
@@ -185,7 +173,7 @@ jobs:
           PACKAGE_VERSION=${LIBIMOBILEDEVICE__GLUE_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc) -l$(nproc)
           make install
 
       - name: build libirecovery
@@ -195,24 +183,21 @@ jobs:
           mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libirecovery-master.tar.gz
           tar xf ${BUILD_SOURCE}/libirecovery-master.tar.gz -C ${BUILD_WORK}
 
-          # Remove readline requirement
-          sed -i '/readline/,+2d' ${BUILD_WORK}/libirecovery-master/configure.ac
-          # Disable tools building
-          sed -i '/tools/d' ${BUILD_WORK}/libirecovery-master/configure.ac
-          sed -i 's/ tools//' ${BUILD_WORK}/libirecovery-master/Makefile.am
-
           echo "${LIBIRECOVERY_VERSION}" > ${BUILD_WORK}/libirecovery-master/.tarball-version
 
           cd ${BUILD_WORK}/libirecovery-master
+          sed -i '80,95d' configure.ac
+          sed -i '202d' configure.ac
+          sed -i '/tools/d' configure.ac
+          sed -i 's/ tools//' Makefile.am
+
           PACKAGE_VERSION=${LIBIRECOVERY_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS} \
             --with-dummy \
-            --without-udev
+            --without-udev \
+            --without-tools
 
-          sed -i '30d' include/libirecovery.h
-          sed -i '31,43d' include/libirecovery.h
-
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc) -l$(nproc)
           make install
 
       - name: build wolfssl
@@ -228,7 +213,7 @@ jobs:
           cd ${BUILD_WORK}/wolfssl-${WOLFSSL_VERSION}-stable
           ./autogen.sh
           ./configure \
-            ${CONFIGURE_FLAGS} \
+              ${CONFIGURE_FLAGS} \
               --disable-examples \
               --disable-crypttests \
               --disable-tls13 \
@@ -242,7 +227,7 @@ jobs:
               --enable-altcertchains \
               --enable-opensslextra
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc) -l$(nproc)
           make install
 
       - name: build openssl
@@ -272,7 +257,7 @@ jobs:
 
           cd ${BUILD_WORK}/openssl-${OPENSSL_VERSION}
           CC= CXX= AR= RANLIB= ./Configure no-shared no-tests --cross-compile-prefix=${TRIPLE}- --prefix=${BUILD_BASE} --static -static ${PLATFORM}
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
+          make -j$(nproc) -l$(nproc) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
           make install_sw DESTDIR="${ROOT}"
 
       - name: build tiny-curl
@@ -307,7 +292,19 @@ jobs:
             --enable-libcurl-option \
             ${CURL_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build libtatsu
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libtatsu/archive/${LIBTATSU_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/${LIBTATSU_VERSION}.tar.gz -C ${BUILD_WORK}
+          echo "${LIBTATSU_VERSION}" > ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}/.tarball-version
+          cd ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}
+          PACKAGE_VERSION=${LIBTATSU_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS}
+          make -j$(nproc)
           make install
 
       - name: (not) build libgeneral
@@ -341,7 +338,7 @@ jobs:
           ./autogen.sh \
             ${CONFIGURE_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc) -l$(nproc)
           make install
 
       - name: build tsschecker
@@ -363,11 +360,11 @@ jobs:
             --without-libcrypto \
             ${TSSCHECKER_FLAGS}
 
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2) \
-            LDFLAGS="-all-static -static ${LDFLAGS}"
+          make -j$(nproc) -l$(nproc) \
+            LDFLAGS="-Wl,--gc-sections -Wl,-strip-all -all-static -static ${LDFLAGS}"
           ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v4
         if: ${{ !env.ACT }}
         with:
           name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
@@ -390,7 +387,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
