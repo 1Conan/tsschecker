@@ -30,7 +30,7 @@ jobs:
         - mipsel-linux-musl
         - riscv32-linux-musl
         - riscv64-linux-musl
-        - x86_64-w64-mingw32
+        # - x86_64-w64-mingw32
 
     env:
       TRIPLE: ${{ matrix.triple }}
