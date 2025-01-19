@@ -82,7 +82,7 @@ jobs:
           echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
           echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
           echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
-          echo "LDFLAGS=-Wl,--gc-sections -Wl,-strip-all -L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
 
@@ -213,7 +213,7 @@ jobs:
           cd ${BUILD_WORK}/wolfssl-${WOLFSSL_VERSION}-stable
           ./autogen.sh
           ./configure \
-            ${CONFIGURE_FLAGS} \
+              ${CONFIGURE_FLAGS} \
               --disable-examples \
               --disable-crypttests \
               --disable-tls13 \
@@ -361,7 +361,7 @@ jobs:
             ${TSSCHECKER_FLAGS}
 
           make -j$(nproc) -l$(nproc) \
-            LDFLAGS="-all-static -static ${LDFLAGS}"
+            LDFLAGS="-Wl,--gc-sections -Wl,-strip-all -all-static -static ${LDFLAGS}"
           ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
 
       - uses: actions/upload-artifact@v4
