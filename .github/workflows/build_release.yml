@@ -187,6 +187,7 @@ jobs:
           cd ${BUILD_WORK}/libirecovery-master
           sed -i '80,95d' configure.ac
           sed -i '202d' configure.ac
+          sed -i 's/ tools//' Makefile.am
 
           PACKAGE_VERSION=${LIBIRECOVERY_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS} \
