@@ -185,6 +185,7 @@ jobs:
           echo "${LIBIRECOVERY_VERSION}" > ${BUILD_WORK}/libirecovery-master/.tarball-version
 
           cd ${BUILD_WORK}/libirecovery-master
+          sed -i '88,93d' configure.ac
           PACKAGE_VERSION=${LIBIRECOVERY_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS} \
             --with-dummy \
