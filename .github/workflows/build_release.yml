@@ -144,26 +144,19 @@ jobs:
           make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
           make install
 
-
       - name: build libplist
         run: |
           wget -q -nc -P ${BUILD_SOURCE} \
-            https://github.com/libimobiledevice/libplist/archive/refs/heads/master.tar.gz
-          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libplist-master.tar.gz
-          tar xf ${BUILD_SOURCE}/libplist-master.tar.gz -C ${BUILD_WORK}
-
-          echo "${LIBPLIST_VERSION}" > ${BUILD_WORK}/libplist-master/.tarball-version
-
-          cd ${BUILD_WORK}/libplist-master
+            https://github.com/libimobiledevice/libplist/archive/${LIBPLIST_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/${LIBPLIST_VERSION}.tar.gz -C ${BUILD_WORK}
+          echo "2.3.0" > ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}/.tarball-version
+          cd ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}
           PACKAGE_VERSION=${LIBPLIST_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS} \
             --without-cython \
             --without-tests
-          sed -i '78d' include/plist/plist.h
-          sed -i '79,91d' include/plist/plist.h
           sed -i 's/tools//g' Makefile
-
-          make -j$(expr $(nproc) / 2) -l$(expr $(nproc) / 2)
+          make -j$(nproc)
           make install
 
       - name: build libimobiledevice-glue
