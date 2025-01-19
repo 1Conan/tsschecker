@@ -160,18 +160,6 @@ jobs:
           make -j$(nproc)
           make install
 
-      - name: build libtatsu
-        run: |
-          wget -q -nc -P ${BUILD_SOURCE} \
-            https://github.com/libimobiledevice/libtatsu/archive/${LIBTATSU_VERSION}.tar.gz
-          tar xf ${BUILD_SOURCE}/${LIBTATSU_VERSION}.tar.gz -C ${BUILD_WORK}
-          echo "${LIBTATSU_VERSION}" > ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}/.tarball-version
-          cd ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}
-          PACKAGE_VERSION=${LIBTATSU_VERSION} ./autogen.sh \
-            ${CONFIGURE_FLAGS}
-          make -j$(nproc)
-          make install
-
       - name: build libimobiledevice-glue
         run: |
           wget -q -nc -P ${BUILD_SOURCE} \
@@ -305,6 +293,18 @@ jobs:
             ${CURL_FLAGS}
 
           make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build libtatsu
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libtatsu/archive/${LIBTATSU_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/${LIBTATSU_VERSION}.tar.gz -C ${BUILD_WORK}
+          echo "${LIBTATSU_VERSION}" > ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}/.tarball-version
+          cd ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}
+          PACKAGE_VERSION=${LIBTATSU_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS}
+          make -j$(nproc)
           make install
 
       - name: (not) build libgeneral
