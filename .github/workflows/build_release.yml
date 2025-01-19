@@ -182,19 +182,14 @@ jobs:
           mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libirecovery-master.tar.gz
           tar xf ${BUILD_SOURCE}/libirecovery-master.tar.gz -C ${BUILD_WORK}
 
-          # Remove readline requirement
-          sed -i '/readline/,+2d' ${BUILD_WORK}/libirecovery-master/configure.ac
-          # Disable tools building
-          sed -i '/tools/d' ${BUILD_WORK}/libirecovery-master/configure.ac
-          sed -i 's/ tools//' ${BUILD_WORK}/libirecovery-master/Makefile.am
-
           echo "${LIBIRECOVERY_VERSION}" > ${BUILD_WORK}/libirecovery-master/.tarball-version
 
           cd ${BUILD_WORK}/libirecovery-master
           PACKAGE_VERSION=${LIBIRECOVERY_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS} \
             --with-dummy \
-            --without-udev
+            --without-udev \
+            --without-tools
 
           sed -i '30d' include/libirecovery.h
           sed -i '31,43d' include/libirecovery.h
