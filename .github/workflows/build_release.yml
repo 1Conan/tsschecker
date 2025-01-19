@@ -367,7 +367,7 @@ jobs:
             LDFLAGS="-all-static -static ${LDFLAGS}"
           ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v4
         if: ${{ !env.ACT }}
         with:
           name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
@@ -390,7 +390,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
