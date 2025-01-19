@@ -6,14 +6,15 @@ on:
 
 env:
   SSL_LIBRARY: openssl
-  LIBPLIST_VERSION: 2.3.0
+  LIBPLIST_VERSION: 2.6.0
   LIBIMOBILEDEVICE__GLUE_VERSION: 1.3.1
   LIBIRECOVERY_VERSION: 1.1.0
   ZLIB_VERSION: 1.3.1
   LIBZIP_VERSION: 1.9.2
   WOLFSSL_VERSION: 5.6.3
-  OPENSSL_VERSION: 3.1.3
+  OPENSSL_VERSION: 3.4.0
   LIBCURL_VERSION: 7.79.1
+  LIBTATSU_VERSION: 1.0.4
 
 jobs:
 
@@ -149,13 +150,25 @@ jobs:
           wget -q -nc -P ${BUILD_SOURCE} \
             https://github.com/libimobiledevice/libplist/archive/${LIBPLIST_VERSION}.tar.gz
           tar xf ${BUILD_SOURCE}/${LIBPLIST_VERSION}.tar.gz -C ${BUILD_WORK}
-          echo "2.3.0" > ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}/.tarball-version
+          echo "2.6.0" > ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}/.tarball-version
           cd ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}
           PACKAGE_VERSION=${LIBPLIST_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS} \
             --without-cython \
             --without-tests
           sed -i 's/tools//g' Makefile
+          make -j$(nproc)
+          make install
+
+      - name: build libtatsu
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libtatsu/archive/${LIBTATSU_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/${LIBTATSU_VERSION}.tar.gz -C ${BUILD_WORK}
+          echo "${LIBTATSU_VERSION}" > ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}/.tarball-version
+          cd ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}
+          PACKAGE_VERSION=${LIBTATSU_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS}
           make -j$(nproc)
           make install
 
