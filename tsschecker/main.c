@@ -26,6 +26,7 @@
 #include "debug.h"
 #include "tsschecker.h"
 #include "all.h"
+#include "base64.c"
 
 #define FLAG_LIST_IOS             (1 << 0)
 #define FLAG_LIST_DEVICES         (1 << 1)
