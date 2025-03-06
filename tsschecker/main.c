@@ -288,6 +288,8 @@ int main(int argc, const char * argv[]) {
                 break;
             case '0': // long option: "debug"; can be called as short option
                 idevicerestore_debug = 1;
+                tss_set_print_tss_request(1);
+                tss_set_print_tss_response(1);
                 tss_set_debug_level(3);
                 break;
             case '1': // long option: "list-devices"; can be called as short option
@@ -300,10 +302,10 @@ int main(int argc, const char * argv[]) {
                 shshSavePath = optarg;
                 break;
             case '4': // long option: "print-tss-request"; can be called as short option
-                print_tss_request = 1;
+                tss_set_print_tss_request(1);
                 break;
             case '5': // long option: "print-tss-response"; can be called as short option
-                print_tss_response = 1;
+                tss_set_print_tss_response(1);
                 break;
             case '6': // long option: "beta"; can be called as short option
                 versVals.useBeta = 1;
@@ -324,6 +326,8 @@ int main(int argc, const char * argv[]) {
             case 'r': // long option: "raw"; can be called as short option
                 rawFilePath = optarg;
                 idevicerestore_debug = 1;
+                tss_set_print_tss_request(1);
+                tss_set_print_tss_response(1);
                 tss_set_debug_level(3);
                 break;
             case 'c': // long option: "bbsnum"; can be called as short option
