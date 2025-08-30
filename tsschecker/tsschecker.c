@@ -151,7 +151,7 @@ static struct bbdevice bbdevices[] = {
     {"Mac14,9", 0, 0},         // MacBook Pro (14-inch, M2 Pro, 2023)
     {"Mac14,10", 0, 0},        // MacBook Pro (16-inch, M2 Pro, 2023)
     {"Mac14,12", 0, 0},        // Mac mini (M2 Pro, 2023)
-    {"Mac14,13", 0, 0},        // Mac Studio (M2 Pro, 2023)
+    {"Mac14,13", 0, 0},        // Mac Studio (M2 Max, 2023)
     {"Mac14,14", 0, 0},        // Mac Studio (M2 Ultra, 2023)
     {"Mac14,15", 0, 0},        // MacBook Air (15-inch, M2, 2023)
     {"Mac15,3", 0, 0},         // MacBook Pro (14-inch, M3, Nov 2023)
@@ -165,6 +165,7 @@ static struct bbdevice bbdevices[] = {
     {"Mac15,11", 0, 0},        // MacBook Pro (16-inch, M3 Max, Nov 2023)
     {"Mac15,12", 0, 0},        // MacBook Air (13-inch, M3, 2024)
     {"Mac15,13", 0, 0},        // MacBook Air (15-inch, M3, 2024)
+    {"Mac15,14", 0, 0},        // Mac Studio (M3 Ultra, 2025)
     {"Mac16,1", 0, 0},         // MacBook Pro (14-inch, M4, Nov 2024)
     {"Mac16,2", 0, 0},         // iMac 24-inch (M4, Two Ports, 2024)
     {"Mac16,3", 0, 0},         // iMac 24-inch (M4, Four Ports, 2024)
@@ -172,8 +173,11 @@ static struct bbdevice bbdevices[] = {
     {"Mac16,6", 0, 0},         // MacBook Pro (14-inch, M4 Pro, Nov 2024)
     {"Mac16,7", 0, 0},         // MacBook Pro (16-inch, M4 Pro, Nov 2024)
     {"Mac16,8", 0, 0},         // MacBook Pro (14-inch, M4 Pro, Nov 2024)
+    {"Mac16,9", 0, 0},         // Mac Studio (M4 Max, 2025)
     {"Mac16,10", 0, 0},        // Mac mini (M4, 2024)
     {"Mac16,11", 0, 0},        // Mac mini (M4 Pro, 2024)
+    {"Mac16,12", 0, 0},        // MacBook Air (13-inch, M4, 2025)
+    {"Mac16,13", 0, 0},        // MacBook Air (15-inch, M4, 2025)
 
     // Apple Displays
     {"AppleDisplay2,1", 0, 0}, // Studio Display
@@ -261,12 +265,13 @@ static struct bbdevice bbdevices[] = {
     {"iPhone17,2", 1652214800, 4},   // iPhone 16 Pro Max
     {"iPhone17,3", 1652214800, 4},   // iPhone 16
     {"iPhone17,4", 1652214800, 4},   // iPhone 16 Plus
+    {"iPhone17,5", 0, 0},            // iPhone 16e
 
     // iPads
     {"iPad1,1",    0, 0},            // iPad (1st gen)
     {"iPad2,1",    0, 0},            // iPad 2 Wi-Fi
     {"iPad2,2",    257, 12},         // iPad 2 GSM
-    {"iPad2,3",    257, 12},         // iPad 2 CDMA
+    {"iPad2,3",    2, 4},            // iPad 2 CDMA
     {"iPad2,4",    0, 0},            // iPad 2 Wi-Fi (2012, Rev A)
     {"iPad3,1",    0, 0},            // iPad (3rd gen, Wi-Fi)
     {"iPad3,2",    4, 4},            // iPad (3rd gen, CDMA)
@@ -286,6 +291,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad12,2",   165673526, 12},   // iPad (9th gen, 2021, Cellular)
     {"iPad13,18",  0, 0},            // iPad (10th gen, 2022, Wi-Fi)
     {"iPad13,19",  495958265, 4},    // iPad (10th gen, 2022, Cellular)
+    {"iPad15,7",   0, 0},            // iPad (A16, Wi-Fi)
+    {"iPad15,8",   3452763205, 4},   // iPad (A16, Cellular)
 
     // iPad minis
     {"iPad2,5",    0, 0},            // iPad mini (1st gen, Wi-Fi)
@@ -319,9 +326,13 @@ static struct bbdevice bbdevices[] = {
     {"iPad13,16",  0, 0},            // iPad Air (5th gen, Wi-Fi)
     {"iPad13,17",  495958265, 4},    // iPad Air (5th gen, Cellular)
     {"iPad14,8",   0, 0},            // iPad Air (11-inch, M2, Wi-Fi)
-    {"iPad14,9",   495958265, 4},    // iPad Air (11-inch, M2, Cellular)
+    {"iPad14,9",   3452763205, 4},   // iPad Air (11-inch, M2, Cellular)
     {"iPad14,10",  0, 0},            // iPad Air (13-inch, M2, Wi-Fi)
-    {"iPad14,11",  495958265, 4},    // iPad Air (13-inch, M2, Cellular)
+    {"iPad14,11",  3452763205, 4},   // iPad Air (13-inch, M2, Cellular)
+    {"iPad15,3",   0, 0},            // iPad Air (11-inch, M3, Wi-Fi)
+    {"iPad15,4",   3452763205, 4},   // iPad Air (11-inch, M3, Cellular)
+    {"iPad15,5",   0, 0},            // iPad Air (13-inch, M3, Wi-Fi)
+    {"iPad15,6",   3452763205, 4},   // iPad Air (13-inch, M3, Cellular)
 
     // iPad Pros
     {"iPad6,3",    0, 0},            // iPad Pro (9.7-inch, Wi-Fi)
@@ -964,7 +975,7 @@ void getRandNum(char *dst, size_t size, int base){
 }
 
 #pragma mark tss functions
-int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t nonce_size, char *sep_nonce, size_t sep_nonce_size, int image4supported){
+int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t nonce_size, char *sep_nonce, size_t sep_nonce_size, int image4supported, int has_sep){
     plist_dict_set_item(tssreq, "ApECID", plist_new_uint(ecid)); //0000000000000000
     if (nonce) {
         plist_dict_set_item(tssreq, "ApNonce", plist_new_data((const char*)nonce, (int)nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
@@ -972,7 +983,7 @@ int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t n
         plist_dict_set_item(tssreq, "ApNonce", plist_new_data(NULL, 0));
     }
     
-    if (sep_nonce) {//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
+    if (has_sep && sep_nonce) {//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
         plist_dict_set_item(tssreq, "ApSepNonce", plist_new_data(sep_nonce, sep_nonce_size));
     }
     
@@ -1054,6 +1065,9 @@ int tss_request_add_custom_cryptex_tags(plist_t request, plist_t parameters)
     }
 
     if ((strstr(key, "Cryptex") == 0)) {
+      continue;
+    }
+    if ((strstr(key, "Rap") == 0)) {
       continue;
     }
 
@@ -1210,7 +1224,7 @@ int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
     return 0;
 }
 
-int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
+int tss_populate_random(plist_t tssreq, int is64bit, int hasSEP, t_devicevals *devVals){
     size_t nonceLen = 32; //valid for all devices with KTRR
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
@@ -1296,15 +1310,17 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
         }
     }
     
-    if (devVals->sepnonce){
-        if (devVals->parsedSepnonceLen != NONCELEN_SEP)
-            return error("[TSSR] parsed SEPNoncelen != requiredSEPNoncelen (%u != %u)",(unsigned int)devVals->parsedSepnonceLen,(unsigned int)NONCELEN_SEP),-1;
-    }else{
-        devVals->sepnonce = (char*)calloc(1, (devVals->parsedSepnonceLen = NONCELEN_SEP) +1);
-        getRandNum(devVals->sepnonce, devVals->parsedSepnonceLen, 256);
+    if (hasSEP) {
+        if (devVals->sepnonce){
+            if (devVals->parsedSepnonceLen != NONCELEN_SEP)
+                return error("[TSSR] parsed SEPNoncelen != requiredSEPNoncelen (%u != %u)",(unsigned int)devVals->parsedSepnonceLen,(unsigned int)NONCELEN_SEP),-1;
+        }else{
+            devVals->sepnonce = (char*)calloc(1, (devVals->parsedSepnonceLen = NONCELEN_SEP) +1);
+            getRandNum(devVals->sepnonce, devVals->parsedSepnonceLen, 256);
+        }
+        if (devVals->apnonce) devVals->apnonce[nonceLen] = '\0';
+        devVals->sepnonce[NONCELEN_SEP] = '\0';
     }
-    if (devVals->apnonce) devVals->apnonce[nonceLen] = '\0';
-    devVals->sepnonce[NONCELEN_SEP] = '\0';
 
 #ifndef TSSCHECKER_NOMAIN
     debug("[TSSR] ecid=%llu\n",devVals->ecid);
@@ -1312,7 +1328,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     debug("[TSSR] SepNonce=%s\n",devVals->sepnonce);
 #endif
     
-    int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, is64bit);
+    int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, is64bit, hasSEP);
     return rt;
 }
 
@@ -1346,12 +1362,17 @@ getID0:
     }
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
     plist_t virt = plist_dict_get_item(infodict, "VirtualMachineMinHostOS");
-    int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
+    // macOS OTAs don't include SEP definition; hardcode them as having SEP
+    int hasSEP = (!(!sep || plist_get_node_type(sep) != PLIST_DICT)
+        || strncasecmp(devVals->deviceModel, "Mac", strlen("Mac")) == 0
+        || strncasecmp(devVals->deviceModel, "iMac", strlen("iMac")) == 0);
     if(virt) {
-        is64Bit = plist_get_node_type(virt) == PLIST_STRING;
+        hasSEP = plist_get_node_type(virt) == PLIST_STRING;
     }
+    // first-generation Apple Watch doesn't have SEP but *does* use img4
+    int isImg4 = (hasSEP || strncasecmp(devVals->deviceModel, "Watch1,", strlen("Watch1,")) == 0);
 
-    if (tss_populate_random(tssparameter,is64Bit,devVals))
+    if (tss_populate_random(tssparameter,isImg4, hasSEP, devVals))
         reterror("[TSSR] failed to populate tss request\n");
     
     tss_parameters_add_from_manifest(tssparameter, id0, true);
@@ -1363,7 +1384,7 @@ getID0:
         reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
     }
     
-    if (is64Bit) {
+    if (isImg4) {
         if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
             reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
         }
