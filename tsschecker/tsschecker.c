@@ -1677,6 +1677,8 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
     plist_t manifest = NULL;
     plist_t ProductVersion = NULL;
     plist_t SupportedProductTypes = NULL;
+    plist_t SupportedProductTypeIDs = NULL;
+    plist_t SupportedProductTypeIDsMode = NULL;
     plist_t mDevice = NULL;
     char *bufManifest = NULL;
 
@@ -1712,6 +1714,22 @@ int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVa
             if (strcasecmp(ldevice, devVals->deviceModel) == 0)
                 goto checkedDeviceModel;
         }
+    }
+
+    SupportedProductTypeIDs = plist_dict_get_item(manifest, "SupportedProductTypeIDs");
+    if (SupportedProductTypeIDs) {
+      SupportedProductTypeIDsMode = plist_dict_get_item(SupportedProductTypeIDs, "DFU");
+      if(!SupportedProductTypeIDsMode) {
+        SupportedProductTypeIDsMode = plist_dict_get_item(SupportedProductTypeIDs, "Recovery");
+      }
+      if(SupportedProductTypeIDsMode)
+          for (int i=0; i<plist_array_get_size(SupportedProductTypeIDsMode); i++) {
+              mDevice = plist_array_get_item(SupportedProductTypeIDsMode, i);
+              int64_t lDevice = 0;
+              plist_get_int_val(mDevice, &lDevice);
+              if (lDevice)
+                  goto checkedDeviceModel;
+          }
     }
     
     reterror("[TSSC] selected device can't be used with that buildmanifest\n");
