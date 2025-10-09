@@ -261,6 +261,11 @@ static struct bbdevice bbdevices[] = {
     {"iPhone17,2", 1652214800, 4},   // iPhone 16 Pro Max
     {"iPhone17,3", 1652214800, 4},   // iPhone 16
     {"iPhone17,4", 1652214800, 4},   // iPhone 16 Plus
+    {"iPhone17,5", 4, 0},            // iPhone 16e
+    {"iPhone18,3", 694094470, 12},   // iPhone 17
+    {"iPhone18,1", 694094470, 12},   // iPhone 17 Pro
+    {"iPhone18,2", 694094470, 12},   // iPhone 17 Pro Max
+    {"iPhone18,4", 4, 0},            // iPhone Air
 
     // iPads
     {"iPad1,1",    0, 0},            // iPad (1st gen)
@@ -410,6 +415,15 @@ static struct bbdevice bbdevices[] = {
     {"Watch7,9",   0, 0},            // Apple Watch Series 10 (46mm, GPS)
     {"Watch7,10",  744114402, 12},   // Apple Watch Series 10 (42mm, GPS + Cellular)
     {"Watch7,11",  744114402, 12},   // Apple Watch Series 10 (46mm, GPS + Cellular)
+    {"Watch7,13",  0, 0},            // Apple Watch SE (3rd gen, 40mm, GPS)
+    {"Watch7,14",  0, 0},            // Apple Watch SE (3rd gen, 44mm, GPS)
+    {"Watch7,15",  0, 0},            // Apple Watch SE (3rd gen, 40mm, GPS + Cellular)
+    {"Watch7,16",  0, 0},            // Apple Watch SE (3rd gen, 44mm, GPS + Cellular)
+    {"Watch7,12",  0, 0},            // Apple Watch Ultra 3 (49mm, GPS + Cellular)
+    {"Watch7,17",  0, 0},            // Apple Watch Series 11 (42mm, GPS)
+    {"Watch7,18",  0, 0},            // Apple Watch Series 11 (46mm, GPS)
+    {"Watch7,19",  0, 0},            // Apple Watch Series 11 (42mm, GPS + Cellular)
+    {"Watch7,20",  0, 0},            // Apple Watch Series 11 (46mm, GPS + Cellular)
 
     // HomePods
     {"AudioAccessory1,1",   0, 0},   // HomePod 1st gen
