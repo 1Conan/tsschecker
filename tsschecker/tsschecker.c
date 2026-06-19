@@ -130,6 +130,7 @@ const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 // iPhone & iPod touch 1st generation models do not use SHSH or APTicket.
 static struct bbdevice bbdevices[] = {
     // Apple Silicon Macs
+    {"ADP3,1", 0, 0},          // DTK (2020)
     {"ADP3,2", 0, 0},          // DTK (2020)
     {"iMac21,1", 0, 0},        // iMac (24-inch, M1, 2021)
     {"iMac21,2", 0, 0},        // iMac (24-inch, M1, 2021)
@@ -178,7 +179,7 @@ static struct bbdevice bbdevices[] = {
     {"Mac16,11", 0, 0},        // Mac mini (M4 Pro, 2024)
     {"Mac16,12", 0, 0},        // MacBook Air (13-inch, M4, 2025)
     {"Mac16,13", 0, 0},        // MacBook Air (15-inch, M4, 2025)
-    
+
     // Apple Displays
     {"AppleDisplay2,1", 0, 0}, // Studio Display
 
@@ -266,9 +267,9 @@ static struct bbdevice bbdevices[] = {
     {"iPhone17,3", 1652214800, 4},   // iPhone 16
     {"iPhone17,4", 1652214800, 4},   // iPhone 16 Plus
     {"iPhone17,5", 4, 0},            // iPhone 16e
-    {"iPhone18,3", 694094470, 12},   // iPhone 17
-    {"iPhone18,1", 694094470, 12},   // iPhone 17 Pro
-    {"iPhone18,2", 694094470, 12},   // iPhone 17 Pro Max
+    {"iPhone18,3", 694094470, 8},    // iPhone 17
+    {"iPhone18,1", 694094470, 8},    // iPhone 17 Pro
+    {"iPhone18,2", 694094470, 8},    // iPhone 17 Pro Max
     {"iPhone18,4", 4, 0},            // iPhone Air
     //
 
@@ -1379,6 +1380,7 @@ getID0:
     // macOS OTAs don't include SEP definition; hardcode them as having SEP
     int hasSEP = (!(!sep || plist_get_node_type(sep) != PLIST_DICT)
         || strncasecmp(devVals->deviceModel, "Mac", strlen("Mac")) == 0
+        || strncasecmp(devVals->deviceModel, "ADP", strlen("ADP")) == 0
         || strncasecmp(devVals->deviceModel, "iMac", strlen("iMac")) == 0);
     if(virt) {
         hasSEP = plist_get_node_type(virt) == PLIST_STRING;
@@ -1566,6 +1568,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceBoard, "d83ap") || !strcasecmp(devVals->deviceBoard, "d84ap")
                                         || !strcasecmp(devVals->deviceBoard, "d93ap") || !strcasecmp(devVals->deviceBoard, "d94ap")
                                         || !strcasecmp(devVals->deviceBoard, "d47ap") || !strcasecmp(devVals->deviceBoard, "d48ap")
+                                        || !strcasecmp(devVals->deviceBoard, "v53ap") || !strcasecmp(devVals->deviceBoard, "v54ap")
+                                        || !strcasecmp(devVals->deviceBoard, "v57ap")
                                         || !strcasecmp(devVals->deviceBoard, "n102ap") || !strcasecmp(devVals->deviceBoard, "j71ap")
                                         || !strcasecmp(devVals->deviceBoard, "j72ap") || !strcasecmp(devVals->deviceBoard, "j73ap")
                                         || !strcasecmp(devVals->deviceBoard, "j85ap") || !strcasecmp(devVals->deviceBoard, "j86ap")
@@ -1586,6 +1590,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceModel, "iPhone16,1") || !strcasecmp(devVals->deviceModel, "iPhone16,2")
                                         || !strcasecmp(devVals->deviceModel, "iPhone17,1") || !strcasecmp(devVals->deviceModel, "iPhone17,2")
                                         || !strcasecmp(devVals->deviceModel, "iPhone17,3") || !strcasecmp(devVals->deviceModel, "iPhone17,4")
+                                        || !strcasecmp(devVals->deviceModel, "iPhone18,1") || !strcasecmp(devVals->deviceModel, "iPhone18,2")
+                                        || !strcasecmp(devVals->deviceModel, "iPhone18,3")
                                         || !strcasecmp(devVals->deviceModel, "iPod7,1") || !strcasecmp(devVals->deviceModel, "iPad4,1")
                                         || !strcasecmp(devVals->deviceModel, "iPad4,2") || !strcasecmp(devVals->deviceModel, "iPad4,3")
                                         || !strcasecmp(devVals->deviceModel, "iPad4,4") || !strcasecmp(devVals->deviceModel, "iPad4,5")
