@@ -6,14 +6,14 @@ on:
 
 env:
   SSL_LIBRARY: openssl
-  LIBPLIST_VERSION: 2.6.0
-  LIBIMOBILEDEVICE__GLUE_VERSION: 1.3.1
+  LIBPLIST_VERSION: 2.7.0
+  LIBIMOBILEDEVICE__GLUE_VERSION: 1.3.2
   LIBIRECOVERY_VERSION: 1.1.0
-  ZLIB_VERSION: 1.3.1
-  LIBZIP_VERSION: 1.9.2
-  WOLFSSL_VERSION: 5.6.3
-  OPENSSL_VERSION: 3.1.7
-  LIBCURL_VERSION: 7.79.1
+  ZLIB_VERSION: 1.3.2
+  LIBZIP_VERSION: 1.11.4
+  WOLFSSL_VERSION: 5.9.1
+  OPENSSL_VERSION: 3.5.7
+  LIBCURL_VERSION: 8.4.0
   LIBTATSU_VERSION: 1.0.5
 
 jobs:
@@ -179,16 +179,15 @@ jobs:
       - name: build libirecovery
         run: |
           wget -q -nc -P ${BUILD_SOURCE} \
-            https://github.com/libimobiledevice/libirecovery/archive/refs/heads/master.tar.gz
-          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libirecovery-master.tar.gz
-          tar xf ${BUILD_SOURCE}/libirecovery-master.tar.gz -C ${BUILD_WORK}
+            https://github.com/1Conan/libirecovery/archive/refs/heads/fix_dummy_and_without_tools.tar.gz
+          mv ${BUILD_SOURCE}/fix_dummy_and_without_tools.tar.gz ${BUILD_SOURCE}/libirecovery-fix_dummy_and_without_tools.tar.gz
+          tar xf ${BUILD_SOURCE}/libirecovery-fix_dummy_and_without_tools.tar.gz -C ${BUILD_WORK}
 
-          echo "${LIBIRECOVERY_VERSION}" > ${BUILD_WORK}/libirecovery-master/.tarball-version
+          echo "${LIBIRECOVERY_VERSION}" > ${BUILD_WORK}/libirecovery-fix_dummy_and_without_tools/.tarball-version
 
-          cd ${BUILD_WORK}/libirecovery-master
-          sed -i '80,95d' configure.ac
+          cd ${BUILD_WORK}/libirecovery-fix_dummy_and_without_tools
           sed -i '202d' configure.ac
-          sed -i '/tools/d' configure.ac
+          sed -i '80,95d' configure.ac
           sed -i 's/ tools//' Makefile.am
 
           PACKAGE_VERSION=${LIBIRECOVERY_VERSION} ./autogen.sh \
