@@ -448,8 +448,13 @@ int main(int argc, const char * argv[]) {
             reterror(-8, "[TSSC] this device has no baseband, so it does not make sense to provide BbSNUM.\n");
         }
 
+        if (*bbsnum == '=') bbsnum++; // fix -c=VALUE
         devVals.bbsnumSize = 100;
-        if(!(devVals.bbsnum = (unsigned char *)base64decode(bbsnum, &devVals.bbsnumSize)) || (devVals.bbsnumSize > bbinfo->bbsnumSize) || !devVals.bbsnumSize || devVals.bbsnumSize == 100) {
+        if (strncasecmp(bbsnum, "0x", 2) == 0) { // don't attempt base64 if hex prefix
+          if (!(devVals.bbsnum = (uint8_t *)parseNonce(bbsnum+2, &devVals.bbsnumSize))) {
+            reterror(-7, "[TSSC] manually specified BbSNUM=%s, but parsing failed\n", bbsnum);
+          }
+        } else if(!(devVals.bbsnum = (unsigned char *)base64decode(bbsnum, &devVals.bbsnumSize)) || (devVals.bbsnumSize != bbinfo->bbsnumSize) || !devVals.bbsnumSize || devVals.bbsnumSize == 100) {
           if (!(devVals.bbsnum = (uint8_t *)parseNonce(bbsnum, &devVals.bbsnumSize))) {
             reterror(-7, "[TSSC] manually specified BbSNUM=%s, but parsing failed\n", bbsnum);
           }
