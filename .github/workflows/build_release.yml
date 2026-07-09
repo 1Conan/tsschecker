@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   SSL_LIBRARY: openssl
   LIBPLIST_VERSION: 2.7.0
@@ -342,7 +346,7 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            runner: macos-13
+            runner: macos-15-intel
             minver: "10.12"
           - arch: arm64
             runner: macos-14
