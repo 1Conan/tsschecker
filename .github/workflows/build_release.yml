@@ -445,7 +445,7 @@ jobs:
             cp -a "$(find "$d" -type d -path '*/usr/*' -name include | head -1)"/. dep_root/include/
           done
           sed -i '' "s|^prefix=.*|prefix=$(pwd)/dep_root|" dep_root/lib/pkgconfig/*.pc
-          rm -f dep_root/lib/*.dylib
+          rm -f dep_root/lib/*.dylib dep_root/lib/*.la
           ls dep_root/lib/*.a
 
       - name: Build libtatsu + libfragmentzip
