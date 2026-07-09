@@ -289,23 +289,10 @@ jobs:
 
       - name: build libfragmentzip
         run: |
-          wget -q -nc -P ${BUILD_SOURCE} \
-            https://github.com/tihmstar/libfragmentzip/archive/refs/heads/master.tar.gz
-          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libfragmentzip-master.tar.gz
-          tar xf ${BUILD_SOURCE}/libfragmentzip-master.tar.gz -C ${BUILD_WORK}
+          git clone --quiet https://github.com/tihmstar/libfragmentzip \
+            ${BUILD_WORK}/libfragmentzip-master
 
-          # Fix >=48 requirements
-          sed \
-            -i 's/@VERSION_COMMIT_COUNT@/48/' \
-            ${BUILD_WORK}/libfragmentzip-master/libfragmentzip.pc.in
-
-          # remove libgeneral lib requirement
-          sed -i \
-            -e'/libgeneral/d' \
-            -e '/VERSION_COMMIT_COUNT/d' \
-            -e '/VERSION_COMMIT_SHA/d' \
-            -e 's/, m4_esyscmd.*,/, 48,/' \
-            ${BUILD_WORK}/libfragmentzip-master/configure.ac
+          sed -i '/libgeneral/d' ${BUILD_WORK}/libfragmentzip-master/configure.ac
 
           cd ${BUILD_WORK}/libfragmentzip-master
           ./autogen.sh \
@@ -369,7 +356,9 @@ jobs:
         env:
           HOMEBREW_NO_AUTO_UPDATE: "1"
           HOMEBREW_NO_INSTALL_CLEANUP: "1"
-        run: brew install autoconf automake libtool
+        run: |
+          br  ew untap aws/tap 2>/dev/null || true
+          brew install autoconf automake libtool
 
       - name: Build openssl
         run: |
@@ -466,14 +455,11 @@ jobs:
               --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF}" \
             && make -j"${NPROC}" && make install )
 
-          curl -fL -o fz.tar.gz "https://github.com/tihmstar/libfragmentzip/archive/refs/heads/master.tar.gz"
-          mkdir -p fz && tar -xf fz.tar.gz -C fz --strip-components=1
+          git clone --quiet https://github.com/tihmstar/libfragmentzip fz
           curl -fL -o macros.h.in "https://github.com/tihmstar/libgeneral/raw/master/include/libgeneral/macros.h.in"
           mkdir -p "${DEP_ROOT}/include/libgeneral"
           m4 macros.h.in > "${DEP_ROOT}/include/libgeneral/macros.h"
-          sed -i '' 's/@VERSION_COMMIT_COUNT@/48/' fz/libfragmentzip.pc.in
-          sed -i '' -e '/libgeneral/d' -e '/VERSION_COMMIT_COUNT/d' \
-                    -e '/VERSION_COMMIT_SHA/d' -e 's/, m4_esyscmd.*,/, 48,/' fz/configure.ac
+          sed -i '' '/libgeneral/d' fz/configure.ac
           ( cd fz && ./autogen.sh \
               --host=${ARCH}-apple-darwin \
               --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF} -I${DEP_ROOT}/include" \
