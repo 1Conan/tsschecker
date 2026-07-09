@@ -482,7 +482,7 @@ jobs:
             --prefix="${DEP_ROOT}" --disable-shared --enable-static --without-libcrypto \
             PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig" \
             CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -O2" \
-            LDFLAGS="-arch ${ARCH} -L${DEP_ROOT}/lib -L/usr/lib -framework CoreFoundation -framework IOKit -limobiledevice-glue-1.0 -lusbmuxd-2.0" \
+            LDFLAGS="-arch ${ARCH} -L${DEP_ROOT}/lib -L/usr/lib -framework CoreFoundation -framework CoreServices -framework SystemConfiguration -framework IOKit -limobiledevice-glue-1.0 -lusbmuxd-2.0" \
             libfragmentzip_CFLAGS="-I${DEP_ROOT}/include" \
             libfragmentzip_LIBS="-L${DEP_ROOT}/lib -lfragmentzip -lz -lcurl -lssl -lcrypto" \
             libcurl_CFLAGS="-I${DEP_ROOT}/include" \
