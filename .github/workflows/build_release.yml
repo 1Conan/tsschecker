@@ -44,7 +44,7 @@ jobs:
       TOOLCHAIN: ${{ matrix.triple }}-cross
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -337,7 +337,7 @@ jobs:
             LDFLAGS="-Wl,--gc-sections -Wl,-strip-all -all-static -static ${LDFLAGS}"
           ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ !env.ACT }}
         with:
           name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
@@ -359,7 +359,7 @@ jobs:
       ARCH: ${{ matrix.arch }}
       MINVER: ${{ matrix.minver }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -407,7 +407,7 @@ jobs:
           make install
 
       - name: Fetch libplist
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repo: libimobiledevice/libplist
@@ -415,7 +415,7 @@ jobs:
           name: libplist-latest_macOS
           path: limd_suite/libplist
       - name: Fetch libimobiledevice-glue
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repo: libimobiledevice/libimobiledevice-glue
@@ -423,7 +423,7 @@ jobs:
           name: libimobiledevice-glue-latest_macOS
           path: limd_suite/glue
       - name: Fetch libusbmuxd
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repo: libimobiledevice/libusbmuxd
@@ -431,7 +431,7 @@ jobs:
           name: libusbmuxd-latest_macOS
           path: limd_suite/usbmuxd
       - name: Fetch libirecovery
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repo: libimobiledevice/libirecovery
@@ -503,7 +503,7 @@ jobs:
             echo "skipping exec test"
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ !env.ACT }}
         with:
           name: tsschecker_macOS_${{ matrix.arch }}
@@ -516,7 +516,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           filter: tree:0
@@ -531,7 +531,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
