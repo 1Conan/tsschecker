@@ -100,7 +100,10 @@ jobs:
       - name: build zlib
         run: |
           wget -nc -P ${BUILD_SOURCE} \
-            https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz
+            https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz || \
+          { rm -f ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz; \
+            wget -nc -P ${BUILD_SOURCE} \
+              https://github.com/madler/zlib/releases/download/v${ZLIB_VERSION}/zlib-${ZLIB_VERSION}.tar.gz; }
           tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
 
           cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
@@ -346,7 +349,7 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            runner: macos-15-intel
+            runner: macos-14
             minver: "10.12"
           - arch: arm64
             runner: macos-14
@@ -459,6 +462,7 @@ jobs:
           mkdir -p tatsu && tar -xf tatsu.tar.gz -C tatsu --strip-components=1
           echo "${LIBTATSU_VERSION}" > tatsu/.tarball-version
           ( cd tatsu && PACKAGE_VERSION="${LIBTATSU_VERSION}" ./autogen.sh \
+              --host=${ARCH}-apple-darwin \
               --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF}" \
             && make -j"${NPROC}" && make install )
 
@@ -471,6 +475,7 @@ jobs:
           sed -i '' -e '/libgeneral/d' -e '/VERSION_COMMIT_COUNT/d' \
                     -e '/VERSION_COMMIT_SHA/d' -e 's/, m4_esyscmd.*,/, 48,/' fz/configure.ac
           ( cd fz && ./autogen.sh \
+              --host=${ARCH}-apple-darwin \
               --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF} -I${DEP_ROOT}/include" \
             && make -j"${NPROC}" && make install )
 
@@ -492,7 +497,11 @@ jobs:
           make -j"$(sysctl -n hw.ncpu)"
           "$(xcrun -f strip)" -x tsschecker/tsschecker
           file tsschecker/tsschecker
-          ./tsschecker/tsschecker -h 2>&1 | grep -q "tsschecker version"
+          if [ "${ARCH}" = "$(uname -m)" ] || arch "-${ARCH}" /usr/bin/true 2>/dev/null; then
+            arch "-${ARCH}" ./tsschecker/tsschecker -h 2>&1 | grep -q "tsschecker version"
+          else
+            echo "skipping exec test"
+          fi
 
       - uses: actions/upload-artifact@v4
         if: ${{ !env.ACT }}
