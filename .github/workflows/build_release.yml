@@ -126,7 +126,7 @@ jobs:
             --without-cython \
             --without-tests
           sed -i 's/tools//g' Makefile
-          make -j$(nproc)
+          make -j$(nproc) -l$(nproc)
           make install
 
       - name: build libimobiledevice-glue
@@ -277,7 +277,7 @@ jobs:
           cd ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}
           PACKAGE_VERSION=${LIBTATSU_VERSION} ./autogen.sh \
             ${CONFIGURE_FLAGS}
-          make -j$(nproc)
+          make -j$(nproc) -l$(nproc)
           make install
 
       - name: (not) build libgeneral
@@ -371,7 +371,7 @@ jobs:
             --prefix="${DEP_ROOT}" --openssldir="${DEP_ROOT}/ssl" \
             "darwin64-${ARCH}-cc" "-mmacosx-version-min=${MINVER}" \
             -Os -ffunction-sections -fdata-sections -fvisibility=hidden
-          make -j"$(sysctl -n hw.ncpu)"
+          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)"
           make install_sw
 
       - name: Build curl
@@ -393,7 +393,7 @@ jobs:
             --without-nghttp2 --without-libidn2 \
             CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -ffunction-sections -fdata-sections -fvisibility=hidden" \
             PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig"
-          make -j"$(sysctl -n hw.ncpu)"
+          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)"
           make install
 
       - name: Fetch libplist
@@ -454,7 +454,7 @@ jobs:
           ( cd tatsu && PACKAGE_VERSION="${LIBTATSU_VERSION}" ./autogen.sh \
               --host=${ARCH}-apple-darwin \
               --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF}" \
-            && make -j"${NPROC}" && make install )
+            && make -j"${NPROC}" -l"${NPROC}" && make install )
 
           git clone --quiet https://github.com/tihmstar/libfragmentzip fz
           curl -fL -o macros.h.in "https://github.com/tihmstar/libgeneral/raw/master/include/libgeneral/macros.h.in"
@@ -464,7 +464,7 @@ jobs:
           ( cd fz && ./autogen.sh \
               --host=${ARCH}-apple-darwin \
               --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF} -I${DEP_ROOT}/include" \
-            && make -j"${NPROC}" && make install )
+            && make -j"${NPROC}" -l"${NPROC}" && make install )
 
       - name: Build tsschecker
         run: |
@@ -481,7 +481,7 @@ jobs:
             libcurl_LIBS="-L${DEP_ROOT}/lib -lcurl -lssl -lcrypto -lz" \
             zlib_CFLAGS="-I/usr/include" zlib_LIBS="-L/usr/lib -lz"
 
-          make -j"$(sysctl -n hw.ncpu)"
+          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)"
           "$(xcrun -f strip)" tsschecker/tsschecker
           file tsschecker/tsschecker
           if [ "${ARCH}" = "$(uname -m)" ] || arch "-${ARCH}" /usr/bin/true 2>/dev/null; then
