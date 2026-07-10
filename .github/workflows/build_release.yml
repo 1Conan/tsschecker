@@ -88,8 +88,8 @@ jobs:
           echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
           echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
 
-          echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
-          echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -flto" >> $GITHUB_ENV
+          echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -fvisibility=hidden -flto" >> $GITHUB_ENV
+          echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -fvisibility=hidden -flto" >> $GITHUB_ENV
           echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
           echo "LDFLAGS=-L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
@@ -357,7 +357,7 @@ jobs:
           HOMEBREW_NO_AUTO_UPDATE: "1"
           HOMEBREW_NO_INSTALL_CLEANUP: "1"
         run: |
-          br  ew untap aws/tap 2>/dev/null || true
+          HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew untap aws/tap || true
           brew install autoconf automake libtool
 
       - name: Build openssl
@@ -369,7 +369,8 @@ jobs:
           cd openssl
           ./Configure no-shared no-apps no-docs no-tests \
             --prefix="${DEP_ROOT}" --openssldir="${DEP_ROOT}/ssl" \
-            "darwin64-${ARCH}-cc" "-mmacosx-version-min=${MINVER}"
+            "darwin64-${ARCH}-cc" "-mmacosx-version-min=${MINVER}" \
+            -Os -ffunction-sections -fdata-sections -fvisibility=hidden
           make -j"$(sysctl -n hw.ncpu)"
           make install_sw
 
@@ -390,7 +391,7 @@ jobs:
             --disable-ldap --disable-ldaps --disable-manual \
             --without-libpsl --without-brotli --without-zstd \
             --without-nghttp2 --without-libidn2 \
-            CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER}" \
+            CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -ffunction-sections -fdata-sections -fvisibility=hidden" \
             PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig"
           make -j"$(sysctl -n hw.ncpu)"
           make install
@@ -444,7 +445,7 @@ jobs:
         run: |
           export DEP_ROOT="$(pwd)/dep_root"
           export PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig"
-          CF="-arch ${ARCH} -mmacosx-version-min=${MINVER}"
+          CF="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -ffunction-sections -fdata-sections -fvisibility=hidden"
           NPROC="$(sysctl -n hw.ncpu)"
 
           curl -fL -o tatsu.tar.gz "https://github.com/futurerestore/libtatsu/archive/${LIBTATSU_VERSION}.tar.gz"
@@ -472,8 +473,8 @@ jobs:
             --build=${ARCH}-apple-darwin --host=${ARCH}-apple-darwin \
             --prefix="${DEP_ROOT}" --disable-shared --enable-static --without-libcrypto \
             PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig" \
-            CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -O2" \
-            LDFLAGS="-arch ${ARCH} -L${DEP_ROOT}/lib -L/usr/lib -framework CoreFoundation -framework CoreServices -framework SystemConfiguration -framework IOKit -limobiledevice-glue-1.0 -lusbmuxd-2.0" \
+            CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -flto=thin -ffunction-sections -fdata-sections -fvisibility=hidden" \
+            LDFLAGS="-arch ${ARCH} -flto=thin -Wl,-dead_strip -L${DEP_ROOT}/lib -L/usr/lib -framework CoreFoundation -framework CoreServices -framework SystemConfiguration -framework IOKit -limobiledevice-glue-1.0 -lusbmuxd-2.0" \
             libfragmentzip_CFLAGS="-I${DEP_ROOT}/include" \
             libfragmentzip_LIBS="-L${DEP_ROOT}/lib -lfragmentzip -lz -lcurl -lssl -lcrypto" \
             libcurl_CFLAGS="-I${DEP_ROOT}/include" \
@@ -481,7 +482,7 @@ jobs:
             zlib_CFLAGS="-I/usr/include" zlib_LIBS="-L/usr/lib -lz"
 
           make -j"$(sysctl -n hw.ncpu)"
-          "$(xcrun -f strip)" -x tsschecker/tsschecker
+          "$(xcrun -f strip)" tsschecker/tsschecker
           file tsschecker/tsschecker
           if [ "${ARCH}" = "$(uname -m)" ] || arch "-${ARCH}" /usr/bin/true 2>/dev/null; then
             arch "-${ARCH}" ./tsschecker/tsschecker -h 2>&1 | grep -q "tsschecker version"
