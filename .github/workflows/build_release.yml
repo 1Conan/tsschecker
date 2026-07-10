@@ -90,7 +90,12 @@ jobs:
 
           echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -fvisibility=hidden -flto" >> $GITHUB_ENV
           echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -fvisibility=hidden -flto" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
+          if [ "${OS}" = "win" ]; then
+            # limd/tatsu headers default to __declspec(dllimport) on _WIN32
+            echo "CPPFLAGS=-I${BUILD_BASE}/include -DLIBPLIST_STATIC -DLIMD_GLUE_STATIC -DIRECV_STATIC -DLIBTATSU_STATIC" >> $GITHUB_ENV
+          else
+            echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
+          fi
           echo "LDFLAGS=-L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
@@ -265,8 +270,10 @@ jobs:
             --without-nghttp2 --without-libidn2 \
             ${CURL_FLAGS}
 
-          make -j$(nproc) -l$(nproc)
-          make install
+          make -j$(nproc) -l$(nproc) -C lib libcurl.la
+          make -C lib install-libLTLIBRARIES
+          make -C include install
+          make install-pkgconfigDATA
 
       - name: build libtatsu
         run: |
@@ -377,14 +384,12 @@ jobs:
       - name: Build curl
         run: |
           export DEP_ROOT="$(pwd)/dep_root"
-          CA="$(pwd)/cacert.pem"
-          curl -fL -o "${CA}" "https://curl.se/ca/cacert.pem"
           curl -fL -o curl.tar.gz "https://curl.se/download/curl-${LIBCURL_VERSION}.tar.gz"
           mkdir -p curl && tar -xf curl.tar.gz -C curl --strip-components=1
           cd curl
           ./configure --host="${ARCH}-apple-darwin" \
             --prefix="${DEP_ROOT}" --disable-shared --enable-static \
-            --with-openssl="${DEP_ROOT}" --with-ca-embed="${CA}" \
+            --with-openssl="${DEP_ROOT}" --with-ca-bundle=/etc/ssl/cert.pem \
             --disable-ftp --disable-file --disable-dict --disable-telnet \
             --disable-tftp --disable-pop3 --disable-imap --disable-smtp \
             --disable-smb --disable-gopher --disable-rtsp --disable-mqtt \
@@ -393,8 +398,10 @@ jobs:
             --without-nghttp2 --without-libidn2 \
             CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -ffunction-sections -fdata-sections -fvisibility=hidden" \
             PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig"
-          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)"
-          make install
+          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)" -C lib libcurl.la
+          make -C lib install-libLTLIBRARIES
+          make -C include install
+          make install-pkgconfigDATA
 
       - name: Fetch libplist
         uses: dawidd6/action-download-artifact@v21
