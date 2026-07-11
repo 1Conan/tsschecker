@@ -43,10 +43,11 @@
 #   include <openssl/sha.h>
 #endif // __APPLE__
 
-#define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
+#define FIRMWARE_JSON_URL "https://api.ipsw.me/v4/ipsw/device/"
 #define FIRMWARE_BETA_JSON_URL "https://api.m1sta.xyz/betas/"
 #define FIRMWARE_BETA_JSON_URL2 "https://api.appledb.dev/ios/"
-#define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json"
+#define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v4/ota/device/"
+#define ALL_DEVICES_JSON_URL "https://api.ipsw.me/v4/devices"
 
 /* for KTRR devices this value - 32 */
 #define NONCELEN_BASEBAND 20
@@ -58,20 +59,22 @@
 #ifdef WIN32
 #define __mkdir(path, mode) mkdir(path)
 static int win_path_didinit = 0;
-static const char *win_paths[4];
+static const char *win_paths[5];
 
 enum paths{
     kWINPathTSSCHECKER,
     kWINPathOTA,
     kWINPathFIRMWARE,
-    kWINPathBetaFIRMWARE
+    kWINPathBetaFIRMWARE,
+    kWINPathDevices
 };
 
 static const char *win_pathvars[]={
     "\\tsschecker",
     "\\ota.json",
     "\\firmwares.json",
-    "\\firmwares_betas.json"
+    "\\firmwares_betas.json",
+    "\\devices.json"
 };
 
 static const char *win_path_get(enum paths path){
@@ -98,6 +101,7 @@ static const char *win_path_get(enum paths path){
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
 #define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
 #define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBetaFIRMWARE)
+#define ALL_DEVICES_JSON_PATH win_path_get(kWINPathDevices)
 #define DIRECTORY_DELIMITER_STR "\\"
 #define DIRECTORY_DELIMITER_CHR '\\'
 
@@ -107,6 +111,7 @@ static const char *win_path_get(enum paths path){
 #define FIRMWARE_JSON_PATH "/tmp/firmwares.json"
 #define FIRMWARE_OTA_JSON_PATH "/tmp/firmwares_ota.json"
 #define FIRMWARE_BETA_JSON_PATH "/tmp/firmwares_betas.json"
+#define ALL_DEVICES_JSON_PATH "/tmp/devices.json"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
@@ -562,20 +567,43 @@ void sha384(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
 #endif
 }
 
-char *getFirmwareJson(){
-    debug("[TSSC] opening firmwares.json\n");
-    FILE *f = fopen(FIRMWARE_JSON_PATH, "rb");
+static char *getJsonFromUrl(const char *url, const char *path){
+    debug("[TSSC] opening %s\n", path);
+    FILE *f = fopen(path, "rb");
     if (!f || nocache){
-        downloadFile(FIRMWARE_JSON_URL, FIRMWARE_JSON_PATH);
-        f = fopen(FIRMWARE_JSON_PATH, "rb");
+        if (f) fclose(f);
+        downloadFile(url, path);
+        f = fopen(path, "rb");
     }
+    if (!f) return NULL;
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
+    if (fsize < 1) {
+        fclose(f);
+        if (downloadFile(url, path)) return NULL;
+        if (!(f = fopen(path, "rb"))) return NULL;
+        fseek(f, 0, SEEK_END);
+        if ((fsize = ftell(f)) < 1){
+            fclose(f);
+            return NULL;
+        }
+    }
     fseek(f, 0, SEEK_SET);
-    char *fJson = malloc(fsize + 1);
+    char *fJson = calloc(1, fsize + 1);
     fread(fJson, fsize, 1, f);
     fclose(f);
     return fJson;
+}
+
+char *getFirmwareJson(const char *device){
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), FIRMWARE_JSON_URL"%s", device);
+    snprintf(path, sizeof(path), "%s_%s", FIRMWARE_JSON_PATH, device);
+    return getJsonFromUrl(url, path);
+}
+
+char *getDevicesJson(){
+    return getJsonFromUrl(ALL_DEVICES_JSON_URL, ALL_DEVICES_JSON_PATH);
 }
 
 char *getBetaFirmwareJson2(const char *type, const char *buildid) {
@@ -629,20 +657,11 @@ char *getBetaFirmwareJson(const char *device) {
     }
 }
 
-char *getOtaJson(){
-    debug("[TSSC] opening ota.json\n");
-    FILE *f = fopen(FIRMWARE_OTA_JSON_PATH, "rb");
-    if (!f || nocache){
-        downloadFile(FIRMWARE_OTA_JSON_URL, FIRMWARE_OTA_JSON_PATH);
-        f = fopen(FIRMWARE_OTA_JSON_PATH, "rb");
-    }
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    char *fJson = malloc(fsize + 1);
-    fread(fJson, fsize, 1, f);
-    fclose(f);
-    return fJson;
+char *getOtaJson(const char *device){
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), FIRMWARE_OTA_JSON_URL"%s", device);
+    snprintf(path, sizeof(path), "%s_%s", FIRMWARE_OTA_JSON_PATH, device);
+    return getJsonFromUrl(url, path);
 }
 
 #pragma mark more get functions
@@ -1866,34 +1885,30 @@ int printListOfDevices(jssytok_t *tokens){
     size_t currLen = 0;
     int rspn = 0;
     putchar('\n');
-    jssytok_t *ctok = NULL;
-    if (!(ctok = jssy_dictGetValueForKey(tokens, "devices"))){
-        warning("Failed to get value for key 'devices', trying with tokens instead!\n\n");
-        ctok = tokens;
-    }
-    
-    jssytok_t *tmp = ctok->subval;
-    for (size_t i=0; i<ctok->size; tmp = tmp->next,i++) {
+    jssytok_t *tmp = tokens->subval;
+    for (size_t i=0; i<tokens->size; tmp = tmp->next,i++) {
+        jssytok_t *ident = jssy_dictGetValueForKey(tmp, "identifier");
+        if (!ident) continue;
         if (!curr){
-            curr = tmp->value;
-            currLen = tmp->size;
+            curr = ident->value;
+            currLen = ident->size;
         }else{
             for (int i = 0; i<currLen; i++) {
                 char c = curr[i];
                 if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))) break;
-                if (c != tmp->value[i]) {
+                if (c != ident->value[i]) {
                     putchar('\n');
                     putchar('\n');
-                    curr = tmp->value;
-                    currLen = tmp->size;
+                    curr = ident->value;
+                    currLen = ident->size;
                     rspn = 0;
                     break;
                 }
             }
         }
-        printJString(tmp);
+        printJString(ident);
         if (++rspn>= MAX_PER_LINE) (void)(putchar('\n')), rspn = 0; else putchar(' ');
-        
+
     }
     putchar('\n');
     putchar('\n');
@@ -2069,20 +2084,10 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 
 #pragma mark check functions
 jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta){
-    jssytok_t *ctok = (isOta) ? tokens : jssy_dictGetValueForKey(tokens, "devices");
-    if(!ctok) {
+    if (!tokens) {
         return NULL;
     }
-    
-    jssytok_t *tmp = ctok->subval;
-    for (int i=0; i<ctok->size; tmp = tmp->next, i++) {
-        if (strncasecmp(device, tmp->value, tmp->size) == 0
-            && strlen(device) == tmp->size) {
-            return jssy_dictGetValueForKey(tmp->subval, "firmwares");
-        }
-    }
-    
-    return NULL;
+    return jssy_dictGetValueForKey(tokens, "firmwares");
 }
 
 int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, jssytok_t *tokens){

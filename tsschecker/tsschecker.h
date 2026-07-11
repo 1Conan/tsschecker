@@ -106,10 +106,11 @@ typedef struct{
 
 int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize);
 
-char *getFirmwareJson(void);
+char *getFirmwareJson(const char *device);
 char *getBetaFirmwareJson2(const char *type, const char *buildid);
 char *getBetaFirmwareJson(const char *device);
-char *getOtaJson(void);
+char *getOtaJson(const char *device);
+char *getDevicesJson(void);
 long parseTokens(const char *json, jssytok_t **tokens);
 char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, bool beta);
 char **getListOfiOSForDevice2(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, int buildid, bool beta);

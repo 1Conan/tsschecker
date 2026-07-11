@@ -477,7 +477,12 @@ int main(int argc, const char * argv[]) {
     
     if (!buildmanifest) { //no need to get firmwares/ota json if specifying buildmanifest manually
     reparse:
-        firmwareJson = (versVals.isOta) ? getOtaJson() : getFirmwareJson();
+        if (flags & FLAG_LIST_DEVICES){
+            firmwareJson = getDevicesJson();
+        }else{
+            if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
+            firmwareJson = (versVals.isOta) ? getOtaJson(devVals.deviceModel) : getFirmwareJson(devVals.deviceModel);
+        }
         if (!devVals.installType) //only set this if installType wasn't set manually
             devVals.isUpdateInstall = (versVals.isOta); //there are no erase installs over OTA
         if (!firmwareJson) reterror(-6,"[TSSC] could not get firmwares.json\n");
