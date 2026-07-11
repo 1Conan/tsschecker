@@ -1781,31 +1781,33 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     int cursigned = 0;
+    int skippedDups = 0;
     for (t_versionURL *u = urls; u->url; u++) {
-        buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
-        if (!buildManifest) {
-            error("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",u->url);
-            continue;
-        }
+        if (cursigned && u->isDupulicate) {
+            // don't redownload duplicate manifests
+            skippedDups++;
+            debug("[TSSC] skipping duplicated build %s %s\n",u->version,u->buildID);
+        }else{
+            buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
+            if (!buildManifest) {
+                error("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",u->url);
+            }else{
+                nocache = 1;
 
-        if (cursigned && !u->isDupulicate) cursigned = 0;
-        
-        nocache = 1;
-        
-        if (cursigned) {
-            info("[TSSC] skipping duplicated build\n");
-            
-        }else if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode, server_url_string)) >= 0){
-            cursigned |= (isSigned > 0);
-            
-            isSigned = (isSignedOne > 0 || isSigned > 0);
-            if (buildManifest) (void)(free(buildManifest)), buildManifest = NULL;
-            info("Firmware version %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+                if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode, server_url_string)) >= 0){
+                    cursigned = (isSignedOne > 0);
+                    isSigned = (isSignedOne > 0 || isSigned > 0);
+                    info("Firmware version %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+                }
+                free(buildManifest);
+                buildManifest = NULL;
+            }
         }
         (void)(free(u->url)),u->url = NULL;
         (void)(free(u->buildID)),u->buildID = NULL;
         (void)(free(u->version)),u->version = NULL;
     }
+    if (skippedDups) info("[TSSC] skipped %d duplicated build variant%s\n",skippedDups,(skippedDups == 1) ? "" : "s");
     (void)(free(urls)),urls = NULL;
     
 error:
