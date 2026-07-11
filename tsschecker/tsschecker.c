@@ -71,10 +71,10 @@ enum paths{
 
 static const char *win_pathvars[]={
     "\\tsschecker",
-    "\\ota.json",
-    "\\firmwares.json",
-    "\\firmwares_betas.json",
-    "\\devices.json"
+    "\\tsschecker\\ota.json",
+    "\\tsschecker\\firmwares.json",
+    "\\tsschecker\\firmwares_betas.json",
+    "\\tsschecker\\devices.json"
 };
 
 static const char *win_path_get(enum paths path){
@@ -108,10 +108,10 @@ static const char *win_path_get(enum paths path){
 #else
 
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
-#define FIRMWARE_JSON_PATH "/tmp/firmwares.json"
-#define FIRMWARE_OTA_JSON_PATH "/tmp/firmwares_ota.json"
-#define FIRMWARE_BETA_JSON_PATH "/tmp/firmwares_betas.json"
-#define ALL_DEVICES_JSON_PATH "/tmp/devices.json"
+#define FIRMWARE_JSON_PATH "/tmp/tsschecker/firmwares.json"
+#define FIRMWARE_OTA_JSON_PATH "/tmp/tsschecker/firmwares_ota.json"
+#define FIRMWARE_BETA_JSON_PATH "/tmp/tsschecker/firmwares_betas.json"
+#define ALL_DEVICES_JSON_PATH "/tmp/tsschecker/devices.json"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
@@ -568,6 +568,8 @@ void sha384(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
 }
 
 static char *getJsonFromUrl(const char *url, const char *path){
+    struct stat st = {0};
+    if (stat(MANIFEST_SAVE_PATH, &st) == -1) __mkdir(MANIFEST_SAVE_PATH, 0700);
     debug("[TSSC] opening %s\n", path);
     FILE *f = fopen(path, "rb");
     if (!f || nocache){
@@ -607,54 +609,17 @@ char *getDevicesJson(){
 }
 
 char *getBetaFirmwareJson2(const char *type, const char *buildid) {
-    char url[256], path[256];
-    memset(url, 0, 256);
-    memset(path, 0, 256);
-    strcat(url, FIRMWARE_BETA_JSON_URL2);
-    strcat(url, type);
-    strcat(url, ";");
-    strcat(url, buildid);
-    strcat(url, ".json");
-    strcat(path, FIRMWARE_BETA_JSON_PATH);
-    debug("[TSSC] opening %s\n", path);
-    FILE *f = fopen(path, "rb");
-    if (!f || nocache){
-        downloadFile(url, path);
-        f = fopen(path, "rb");
-    }
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    char *fJson = calloc(1, fsize + 1);
-    fread(fJson, fsize, 1, f);
-    fclose(f);
-    return fJson;
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), "%s%s;%s.json", FIRMWARE_BETA_JSON_URL2, type, buildid);
+    snprintf(path, sizeof(path), "%s_%s;%s", FIRMWARE_BETA_JSON_PATH, type, buildid);
+    return getJsonFromUrl(url, path);
 }
 
 char *getBetaFirmwareJson(const char *device) {
-    char url[50], path[50];
-    memset(url, 0, 50);
-    memset(path, 0, 50);
-    strcat(url, FIRMWARE_BETA_JSON_URL);
-    strcat(url, device);
-    strcat(path, FIRMWARE_BETA_JSON_PATH);
-    debug("[TSSC] opening %s\n", path);
-    FILE *f = fopen(path, "rb");
-    if (!f || nocache){
-        downloadFile(url, path);
-        f = fopen(path, "rb");
-    }
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    if(fsize < 1) {
-        return NULL;
-    } else {
-        fseek(f, 0, SEEK_SET);
-        char *fJson = calloc(1, fsize + 1);
-        fread(fJson, fsize, 1, f);
-        fclose(f);
-        return fJson;
-    }
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), "%s%s", FIRMWARE_BETA_JSON_URL, device);
+    snprintf(path, sizeof(path), "%s_%s", FIRMWARE_BETA_JSON_PATH, device);
+    return getJsonFromUrl(url, path);
 }
 
 char *getOtaJson(const char *device){
