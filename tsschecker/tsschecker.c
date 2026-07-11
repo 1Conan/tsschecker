@@ -46,7 +46,7 @@
 #define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
 #define FIRMWARE_BETA_JSON_URL "https://api.m1sta.xyz/betas/"
 #define FIRMWARE_BETA_JSON_URL2 "https://api.appledb.dev/ios/"
-#define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
+#define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json"
 
 /* for KTRR devices this value - 32 */
 #define NONCELEN_BASEBAND 20
