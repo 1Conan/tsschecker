@@ -866,14 +866,10 @@ int downloadPartialzip(const char *url, const char *file, const char *dst){
 
 char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta){
     struct stat st = {0};
-    size_t len = 0;
-    if(version) {
-        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + strlen(version) + 1 + strlen(".plist");
-    } else {
-        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + 1 + strlen(".plist");
-    }
-    if (buildID) len += strlen(buildID);
-    if (isOta) len += strlen("ota");
+    size_t len = strlen(MANIFEST_SAVE_PATH) + strlen(DIRECTORY_DELIMITER_STR) + strlen(device) + strlen(".plist") + 1;
+    if (version) len += strlen("_") + strlen(version);
+    if (buildID) len += strlen("_") + strlen(buildID);
+    if (isOta)   len += strlen("_OTA");
     char *fileDir = malloc(len);
     memset(fileDir, 0, len);
     
@@ -921,15 +917,15 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
                     index = i;
                 }
             }
-            char *buildmanifest_url = malloc(strlen(url));
-            buildmanifest_url = strncpy(buildmanifest_url, url, index);
+            char *buildmanifest_url = malloc(index + strlen("/BuildManifest.plist") + 1);
+            strncpy(buildmanifest_url, url, index);
             buildmanifest_url[index] = '\0';
-            buildmanifest_url = strcat(buildmanifest_url, "/BuildManifest.plist");
+            strcat(buildmanifest_url, "/BuildManifest.plist");
 
             if (downloadFile(buildmanifest_url, fileDir) == 0) {
-                free(buildmanifest_url);
                 got_buildmanifest = 1;
             }
+            free(buildmanifest_url);
         }
 
         if (!got_buildmanifest) {
