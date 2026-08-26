@@ -144,10 +144,10 @@ static struct bbdevice bbdevices[] = {
     {"Mac13,1", 0, 0},         // Mac Studio (M1 Max, 2022)
     {"Mac13,2", 0, 0},         // Mac Studio (M1 Ultra, 2022)
     {"Mac14,2", 0, 0},         // MacBook Air (M2, 2022)
-    {"Mac14,7", 0, 0},         // MacBook Pro (13-inch, M2, 2022)
     {"Mac14,3", 0, 0},         // Mac mini (M2, 2023)
     {"Mac14,5", 0, 0},         // MacBook Pro (14-inch, M2 Max, 2023)
     {"Mac14,6", 0, 0},         // MacBook Pro (16-inch, M2 Max, 2023)
+    {"Mac14,7", 0, 0},         // MacBook Pro (13-inch, M2, 2022)
     {"Mac14,8", 0, 0},         // Mac Pro (M2 Ultra, 2023)
     {"Mac14,9", 0, 0},         // MacBook Pro (14-inch, M2 Pro, 2023)
     {"Mac14,10", 0, 0},        // MacBook Pro (16-inch, M2 Pro, 2023)
@@ -170,8 +170,8 @@ static struct bbdevice bbdevices[] = {
     {"Mac16,1", 0, 0},         // MacBook Pro (14-inch, M4, Nov 2024)
     {"Mac16,2", 0, 0},         // iMac 24-inch (M4, Two Ports, 2024)
     {"Mac16,3", 0, 0},         // iMac 24-inch (M4, Four Ports, 2024)
-    {"Mac16,5", 0, 0},         // MacBook Pro (16-inch, M4 Pro, Nov 2024)
-    {"Mac16,6", 0, 0},         // MacBook Pro (14-inch, M4 Pro, Nov 2024)
+    {"Mac16,5", 0, 0},         // MacBook Pro (16-inch, M4 Max, Nov 2024)
+    {"Mac16,6", 0, 0},         // MacBook Pro (14-inch, M4 Max, Nov 2024)
     {"Mac16,7", 0, 0},         // MacBook Pro (16-inch, M4 Pro, Nov 2024)
     {"Mac16,8", 0, 0},         // MacBook Pro (14-inch, M4 Pro, Nov 2024)
     {"Mac16,9", 0, 0},         // Mac Studio (M4 Max, 2025)
@@ -179,9 +179,23 @@ static struct bbdevice bbdevices[] = {
     {"Mac16,11", 0, 0},        // Mac mini (M4 Pro, 2024)
     {"Mac16,12", 0, 0},        // MacBook Air (13-inch, M4, 2025)
     {"Mac16,13", 0, 0},        // MacBook Air (15-inch, M4, 2025)
+    {"Mac17,2", 0, 0},         // MacBook Pro (14-inch, M5)
+    {"Mac17,3", 0, 0},         // MacBook Air (13-inch, M5)
+    {"Mac17,4", 0, 0},         // MacBook Air (15-inch, M5)
+    {"Mac17,5", 0, 0},         // MacBook Neo (A18 Pro)
+    {"Mac17,6", 0, 0},         // MacBook Pro (16-inch, M5 Max)
+    {"Mac17,7", 0, 0},         // MacBook Pro (14-inch, M5 Max)
+    {"Mac17,8", 0, 0},         // MacBook Pro (16-inch, M5 Pro)
+    {"Mac17,9", 0, 0},         // MacBook Pro (14-inch, M5 Pro)
+    {"Mac17,14", 0, 0},        // Mac Studio (M5 Max)
+    {"Mac17,15", 0, 0},        // Mac Studio (M5 Ultra)
+    {"Mac17,16", 0, 0},        // Mac mini (M5 Pro)
+    {"Mac18,5", 0, 0},         // Mac mini (M6)
 
     // Apple Displays
-    {"AppleDisplay2,1", 0, 0}, // Studio Display
+    {"AppleDisplay2,1", 0, 0},  // Studio Display
+    {"AppleDisplay18,1", 0, 0}, // Studio Display XDR
+    {"AppleDisplay18,2", 0, 0}, // Studio Display (2026)
 
     // Apple T2 Coprocessor
     {"iBridge2,1",  0, 0}, // Apple T2 iMacPro1,1 (j137)
@@ -271,7 +285,7 @@ static struct bbdevice bbdevices[] = {
     {"iPhone18,1", 694094470, 8},    // iPhone 17 Pro
     {"iPhone18,2", 694094470, 8},    // iPhone 17 Pro Max
     {"iPhone18,4", 4, 0},            // iPhone Air
-    //
+    {"iPhone18,5", 4, 0},            // iPhone 17e
 
     // iPads
     {"iPad1,1",    0, 0},            // iPad (1st gen)
@@ -339,6 +353,10 @@ static struct bbdevice bbdevices[] = {
     {"iPad15,4",   3452763205, 4},   // iPad Air (11-inch, M3, Cellular)
     {"iPad15,5",   0, 0},            // iPad Air (13-inch, M3, Wi-Fi)
     {"iPad15,6",   3452763205, 4},   // iPad Air (13-inch, M3, Cellular)
+    {"iPad16,8",   0, 0},            // iPad Air (11-inch, M4, Wi-Fi)
+    {"iPad16,9",   4, 0},            // iPad Air (11-inch, M4, Cellular)
+    {"iPad16,10",  0, 0},            // iPad Air (13-inch, M4, Wi-Fi)
+    {"iPad16,11",  4, 0},            // iPad Air (13-inch, M4, Cellular)
 
     // iPad Pros
     {"iPad6,3",    0, 0},            // iPad Pro (9.7-inch, Wi-Fi)
@@ -377,6 +395,10 @@ static struct bbdevice bbdevices[] = {
     {"iPad16,4",   3452763205, 4},   // iPad Pro (11-inch, M4, Cellular)
     {"iPad16,5",   0, 0},            // iPad Pro (13-inch, M4, Wi-Fi)
     {"iPad16,6",   3452763205, 4},   // iPad Pro (13-inch, M4, Cellular)
+    {"iPad17,1",   0, 0},            // iPad Pro (11-inch, M5, Wi-Fi)
+    {"iPad17,2",   4, 0},            // iPad Pro (11-inch, M5, Cellular)
+    {"iPad17,3",   0, 0},            // iPad Pro (13-inch, M5, Wi-Fi)
+    {"iPad17,4",   4, 0},            // iPad Pro (11-inch, M5, Cellular)
 
     // Apple Watches
     {"Watch1,1",   0, 0},            // Apple Watch 1st gen (38mm)
@@ -1577,8 +1599,10 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceBoard, "j86map") || !strcasecmp(devVals->deviceBoard, "j87map")
                                         || !strcasecmp(devVals->deviceBoard, "j96ap") || !strcasecmp(devVals->deviceBoard, "j97ap")
                                         || !strcasecmp(devVals->deviceBoard, "j81ap") || !strcasecmp(devVals->deviceBoard, "j82ap")
+                                        || !strcasecmp(devVals->deviceBoard, "j707ap") || !strcasecmp(devVals->deviceBoard, "j708ap")
                                         || !strcasecmp(devVals->deviceBoard, "j717ap") || !strcasecmp(devVals->deviceBoard, "j718ap")
                                         || !strcasecmp(devVals->deviceBoard, "j720ap") || !strcasecmp(devVals->deviceBoard, "j721ap")
+                                        || !strcasecmp(devVals->deviceBoard, "j737ap") || !strcasecmp(devVals->deviceBoard, "j738ap")
                                         || !strcasecmp(devVals->deviceBoard, "j42dap") || !strcasecmp(devVals->deviceBoard, "j105aap")
                                         || !strcasecmp(devVals->deviceBoard, "j305ap") || !strcasecmp(devVals->deviceBoard, "j255ap"))) {
                 save_apticket3 = false;
@@ -1602,6 +1626,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceModel, "iPad16,1") || !strcasecmp(devVals->deviceModel, "iPad16,2")
                                         || !strcasecmp(devVals->deviceModel, "iPad16,3") || !strcasecmp(devVals->deviceModel, "iPad16,4")
                                         || !strcasecmp(devVals->deviceModel, "iPad16,5") || !strcasecmp(devVals->deviceModel, "iPad16,6")
+                                        || !strcasecmp(devVals->deviceModel, "iPad16,8") || !strcasecmp(devVals->deviceModel, "iPad16,9")
+                                        || !strcasecmp(devVals->deviceModel, "iPad16,10") || !strcasecmp(devVals->deviceModel, "iPad16,11")
                                         || !strcasecmp(devVals->deviceModel, "Appletv5,3") || !strcasecmp(devVals->deviceModel, "Appletv6,2")
                                         || !strcasecmp(devVals->deviceModel, "Appletv11,1") || !strcasecmp(devVals->deviceModel, "Appletv14,1"))) {
                 save_apticket3 = false;
