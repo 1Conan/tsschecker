@@ -343,10 +343,10 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            runner: macos-14
+            runner: macos-15
             minver: "10.12"
           - arch: arm64
-            runner: macos-14
+            runner: macos-15
             minver: "11.0"
     runs-on: ${{ matrix.runner }}
     env:
