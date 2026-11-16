@@ -43,10 +43,11 @@
 #   include <openssl/sha.h>
 #endif // __APPLE__
 
-#define FIRMWARE_JSON_URL "https://api.ipsw.me/v2.1/firmwares.json/condensed"
+#define FIRMWARE_JSON_URL "https://api.ipsw.me/v4/ipsw/device/"
 #define FIRMWARE_BETA_JSON_URL "https://api.m1sta.xyz/betas/"
 #define FIRMWARE_BETA_JSON_URL2 "https://api.appledb.dev/ios/"
-#define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v2.1/ota.json/condensed"
+#define FIRMWARE_OTA_JSON_URL "https://api.ipsw.me/v4/ota/device/"
+#define ALL_DEVICES_JSON_URL "https://api.ipsw.me/v4/devices"
 
 /* for KTRR devices this value - 32 */
 #define NONCELEN_BASEBAND 20
@@ -58,20 +59,22 @@
 #ifdef WIN32
 #define __mkdir(path, mode) mkdir(path)
 static int win_path_didinit = 0;
-static const char *win_paths[4];
+static const char *win_paths[5];
 
 enum paths{
     kWINPathTSSCHECKER,
     kWINPathOTA,
     kWINPathFIRMWARE,
-    kWINPathBetaFIRMWARE
+    kWINPathBetaFIRMWARE,
+    kWINPathDevices
 };
 
 static const char *win_pathvars[]={
     "\\tsschecker",
-    "\\ota.json",
-    "\\firmwares.json",
-    "\\firmwares_betas.json"
+    "\\tsschecker\\ota.json",
+    "\\tsschecker\\firmwares.json",
+    "\\tsschecker\\firmwares_betas.json",
+    "\\tsschecker\\devices.json"
 };
 
 static const char *win_path_get(enum paths path){
@@ -98,15 +101,17 @@ static const char *win_path_get(enum paths path){
 #define FIRMWARE_JSON_PATH win_path_get(kWINPathFIRMWARE)
 #define FIRMWARE_OTA_JSON_PATH win_path_get(kWINPathOTA)
 #define FIRMWARE_BETA_JSON_PATH win_path_get(kWINPathBetaFIRMWARE)
+#define ALL_DEVICES_JSON_PATH win_path_get(kWINPathDevices)
 #define DIRECTORY_DELIMITER_STR "\\"
 #define DIRECTORY_DELIMITER_CHR '\\'
 
 #else
 
 #define MANIFEST_SAVE_PATH "/tmp/tsschecker"
-#define FIRMWARE_JSON_PATH "/tmp/firmwares.json"
-#define FIRMWARE_OTA_JSON_PATH "/tmp/firmwares_ota.json"
-#define FIRMWARE_BETA_JSON_PATH "/tmp/firmwares_betas.json"
+#define FIRMWARE_JSON_PATH "/tmp/tsschecker/firmwares.json"
+#define FIRMWARE_OTA_JSON_PATH "/tmp/tsschecker/firmwares_ota.json"
+#define FIRMWARE_BETA_JSON_PATH "/tmp/tsschecker/firmwares_betas.json"
+#define ALL_DEVICES_JSON_PATH "/tmp/tsschecker/devices.json"
 #define DIRECTORY_DELIMITER_STR "/"
 #define DIRECTORY_DELIMITER_CHR '/'
 
@@ -562,40 +567,29 @@ void sha384(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
 #endif
 }
 
-char *getFirmwareJson(){
-    debug("[TSSC] opening firmwares.json\n");
-    FILE *f = fopen(FIRMWARE_JSON_PATH, "rb");
-    if (!f || nocache){
-        downloadFile(FIRMWARE_JSON_URL, FIRMWARE_JSON_PATH);
-        f = fopen(FIRMWARE_JSON_PATH, "rb");
-    }
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    char *fJson = malloc(fsize + 1);
-    fread(fJson, fsize, 1, f);
-    fclose(f);
-    return fJson;
-}
-
-char *getBetaFirmwareJson2(const char *type, const char *buildid) {
-    char url[256], path[256];
-    memset(url, 0, 256);
-    memset(path, 0, 256);
-    strcat(url, FIRMWARE_BETA_JSON_URL2);
-    strcat(url, type);
-    strcat(url, ";");
-    strcat(url, buildid);
-    strcat(url, ".json");
-    strcat(path, FIRMWARE_BETA_JSON_PATH);
+static char *getJsonFromUrl(const char *url, const char *path){
+    struct stat st = {0};
+    if (stat(MANIFEST_SAVE_PATH, &st) == -1) __mkdir(MANIFEST_SAVE_PATH, 0700);
     debug("[TSSC] opening %s\n", path);
     FILE *f = fopen(path, "rb");
     if (!f || nocache){
+        if (f) fclose(f);
         downloadFile(url, path);
         f = fopen(path, "rb");
     }
+    if (!f) return NULL;
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
+    if (fsize < 1) {
+        fclose(f);
+        if (downloadFile(url, path)) return NULL;
+        if (!(f = fopen(path, "rb"))) return NULL;
+        fseek(f, 0, SEEK_END);
+        if ((fsize = ftell(f)) < 1){
+            fclose(f);
+            return NULL;
+        }
+    }
     fseek(f, 0, SEEK_SET);
     char *fJson = calloc(1, fsize + 1);
     fread(fJson, fsize, 1, f);
@@ -603,46 +597,36 @@ char *getBetaFirmwareJson2(const char *type, const char *buildid) {
     return fJson;
 }
 
-char *getBetaFirmwareJson(const char *device) {
-    char url[50], path[50];
-    memset(url, 0, 50);
-    memset(path, 0, 50);
-    strcat(url, FIRMWARE_BETA_JSON_URL);
-    strcat(url, device);
-    strcat(path, FIRMWARE_BETA_JSON_PATH);
-    debug("[TSSC] opening %s\n", path);
-    FILE *f = fopen(path, "rb");
-    if (!f || nocache){
-        downloadFile(url, path);
-        f = fopen(path, "rb");
-    }
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    if(fsize < 1) {
-        return NULL;
-    } else {
-        fseek(f, 0, SEEK_SET);
-        char *fJson = calloc(1, fsize + 1);
-        fread(fJson, fsize, 1, f);
-        fclose(f);
-        return fJson;
-    }
+char *getFirmwareJson(const char *device){
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), FIRMWARE_JSON_URL"%s", device);
+    snprintf(path, sizeof(path), "%s_%s", FIRMWARE_JSON_PATH, device);
+    return getJsonFromUrl(url, path);
 }
 
-char *getOtaJson(){
-    debug("[TSSC] opening ota.json\n");
-    FILE *f = fopen(FIRMWARE_OTA_JSON_PATH, "rb");
-    if (!f || nocache){
-        downloadFile(FIRMWARE_OTA_JSON_URL, FIRMWARE_OTA_JSON_PATH);
-        f = fopen(FIRMWARE_OTA_JSON_PATH, "rb");
-    }
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    char *fJson = malloc(fsize + 1);
-    fread(fJson, fsize, 1, f);
-    fclose(f);
-    return fJson;
+char *getDevicesJson(){
+    return getJsonFromUrl(ALL_DEVICES_JSON_URL, ALL_DEVICES_JSON_PATH);
+}
+
+char *getBetaFirmwareJson2(const char *type, const char *buildid) {
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), "%s%s;%s.json", FIRMWARE_BETA_JSON_URL2, type, buildid);
+    snprintf(path, sizeof(path), "%s_%s;%s", FIRMWARE_BETA_JSON_PATH, type, buildid);
+    return getJsonFromUrl(url, path);
+}
+
+char *getBetaFirmwareJson(const char *device) {
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), "%s%s", FIRMWARE_BETA_JSON_URL, device);
+    snprintf(path, sizeof(path), "%s_%s", FIRMWARE_BETA_JSON_PATH, device);
+    return getJsonFromUrl(url, path);
+}
+
+char *getOtaJson(const char *device){
+    char url[256], path[1024];
+    snprintf(url, sizeof(url), FIRMWARE_OTA_JSON_URL"%s", device);
+    snprintf(path, sizeof(path), "%s_%s", FIRMWARE_OTA_JSON_PATH, device);
+    return getJsonFromUrl(url, path);
 }
 
 #pragma mark more get functions
@@ -882,14 +866,10 @@ int downloadPartialzip(const char *url, const char *file, const char *dst){
 
 char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta){
     struct stat st = {0};
-    size_t len = 0;
-    if(version) {
-        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + strlen(version) + 1 + strlen(".plist");
-    } else {
-        len = strlen(MANIFEST_SAVE_PATH) + strlen("/__") + strlen(device) + 1 + strlen(".plist");
-    }
-    if (buildID) len += strlen(buildID);
-    if (isOta) len += strlen("ota");
+    size_t len = strlen(MANIFEST_SAVE_PATH) + strlen(DIRECTORY_DELIMITER_STR) + strlen(device) + strlen(".plist") + 1;
+    if (version) len += strlen("_") + strlen(version);
+    if (buildID) len += strlen("_") + strlen(buildID);
+    if (isOta)   len += strlen("_OTA");
     char *fileDir = malloc(len);
     memset(fileDir, 0, len);
     
@@ -937,15 +917,15 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
                     index = i;
                 }
             }
-            char *buildmanifest_url = malloc(strlen(url));
-            buildmanifest_url = strncpy(buildmanifest_url, url, index);
+            char *buildmanifest_url = malloc(index + strlen("/BuildManifest.plist") + 1);
+            strncpy(buildmanifest_url, url, index);
             buildmanifest_url[index] = '\0';
-            buildmanifest_url = strcat(buildmanifest_url, "/BuildManifest.plist");
+            strcat(buildmanifest_url, "/BuildManifest.plist");
 
             if (downloadFile(buildmanifest_url, fileDir) == 0) {
-                free(buildmanifest_url);
                 got_buildmanifest = 1;
             }
+            free(buildmanifest_url);
         }
 
         if (!got_buildmanifest) {
@@ -1801,31 +1781,33 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
     if (!urls) reterror("[TSSC] ERROR: could not get url for device %s on iOS %s\n",devVals->deviceModel,(!versVals->version ? versVals->buildID : versVals->version));
 
     int cursigned = 0;
+    int skippedDups = 0;
     for (t_versionURL *u = urls; u->url; u++) {
-        buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
-        if (!buildManifest) {
-            error("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",u->url);
-            continue;
-        }
+        if (cursigned && u->isDupulicate) {
+            // don't redownload duplicate manifests
+            skippedDups++;
+            debug("[TSSC] skipping duplicated build %s %s\n",u->version,u->buildID);
+        }else{
+            buildManifest = getBuildManifest(u->url, devVals->deviceModel, versVals->version, u->buildID, versVals->isOta);
+            if (!buildManifest) {
+                error("[TSSC] ERROR: could not get BuildManifest for firmwareurl %s\n",u->url);
+            }else{
+                nocache = 1;
 
-        if (cursigned && !u->isDupulicate) cursigned = 0;
-        
-        nocache = 1;
-        
-        if (cursigned) {
-            info("[TSSC] skipping duplicated build\n");
-            
-        }else if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode, server_url_string)) >= 0){
-            cursigned |= (isSigned > 0);
-            
-            isSigned = (isSignedOne > 0 || isSigned > 0);
-            if (buildManifest) (void)(free(buildManifest)), buildManifest = NULL;
-            info("Firmware version %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+                if ((isSignedOne = isManifestBufSignedForDevice(buildManifest, devVals, versVals->basebandMode, server_url_string)) >= 0){
+                    cursigned = (isSignedOne > 0);
+                    isSigned = (isSignedOne > 0 || isSigned > 0);
+                    info("Firmware version %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+                }
+                free(buildManifest);
+                buildManifest = NULL;
+            }
         }
         (void)(free(u->url)),u->url = NULL;
         (void)(free(u->buildID)),u->buildID = NULL;
         (void)(free(u->version)),u->version = NULL;
     }
+    if (skippedDups) info("[TSSC] skipped %d duplicated build variant%s\n",skippedDups,(skippedDups == 1) ? "" : "s");
     (void)(free(urls)),urls = NULL;
     
 error:
@@ -1866,34 +1848,30 @@ int printListOfDevices(jssytok_t *tokens){
     size_t currLen = 0;
     int rspn = 0;
     putchar('\n');
-    jssytok_t *ctok = NULL;
-    if (!(ctok = jssy_dictGetValueForKey(tokens, "devices"))){
-        warning("Failed to get value for key 'devices', trying with tokens instead!\n\n");
-        ctok = tokens;
-    }
-    
-    jssytok_t *tmp = ctok->subval;
-    for (size_t i=0; i<ctok->size; tmp = tmp->next,i++) {
+    jssytok_t *tmp = tokens->subval;
+    for (size_t i=0; i<tokens->size; tmp = tmp->next,i++) {
+        jssytok_t *ident = jssy_dictGetValueForKey(tmp, "identifier");
+        if (!ident) continue;
         if (!curr){
-            curr = tmp->value;
-            currLen = tmp->size;
+            curr = ident->value;
+            currLen = ident->size;
         }else{
             for (int i = 0; i<currLen; i++) {
                 char c = curr[i];
                 if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))) break;
-                if (c != tmp->value[i]) {
+                if (c != ident->value[i]) {
                     putchar('\n');
                     putchar('\n');
-                    curr = tmp->value;
-                    currLen = tmp->size;
+                    curr = ident->value;
+                    currLen = ident->size;
                     rspn = 0;
                     break;
                 }
             }
         }
-        printJString(tmp);
+        printJString(ident);
         if (++rspn>= MAX_PER_LINE) (void)(putchar('\n')), rspn = 0; else putchar(' ');
-        
+
     }
     putchar('\n');
     putchar('\n');
@@ -2069,20 +2047,10 @@ int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA){
 
 #pragma mark check functions
 jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta){
-    jssytok_t *ctok = (isOta) ? tokens : jssy_dictGetValueForKey(tokens, "devices");
-    if(!ctok) {
+    if (!tokens) {
         return NULL;
     }
-    
-    jssytok_t *tmp = ctok->subval;
-    for (int i=0; i<ctok->size; tmp = tmp->next, i++) {
-        if (strncasecmp(device, tmp->value, tmp->size) == 0
-            && strlen(device) == tmp->size) {
-            return jssy_dictGetValueForKey(tmp->subval, "firmwares");
-        }
-    }
-    
-    return NULL;
+    return jssy_dictGetValueForKey(tokens, "firmwares");
 }
 
 int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, jssytok_t *tokens){
