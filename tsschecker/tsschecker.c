@@ -1092,9 +1092,6 @@ int tss_request_add_custom_cryptex_tags(plist_t request, plist_t parameters)
     if ((strstr(key, "Cryptex") == 0)) {
       continue;
     }
-    if ((strstr(key, "Rap") == 0)) {
-      continue;
-    }
 
     plist_t info_dict = plist_dict_get_item(manifest_entry, "Info");
     if (!info_dict) {
