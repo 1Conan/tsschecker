@@ -192,9 +192,15 @@ static struct bbdevice bbdevices[] = {
     {"Mac17,7", 0, 0},         // MacBook Pro (14-inch, M5 Max)
     {"Mac17,8", 0, 0},         // MacBook Pro (16-inch, M5 Pro)
     {"Mac17,9", 0, 0},         // MacBook Pro (14-inch, M5 Pro)
+    {"Mac17,10", 0, 0},        // MacBook Pro PROLED XDR (16-inch, M5 Max)
+    {"Mac17,11", 0, 0},        // MacBook Pro PROLED XDR (14-inch, M5 Max)
+    {"Mac17,12", 0, 0},        // MacBook Pro PROLED XDR (16-inch, M5 Pro)
+    {"Mac17,13", 0, 0},        // MacBook Pro PROLED XDR (14-inch, M5 Pro)
     {"Mac17,14", 0, 0},        // Mac Studio (M5 Max)
     {"Mac17,15", 0, 0},        // Mac Studio (M5 Ultra)
     {"Mac17,16", 0, 0},        // Mac mini (M5 Pro)
+    {"Mac18,1", 0, 0},         // MacBook Pro (M6)
+    {"Mac18,2", 0, 0},         // iMac (M6)
     {"Mac18,5", 0, 0},         // Mac mini (M6)
 
     // Apple Displays
@@ -291,9 +297,10 @@ static struct bbdevice bbdevices[] = {
     {"iPhone18,2", 694094470, 8},    // iPhone 17 Pro Max
     {"iPhone18,4", 4, 0},            // iPhone Air
     {"iPhone18,5", 4, 0},            // iPhone 17e
-    {"iPhone19,2", 4, 0},            // iPhone 18 Pro
+    {"iPhone19,2", 0, 0},            // iPhone 18 Pro
     {"iPhone19,3", 694094470, 8},    // iPhone 18 Pro Max (US)
-    {"iPhone19,7", 4, 0},            // iPhone 18 Pro Max (International)
+    {"iPhone19,4", 0, 0},            // iPhone Duo
+    {"iPhone19,7", 0, 0},            // iPhone 18 Pro Max (International)
 
     // iPads
     {"iPad1,1",    0, 0},            // iPad (1st gen)
@@ -340,6 +347,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad14,2",   495958265, 4},    // iPad mini (6th gen, Cellular)
     {"iPad16,1",   0, 0},            // iPad mini (A17 Pro, Wi-Fi)
     {"iPad16,2",   3452763205, 4},   // iPad mini (A17 Pro, Cellular)
+    {"iPad19,1",   0, 0},            // iPad mini (A20 Pro, Wi-Fi)
+    {"iPad19,2",   0, 0},            // iPad mini (A20 Pro, Cellular)
 
     // iPad Airs
     {"iPad4,1",    0, 0},            // iPad Air (Wi-Fi)
@@ -477,6 +486,11 @@ static struct bbdevice bbdevices[] = {
     {"AudioAccessory1,2",   0, 0},   // HomePod 1st gen (2018)
     {"AudioAccessory5,1",   0, 0},   // HomePod mini
     {"AudioAccessory6,1",   0, 0},   // HomePod 2nd gen
+    {"AudioAccessory11,1",  0, 0},  // HomePod mini 2
+
+    // HomeViews
+    {"HomeAccessory17,1",   0, 0},  // HomeView
+    {"HomeAccessory17,2",   0, 0},  // HomeView (Wall-Mounted)
 
     // Apple TVs
     {"AppleTV1,1",   0, 0},  // 1st gen
@@ -487,6 +501,7 @@ static struct bbdevice bbdevices[] = {
     {"AppleTV6,2",   0, 0},  // 4K 1st gen
     {"AppleTV11,1",  0, 0},  // 4K 2nd gen
     {"AppleTV14,1",  0, 0},  // 4K 3rd gen
+    {"AppleTV18,1",  0, 0},  // 4K 4th gen
     {NULL, 0, 0}
 };
 
@@ -1584,10 +1599,8 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceBoard, "j86map") || !strcasecmp(devVals->deviceBoard, "j87map")
                                         || !strcasecmp(devVals->deviceBoard, "j96ap") || !strcasecmp(devVals->deviceBoard, "j97ap")
                                         || !strcasecmp(devVals->deviceBoard, "j81ap") || !strcasecmp(devVals->deviceBoard, "j82ap")
-                                        || !strcasecmp(devVals->deviceBoard, "j707ap") || !strcasecmp(devVals->deviceBoard, "j708ap")
                                         || !strcasecmp(devVals->deviceBoard, "j717ap") || !strcasecmp(devVals->deviceBoard, "j718ap")
                                         || !strcasecmp(devVals->deviceBoard, "j720ap") || !strcasecmp(devVals->deviceBoard, "j721ap")
-                                        || !strcasecmp(devVals->deviceBoard, "j737ap") || !strcasecmp(devVals->deviceBoard, "j738ap")
                                         || !strcasecmp(devVals->deviceBoard, "j42dap") || !strcasecmp(devVals->deviceBoard, "j105aap")
                                         || !strcasecmp(devVals->deviceBoard, "j305ap") || !strcasecmp(devVals->deviceBoard, "j255ap"))) {
                 save_apticket3 = false;
@@ -1611,8 +1624,6 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
                                         || !strcasecmp(devVals->deviceModel, "iPad16,1") || !strcasecmp(devVals->deviceModel, "iPad16,2")
                                         || !strcasecmp(devVals->deviceModel, "iPad16,3") || !strcasecmp(devVals->deviceModel, "iPad16,4")
                                         || !strcasecmp(devVals->deviceModel, "iPad16,5") || !strcasecmp(devVals->deviceModel, "iPad16,6")
-                                        || !strcasecmp(devVals->deviceModel, "iPad16,8") || !strcasecmp(devVals->deviceModel, "iPad16,9")
-                                        || !strcasecmp(devVals->deviceModel, "iPad16,10") || !strcasecmp(devVals->deviceModel, "iPad16,11")
                                         || !strcasecmp(devVals->deviceModel, "Appletv5,3") || !strcasecmp(devVals->deviceModel, "Appletv6,2")
                                         || !strcasecmp(devVals->deviceModel, "Appletv11,1") || !strcasecmp(devVals->deviceModel, "Appletv14,1"))) {
                 save_apticket3 = false;
